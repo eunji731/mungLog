@@ -9,8 +9,23 @@ import { FileUploader } from '@/components/common/FileUploader';
 import { useCareRecordForm } from './hooks/useCareRecordForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 
-const CareRecordFormPage: React.FC = () => {
-  const { id } = useParams();
+interface CareRecordFormPageProps {
+  id?: string;
+  prefillDate?: string;
+  onSaveSuccess?: () => void;
+  onCancel?: () => void;
+  isEmbedded?: boolean;
+}
+
+const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
+  id: propId,
+  prefillDate,
+  onSaveSuccess,
+  onCancel,
+  isEmbedded = false
+}) => {
+  const { id: routeId } = useParams();
+  const id = propId || routeId;
   const navigate = useNavigate();
   const isEdit = !!id;
 
@@ -23,7 +38,7 @@ const CareRecordFormPage: React.FC = () => {
     handleSave,
     isLoading,
     isFetching
-  } = useCareRecordForm(id);
+  } = useCareRecordForm(id, { prefillDate, onSaveSuccess });
 
   const { codes: allRecordTypes } = useCommonCodes('RECORD_TYPE');
   const recordTypes = allRecordTypes.filter(t => t.code !== 'MEMO');
@@ -45,17 +60,17 @@ const CareRecordFormPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
       {/* Header */}
-      <div className="bg-background border-b border-border p-6 lg:px-10 lg:py-6 shrink-0">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className={`bg-background border-b border-border shrink-0 ${isEmbedded ? 'px-4 py-3 lg:px-5 lg:py-3.5' : 'p-6 lg:px-10 lg:py-6'}`}>
+        <div className={`max-w-4xl mx-auto flex justify-between items-center gap-4 ${isEmbedded ? '' : 'flex-col md:flex-row md:items-center'}`}>
           <div>
-            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Care Records Form</span>
-            <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+            {!isEmbedded && <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Care Records Form</span>}
+            <h1 className={`${isEmbedded ? 'text-base lg:text-lg' : 'text-2xl lg:text-3xl'} font-black text-foreground tracking-tight`}>
               {isEdit ? '케어기록 수정' : '새 케어기록 등록'}
             </h1>
-            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">반려견의 건강 정보를 기록하세요.</p>
+            {!isEmbedded && <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">반려견의 건강 정보를 기록하세요.</p>}
           </div>
           <div className="flex gap-2 shrink-0">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="px-4 font-bold text-text-sub text-xs">취소</Button>
+            <Button variant="ghost" onClick={onCancel || (() => navigate(-1))} className="px-4 font-bold text-text-sub text-xs">취소</Button>
             <Button onClick={handleSave} disabled={isLoading} className="px-6 h-[40px] text-xs font-black rounded-xl">
               {isLoading ? '저장 중...' : (isEdit ? '수정' : '저장')}
             </Button>
@@ -64,17 +79,17 @@ const CareRecordFormPage: React.FC = () => {
       </div>
 
       {/* Main Content Area with inner scroll */}
-      <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 bg-surface-green/10">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className={`flex-1 overflow-y-auto no-scrollbar bg-surface-green/10 ${isEmbedded ? 'p-4 pt-1.5 space-y-3' : 'p-6 lg:p-8 space-y-6'}`}>
+        <div className={`max-w-4xl mx-auto ${isEmbedded ? 'space-y-3' : 'space-y-6'}`}>
           
           {/* 기록 종류 선택 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-border">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${isEmbedded ? 'pb-3' : 'pb-6 border-b border-border'}`}>
             {recordTypes.map((type) => {
               const isActive = recordTypeId === type.id;
               const isMed = type.code === 'MEDICAL';
               return (
                 <button
-                  key={type.id}
+                   key={type.id}
                   type="button"
                   onClick={() => setRecordTypeId(type.id)}
                   className={`group relative flex items-center p-4 rounded-2xl text-left transition-all duration-300 active:scale-[0.98] overflow-hidden ${
@@ -123,10 +138,10 @@ const CareRecordFormPage: React.FC = () => {
           </div>
 
           {/* 공통 정보 */}
-          <CommonInfoForm data={commonData} onChange={setCommonData} />
+          <CommonInfoForm data={commonData} onChange={setCommonData} isEmbedded={isEmbedded} />
 
           {/* 조건부 상세 폼 (평면 구조 유지) */}
-          <div className="pt-6 border-t border-border">
+          <div className={`border-t border-border ${isEmbedded ? 'pt-3' : 'pt-6'}`}>
             {isMedicalSelected ? (
               <MedicalForm data={medicalData} onChange={setMedicalData} />
             ) : (

@@ -11,9 +11,10 @@ interface CalendarCarePanelProps {
   date: Date;
   careRecords: CareRecord[];
   onClose: () => void;
+  onAddNew?: () => void;
 }
 
-export default function CalendarCarePanel({ date, careRecords, onClose }: CalendarCarePanelProps) {
+export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew }: CalendarCarePanelProps) {
   const navigate = useNavigate();
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
   const { getCodeNameById } = useCommonCodes('EXPENSE_CATEGORY');
@@ -36,13 +37,17 @@ export default function CalendarCarePanel({ date, careRecords, onClose }: Calend
   }, [careRecords, formattedDate]);
 
   const handleAddNew = () => {
-    navigate('/care-records/new', { 
-      state: { 
-        prefillData: { 
-          recordDate: formattedDate 
+    if (onAddNew) {
+      onAddNew();
+    } else {
+      navigate('/care-records/new', { 
+        state: { 
+          prefillData: { 
+            recordDate: formattedDate 
+          } 
         } 
-      } 
-    });
+      });
+    }
   };
 
   const getTypeName = (record: CareRecord) => {

@@ -15,6 +15,8 @@ import { useCareRecords } from '@/pawcare-pages/CareRecords/List/hooks/useCareRe
 import { useSchedules } from '@/pawcare-pages/Schedules/List/hooks/useSchedules';
 import CalendarCarePanel from '@/app/calendar/components/CalendarCarePanel';
 import CalendarSchedulePanel from '@/app/calendar/components/CalendarSchedulePanel';
+import CareRecordFormPage from '@/pages/CareRecords/Form';
+import { ToastProvider } from '@/context/ToastContext';
 
 function CalendarContent() {
   const searchParams = useSearchParams();
@@ -26,7 +28,7 @@ function CalendarContent() {
   const tabParam = searchParams?.get('tab') || 'petlog';
 
   // 달력용 케어 및 일정 데이터 연동
-  const { calendarRecords } = useCareRecords();
+  const { calendarRecords, refetch: refetchCareRecords } = useCareRecords();
   const { schedules } = useSchedules();
 
   // URL에서 초기 날짜 계산 (렌더링 시점에 바로 결정)
@@ -60,6 +62,30 @@ function CalendarContent() {
     onSelectDate
   } = useCalendar(initialDate);
 
+  const formattedSelectedDate = React.useMemo(() => {
+    const offset = selectedDate.getTimezoneOffset();
+    const localDate = new Date(selectedDate.getTime() - offset * 60 * 1000);
+    return localDate.toISOString().split('T')[0];
+  }, [selectedDate]);
+
+  const handleCareAddNew = () => {
+    setIsEditing(true);
+    setShowSidePanel(true);
+  };
+
+  const handleCareSaveSuccess = () => {
+    refetchCareRecords();
+    setIsEditing(false);
+    setShowSidePanel(false);
+    setIsExpanded(false);
+  };
+
+  const handleCareCancel = () => {
+    setIsEditing(false);
+    setShowSidePanel(false);
+    setIsExpanded(false);
+  };
+
   // URL 파라미터가 변경될 때를 위한 처리 (이미 페이지에 있을 때 파라미터만 바뀌는 경우)
   useEffect(() => {
     if (dateParam) {
@@ -86,6 +112,7 @@ function CalendarContent() {
 
   const handleTabChange = (newTab: string) => {
     setIsExpanded(false);
+    setIsEditing(false);
     setShowSidePanel(true);
     const params = new URLSearchParams(searchParams?.toString() || '');
     params.set('tab', newTab);
@@ -156,15 +183,14 @@ function CalendarContent() {
                     setIsEditing(true);
                     setShowSidePanel(true);
                     setIsTimelineMode(false);
+                  } else if (tabParam === 'care') {
+                    setIsEditing(true);
+                    setShowSidePanel(true);
                   } else {
                     const offset = selectedDate.getTimezoneOffset();
                     const localDate = new Date(selectedDate.getTime() - offset * 60 * 1000);
                     const formattedDate = localDate.toISOString().split('T')[0];
-                    if (tabParam === 'care') {
-                      router.push(`/care-records/new?date=${formattedDate}`);
-                    } else {
-                      router.push(`/schedules/new?date=${formattedDate}`);
-                    }
+                    router.push(`/schedules/new?date=${formattedDate}`);
                   }
                 }}
                 isTimelineMode={tabParam === 'petlog' && isTimelineMode}
@@ -248,11 +274,21 @@ function CalendarContent() {
                       />
                     )
                   ) : tabParam === 'care' ? (
-                    <CalendarCarePanel 
-                      date={selectedDate}
-                      careRecords={calendarRecords}
-                      onClose={handleClosePanel}
-                    />
+                    isEditing ? (
+                      <CareRecordFormPage 
+                        prefillDate={formattedSelectedDate}
+                        onSaveSuccess={handleCareSaveSuccess}
+                        onCancel={handleCareCancel}
+                        isEmbedded={true}
+                      />
+                    ) : (
+                      <CalendarCarePanel 
+                        date={selectedDate}
+                        careRecords={calendarRecords}
+                        onClose={handleClosePanel}
+                        onAddNew={handleCareAddNew}
+                      />
+                    )
                   ) : (
                     <CalendarSchedulePanel 
                       date={selectedDate}
@@ -272,8 +308,10 @@ function CalendarContent() {
 
 export default function CalendarPage() {
   return (
-    <Suspense fallback={<div className="flex-1 flex items-center justify-center bg-background text-sm font-bold text-text-sub">불러오는 중...</div>}>
-      <CalendarContent />
-    </Suspense>
+    <ToastProvider>
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center bg-background text-sm font-bold text-text-sub">불러오는 중...</div>}>
+        <CalendarContent />
+      </Suspense>
+    </ToastProvider>
   );
 }

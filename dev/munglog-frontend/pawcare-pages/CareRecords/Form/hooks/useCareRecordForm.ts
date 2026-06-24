@@ -7,7 +7,7 @@ import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { useToast } from '@/context/ToastContext';
 import type { CareRecord, CareRecordCreateRequest } from '@/types/care';
 
-export const useCareRecordForm = (id?: string) => {
+export const useCareRecordForm = (id?: string, options?: { prefillDate?: string; onSaveSuccess?: () => void }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
@@ -22,7 +22,7 @@ export const useCareRecordForm = (id?: string) => {
 
   const [commonData, setCommonData] = useState({
     dogId: '',
-    recordDate: new Date().toISOString().split('T')[0],
+    recordDate: options?.prefillDate || new Date().toISOString().split('T')[0],
     title: '',
     note: ''
   });
@@ -164,7 +164,7 @@ export const useCareRecordForm = (id?: string) => {
       
       setCommonData({
         dogId: prefillData.dogId?.toString() || '',
-        recordDate: prefillData.recordDate || new Date().toISOString().split('T')[0],
+        recordDate: prefillData.recordDate || options?.prefillDate || new Date().toISOString().split('T')[0],
         title: prefillData.title || '',
         note: prefillData.note || ''
       });
@@ -193,8 +193,13 @@ export const useCareRecordForm = (id?: string) => {
       if (prefillData.fromScheduleId) {
         setFromScheduleId(String(prefillData.fromScheduleId));
       }
+    } else if (options?.prefillDate) {
+      setCommonData(prev => ({
+        ...prev,
+        recordDate: options.prefillDate!
+      }));
     }
-  }, [id, location.state, recordTypes]);
+  }, [id, location.state, recordTypes, options?.prefillDate]);
 
   useEffect(() => {
     const typeCode = getRecordTypeCode(recordTypeId);
@@ -255,11 +260,19 @@ export const useCareRecordForm = (id?: string) => {
       if (id) {
         await careApi.updateRecord(id, payload);
         showToast('기록이 수정되었습니다! ✨', 'success');
-        navigate(`/care-records/${id}`); 
+        if (options?.onSaveSuccess) {
+          options.onSaveSuccess();
+        } else {
+          navigate(`/care-records/${id}`); 
+        }
       } else {
         await careApi.createRecord(payload);
         showToast('기록이 저장되었습니다! ✨', 'success');
-        navigate('/care-records'); 
+        if (options?.onSaveSuccess) {
+          options.onSaveSuccess();
+        } else {
+          navigate('/care-records'); 
+        }
       }
     } catch (err: any) {
       console.error('Save Error:', err);

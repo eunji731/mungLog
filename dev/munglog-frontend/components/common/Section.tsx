@@ -6,9 +6,36 @@ interface SectionProps {
   children: React.ReactNode;
   rightElement?: React.ReactNode;
   className?: string;
+  variant?: 'default' | 'flat';
 }
 
-export const Section: React.FC<SectionProps> = ({ title, description, children, rightElement, className = '' }) => {
+export const Section: React.FC<SectionProps> = ({ 
+  title, 
+  description, 
+  children, 
+  rightElement, 
+  className = '',
+  variant = 'default'
+}) => {
+  if (variant === 'flat') {
+    return (
+      <section className={`${className}`}>
+        {(title || rightElement) && (
+          <div className="py-2 flex items-center justify-between bg-transparent">
+            <div>
+              {title && <h3 className="text-[16px] font-black text-[#2D2D2D] tracking-tight leading-tight">{title}</h3>}
+              {description && <p className="text-[11px] text-stone-400 mt-1 font-medium">{description}</p>}
+            </div>
+            {rightElement}
+          </div>
+        )}
+        <div className="py-2">
+          {children}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className={`bg-white rounded-[32px] border border-[#F0F0F0] shadow-[0_10px_40px_rgba(0,0,0,0.03)] overflow-hidden ${className}`}>
       {(title || rightElement) && (

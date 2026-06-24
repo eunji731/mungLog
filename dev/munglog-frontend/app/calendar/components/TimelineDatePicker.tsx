@@ -8,11 +8,12 @@ interface TimelineDatePickerProps {
   value: string; // YYYY-MM-DD
   onChange: (date: string) => void;
   label: string;
+  variant?: 'button' | 'form';
 }
 
 type PickerMode = 'day' | 'yearMonth';
 
-export default function TimelineDatePicker({ value, onChange, label }: TimelineDatePickerProps) {
+export default function TimelineDatePicker({ value, onChange, label, variant = 'button' }: TimelineDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setPickerMode] = useState<PickerMode>('day');
   const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
@@ -195,9 +196,34 @@ export default function TimelineDatePicker({ value, onChange, label }: TimelineD
     </div>
   );
 
-  return (
-    <div className="relative" ref={containerRef}>
+  const renderTrigger = () => {
+    if (variant === 'form') {
+      return (
+        <div className="w-full space-y-2 text-left">
+          <label className="text-[13px] font-black text-text-sub uppercase tracking-wider ml-1">
+            {label}
+          </label>
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className={`w-full px-5 py-3.5 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
+              isOpen 
+                ? 'border-main-green ring-4 ring-main-green/5' 
+                : 'border-border hover:border-main-green/30'
+            }`}
+          >
+            <span className="text-[15px] font-medium text-foreground">
+              {value ? displayDate : '날짜 선택'}
+            </span>
+            <CalendarIcon className={`w-5 h-5 ${isOpen ? 'text-main-green' : 'text-text-sub'}`} />
+          </button>
+        </div>
+      );
+    }
+
+    return (
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
           isOpen ? 'border-main-green bg-main-green/5 ring-4 ring-main-green/10' : 'border-border bg-background hover:border-main-green/30'
@@ -208,6 +234,12 @@ export default function TimelineDatePicker({ value, onChange, label }: TimelineD
           {value ? displayDate : label}
         </span>
       </button>
+    );
+  };
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      {renderTrigger()}
 
       {isOpen && (
         <>
@@ -231,7 +263,9 @@ export default function TimelineDatePicker({ value, onChange, label }: TimelineD
           )}
 
           {/* DESKTOP VERSION: Remains inline with button */}
-          <div className="hidden lg:block absolute top-full left-0 mt-2 z-[100] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200 origin-top-left">
+          <div className={`hidden lg:block absolute top-full mt-2 z-[100] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200 ${
+            variant === 'form' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
+          }`}>
             {renderPickerMain(false)}
           </div>
         </>
