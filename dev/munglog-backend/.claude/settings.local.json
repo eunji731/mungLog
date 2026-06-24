@@ -11,7 +11,13 @@
       "PowerShell(cd D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend; .\\\\gradlew bootRun 2>&1 | Where-Object { $_ -match \"ERROR|Exception|Caused by|Started munglog\" } | Select-Object -First 20)",
       "PowerShell(cd D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend; .\\\\gradlew bootRun 2>&1 | Where-Object { $_ -match \"Caused by|ACTION|Description|Failed to start\" } | Select-Object -First 20)",
       "PowerShell(Get-NetTCPConnection *)",
-      "PowerShell(cd D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend; .\\\\gradlew bootRun 2>&1 | Where-Object { $_ -match \"Caused by|ACTION|Description|Started munglog|APPLICATION FAILED\" } | Select-Object -First 20)"
+      "PowerShell(cd D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend; .\\\\gradlew bootRun 2>&1 | Where-Object { $_ -match \"Caused by|ACTION|Description|Started munglog|APPLICATION FAILED\" } | Select-Object -First 20)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\petLifeLog\\\\dev\\\\front\\\\petlifelog -Depth 2 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next|\\\\.git' } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\pawCareChart\\\\dev\\\\frontend\\\\src -Depth 3 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\mungLog\\\\dev -Depth 2 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next|\\\\.gradle|build' } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-frontend -Depth 2 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\petLifeLog\\\\dev\\\\front\\\\petlifelog -Recurse | Where-Object { !$_.PSIsContainer -and $_.FullName -notmatch 'node_modules|\\\\.next|tsconfig\\\\.tsbuildinfo|package-lock' } | Select-Object -ExpandProperty FullName | Sort-Object | Measure-Object | Select-Object Count)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\pawCareChart\\\\dev\\\\frontend\\\\src -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object | Measure-Object | Select-Object Count)"
     ]
   }
 }
