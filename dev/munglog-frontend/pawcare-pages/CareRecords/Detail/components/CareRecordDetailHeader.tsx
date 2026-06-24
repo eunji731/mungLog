@@ -1,7 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import type { CareRecord } from '@/types/care';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { isMedicalRecordType } from '@/lib/codeGroups';
 
 interface CareRecordDetailHeaderProps {
   record: CareRecord;
@@ -10,16 +10,11 @@ interface CareRecordDetailHeaderProps {
 
 export const CareRecordDetailHeader: React.FC<CareRecordDetailHeaderProps> = ({ record, onDelete }) => {
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
-  
-  let recordTypeCode = String((record as any).recordType || '');
-  if (record.recordTypeId) {
-    recordTypeCode = recordTypes.find(t => t.id === record.recordTypeId)?.code || recordTypeCode;
-  }
-  const isMedical = recordTypeCode === 'MEDICAL';
 
-  // 프로필 이미지 URL (snake_case 및 중첩 필드 대응)
-  const raw = record as any;
-  const dogProfileUrl = record.dogProfileImageUrl || raw.dog_profile_image_url;
+  const recordTypeCode = String(record.recordType || '');
+  const isMedical = isMedicalRecordType(recordTypeCode);
+
+  const dogProfileUrl = record.dogProfileImageUrl;
 
   return (
     <header className="pb-2">

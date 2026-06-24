@@ -1,28 +1,23 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { parseISO, addDays, isBefore, startOfDay, format } from 'date-fns';
 import type { CareRecord } from '@/types/care';
 import { Card } from '@/components/common/Card';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { isMedicalRecordType } from '@/lib/codeGroups';
 
 export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
-  // 코드 명칭 변환을 위한 훅 (헬퍼 함수명 확인: getCodeNameById)
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
   const { getCodeNameById } = useCommonCodes('EXPENSE_CATEGORY');
-  
+
   const rawRecord = record as any;
-  let recordTypeCode = String((record as any).recordType || '');
-  if (record.recordTypeId || rawRecord.record_type_id) {
-    const typeId = record.recordTypeId || rawRecord.record_type_id;
-    recordTypeCode = recordTypes.find(t => t.id === Number(typeId))?.code || recordTypeCode;
-  }
-  
-  const isMedical = recordTypeCode === 'MEDICAL';
+  const recordTypeCode = String(record.recordType || '');
+  const isMedical = isMedicalRecordType(recordTypeCode);
 
   const handleCardClick = () => {
-    navigate(`/care-records/${record.id}`);
+    router.push(`/care-records/${record.id}`);
   };
 
   const getField = (camelField: string, snakeField: string) => 

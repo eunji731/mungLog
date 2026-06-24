@@ -1,49 +1,68 @@
 import { apiClient } from '@/lib/apiClient';
 import type { FileItem } from '@/types/file';
 
+// 프런트의 'CARE_RECORD'/'SCHEDULE'/'DOG' 키 -> 백엔드 ParentDomainType 문자열
+const PARENT_TYPE_MAP: Record<string, string> = {
+  CARE_RECORD: 'CARE',
+  CARE: 'CARE',
+  SCHEDULE: 'SCHEDULE',
+  DOG: 'PET_PROFILE',
+};
+
+export const toParentType = (targetCode: string) => PARENT_TYPE_MAP[targetCode] || targetCode;
+
+interface BackendFileResponse {
+  id: string;
+  originalName: string;
+  fileUrl: string;
+  contentType: string;
+  fileSize: number;
+  sortOrder: number;
+  createdAt: string;
+}
+
+const toFileItem = (f: BackendFileResponse, parentType: string, parentId: string | number): FileItem => ({
+  id: f.id,
+  originalFileName: f.originalName,
+  storedFileName: f.originalName,
+  fileUrl: f.fileUrl,
+  fileSize: f.fileSize,
+  fileType: f.contentType,
+  targetType: parentType,
+  targetId: parentId,
+  createdAt: f.createdAt,
+});
+
 export const fileApi = {
-  // 파일 업로드 (임시 업로드)
-  uploadFiles: async (payload: {
-    targetType: string | number;
-    targetId: string | number | null;
-    files: File[];
-  }): Promise<FileItem[]> => {
+  // 부모 도메인(케어기록/일정/반려견)에 이미 첨부된 파일 목록 조회
+  getFiles: async (targetCode: string, parentId: string | number): Promise<FileItem[]> => {
+    const parentType = toParentType(targetCode);
+    const response = await apiClient.get(`/files/${parentType}/${parentId}`);
+    const files: BackendFileResponse[] = response.data || [];
+    return files.map(f => toFileItem(f, targetCode, parentId));
+  },
+
+  // 부모 엔티티가 이미 생성된 상태에서 새 파일을 추가 (기존 파일 유지)
+  addFiles: async (targetCode: string, parentId: string | number, files: File[]): Promise<FileItem[]> => {
+    if (files.length === 0) return [];
+    const parentType = toParentType(targetCode);
     const formData = new FormData();
-    // 백엔드 uploadTemporary DTO에 맞춰 구성
-    payload.files.forEach((file) => {
-      formData.append('files', file);
+    files.forEach(file => formData.append('files', file));
+    const response = await apiClient.post(`/files/${parentType}/${parentId}/sync`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
-
-    if (payload.targetType) {
-      formData.append('targetType', String(payload.targetType));
-    }
-    if (payload.targetId !== null && payload.targetId !== undefined) {
-      formData.append('targetId', String(payload.targetId));
-    }
-
-    const response = await apiClient.post('/files/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    const result: BackendFileResponse[] = response.data || [];
+    return result.map(f => toFileItem(f, targetCode, parentId));
   },
 
-  // 파일 목록 조회 (쿼리 파라미터 방식으로 확실히 지정)
-  // 결과 URL 예시: /api/files?targetTypeId=19&targetId=30
-  getFiles: async (targetTypeId: string | number, targetId: string | number): Promise<FileItem[]> => {
-    console.log(`[fileApi] getFiles called with targetTypeId: ${targetTypeId}, targetId: ${targetId}`);
-    const response = await apiClient.get('/files', {
-      params: { 
-        targetTypeId: targetTypeId, 
-        targetId: targetId 
-      }
+  // 단일 파일 교체 (반려견 프로필 사진 등 1장만 유지되는 경우)
+  replaceSingle: async (targetCode: string, parentId: string | number, file: File): Promise<FileItem | null> => {
+    const parentType = toParentType(targetCode);
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.put(`/files/${parentType}/${parentId}/replace`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data;
+    return response.data ? toFileItem(response.data, targetCode, parentId) : null;
   },
-
-  // 파일 삭제
-  deleteFile: async (fileId: number) => {
-    await apiClient.delete(`/files/${fileId}`);
-  }
 };

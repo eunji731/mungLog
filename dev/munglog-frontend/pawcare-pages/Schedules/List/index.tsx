@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Calendar } from '@/components/common/Calendar';
 import type { CalendarMarkers } from '@/components/common/Calendar';
 import { ScheduleHeroCard } from './components/ScheduleHeroCard';
@@ -16,7 +16,7 @@ interface ScheduleListPageProps {
 }
 
 const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { schedules, isLoading, filters, updateFilter } = useSchedules();
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null);
@@ -162,7 +162,7 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
                 <div className="flex-shrink-0">
                   <button 
                     className="w-full h-[56px] px-8 bg-main-green text-white rounded-2xl font-black text-[15px] shadow-lg shadow-main-green/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-                    onClick={() => navigate('/schedules/new')}
+                    onClick={() => router.push('/schedules/new')}
                   >
                     <span className="text-lg">+</span>
                     일정 등록

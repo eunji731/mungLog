@@ -1,72 +1,110 @@
 import { apiClient } from '@/lib/apiClient';
+import { SCHEDULE_TYPE_CODES } from '@/lib/codeGroups';
 import type { Schedule, ScheduleFilters, ScheduleCreateRequest } from '@/types/schedule';
 
+interface BackendScheduleResponse {
+  id: string;
+  petId: string;
+  petName: string;
+  scheduleType: string;
+  isCompleted: boolean;
+  title: string;
+  scheduleDate: string;
+  memo?: string;
+  location?: string;
+  dDay: number;
+  attachmentCount: number;
+  symptomTags: string[];
+}
+
+const scheduleTypeIdOf = (code?: string) => SCHEDULE_TYPE_CODES.find(c => c.code === code)?.id;
+const scheduleTypeCodeOf = (id?: number, fallbackCode?: string) =>
+  fallbackCode || SCHEDULE_TYPE_CODES.find(c => c.id === id)?.code || 'ETC';
+
+function mapSchedule(raw: BackendScheduleResponse): Schedule {
+  return {
+    id: raw.id,
+    dogId: raw.petId,
+    petId: raw.petId,
+    dogName: raw.petName,
+    petName: raw.petName,
+    dogProfileImageUrl: null,
+    title: raw.title,
+    location: raw.location,
+    scheduleDate: raw.scheduleDate,
+    scheduleType: raw.scheduleType,
+    scheduleTypeCode: raw.scheduleType,
+    scheduleTypeId: scheduleTypeIdOf(raw.scheduleType),
+    isCompleted: raw.isCompleted,
+    memo: raw.memo,
+    symptomTags: raw.symptomTags || [],
+    dDay: raw.dDay,
+  };
+}
+
 export const scheduleApi = {
-  // 일정 목록 조회
+  // 백엔드는 petId 필터만 지원하므로, 나머지(type/keyword/날짜)는 프런트에서 필터링합니다.
   getSchedules: async (filters: ScheduleFilters): Promise<Schedule[]> => {
-    const params: Record<string, string | number> = {};
+    const petId = filters.petId ?? filters.dogId;
+    const response = await apiClient.get('/schedules', { params: petId ? { petId } : undefined });
+    let schedules: Schedule[] = (response.data || []).map(mapSchedule);
 
-    if (filters.dogId !== undefined) params.dogId = filters.dogId;
-    if (filters.type && filters.type !== 'ALL') params.type = filters.type;
-    if (filters.keyword?.trim()) params.keyword = filters.keyword.trim();
-    if (filters.startDate) params.startDate = filters.startDate;
-    if (filters.endDate) params.endDate = filters.endDate;
-
-    if (params.dogId) {
-      params.petId = params.dogId;
-      delete params.dogId;
+    if (filters.type && filters.type !== 'ALL') {
+      schedules = schedules.filter(s => s.scheduleTypeCode === filters.type || s.scheduleTypeId === filters.type);
     }
-    const response = await apiClient.get('/schedules', { params });
-    return response.data;
+    if (filters.keyword?.trim()) {
+      const kw = filters.keyword.trim().toLowerCase();
+      schedules = schedules.filter(s => s.title?.toLowerCase().includes(kw) || s.memo?.toLowerCase().includes(kw));
+    }
+    if (filters.startDate) {
+      schedules = schedules.filter(s => s.scheduleDate >= filters.startDate!);
+    }
+    if (filters.endDate) {
+      const endBound = `${filters.endDate}T23:59:59`;
+      schedules = schedules.filter(s => s.scheduleDate <= endBound);
+    }
+    return schedules;
   },
 
-  // 일정 상세 조회
   getScheduleDetail: async (id: string | number): Promise<Schedule> => {
     const response = await apiClient.get(`/schedules/${id}`);
-    return response.data;
+    return mapSchedule(response.data);
   },
 
-  // 일정 생성
   createSchedule: async (payload: ScheduleCreateRequest) => {
-    return apiClient.post('/schedules', toSchedulePayload(payload));
+    const response = await apiClient.post('/schedules', toSchedulePayload(payload));
+    return mapSchedule(response.data);
   },
 
-  // 일정 수정
   updateSchedule: async (id: string | number, payload: ScheduleCreateRequest) => {
-    return apiClient.put(`/schedules/${id}`, toSchedulePayload(payload));
+    const response = await apiClient.put(`/schedules/${id}`, toSchedulePayload(payload));
+    return mapSchedule(response.data);
   },
 
-  // 일정 삭제
   deleteSchedule: async (id: string | number) => {
     return apiClient.delete(`/schedules/${id}`);
   },
 
-  // 일정 완료 상태 토글
-  toggleCompletion: async (id: string | number, isCompleted: boolean) => {
-    return apiClient.patch(`/schedules/${id}/completion`);
+  toggleCompletion: async (id: string | number) => {
+    const response = await apiClient.patch(`/schedules/${id}/completion`);
+    return mapSchedule(response.data);
   },
 
-  // 일정 -> 케어기록으로 전환
-  convertToCareRecord: async (id: string | number) => {
+  // 일정 -> 케어기록으로 전환 (백엔드가 직접 케어기록을 생성하고 새 ID를 돌려줍니다)
+  convertToCareRecord: async (id: string | number): Promise<string> => {
     const response = await apiClient.post(`/schedules/${id}/convert`);
-    return response.data; // 생성된 careRecordId 반환 예상
+    return response.data;
   }
 };
 
 function toSchedulePayload(payload: ScheduleCreateRequest) {
   return {
     petId: payload.petId ?? payload.dogId,
-    scheduleType: payload.scheduleType ?? scheduleTypeFromId(payload.scheduleTypeId),
+    scheduleType: scheduleTypeCodeOf(payload.scheduleTypeId, payload.scheduleType),
     scheduleDate: payload.scheduleDate,
     title: payload.title,
     memo: payload.memo,
     location: payload.location,
     symptomTags: payload.symptomTags,
-    fileIds: payload.fileIds,
   };
-}
-
-function scheduleTypeFromId(id?: number) {
-  const types = ['HOSPITAL', 'GROOMING', 'VACCINATION', 'CHECKUP', 'MEDICINE', 'ETC'];
-  return id ? types[id - 1] ?? 'ETC' : 'ETC';
 }

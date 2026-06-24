@@ -35,10 +35,10 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, schedul
   // 색상 매핑 함수
   const getMarkerColor = (typeCode: string) => {
     switch(typeCode) {
-      case 'MEDICAL': return 'bg-main-green';
+      case 'HOSPITAL': return 'bg-main-green';
       case 'GROOMING': return 'bg-blue-400';
-      case 'MEDICATION':
-      case 'HEARTWORM': return 'bg-green-400'; 
+      case 'MEDICINE':
+      case 'HEARTWORM': return 'bg-green-400';
       case 'CHECKUP': return 'bg-purple-400';
       default: return 'bg-stone-400 dark:bg-stone-600';
     }

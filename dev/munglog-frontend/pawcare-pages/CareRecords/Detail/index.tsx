@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useToast } from '@/context/ToastContext';
@@ -8,10 +8,14 @@ import { CareRecordDetailHeader } from './components/CareRecordDetailHeader';
 import { CareRecordInfoSections } from './components/CareRecordInfoSections';
 import { CareRecordAttachmentGallery } from './components/CareRecordAttachmentGallery';
 import { careApi } from '@/api/careApi';
+import { isMedicalRecordType } from '@/lib/codeGroups';
 
-const CareRecordDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+interface CareRecordDetailPageProps {
+  id?: string;
+}
+
+const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
+  const router = useRouter();
   const { showToast } = useToast();
   const { record, files, isLoading, error } = useCareRecordDetail(id);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -24,7 +28,7 @@ const CareRecordDetailPage: React.FC = () => {
       await careApi.deleteRecord(id);
       setIsDeleteModalOpen(false);
       showToast('기록이 삭제되었습니다.', 'success');
-      navigate('/care-records');
+      router.push('/care-records');
     } catch (err) {
       console.error('Delete failed:', err);
       showToast('기록 삭제에 실패했습니다. 다시 시도해주세요.', 'error');
@@ -51,7 +55,7 @@ const CareRecordDetailPage: React.FC = () => {
             삭제된 기록이거나 <br /> 잘못된 접근입니다.
           </p>
           <button
-            onClick={() => navigate('/care-records')}
+            onClick={() => router.push('/care-records')}
             className="w-full h-[56px] bg-[#FF6B00] text-white rounded-[16px] font-black text-[15px] shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
           >
             목록으로 돌아가기
@@ -79,7 +83,7 @@ const CareRecordDetailPage: React.FC = () => {
             <div className="flex items-center gap-3 border-b border-stone-100 pb-5 mb-8">
               <span className="text-[20px]">📝</span>
               <h3 className="text-[16px] font-black text-[#2D2D2D] tracking-widest uppercase">
-                {((record as any).recordType === 'MEDICAL' || record.recordTypeId === 1) ? 'Clinical ' : 'Diary '}<span className="text-[#FF6B00]">Notes.</span>
+                {isMedicalRecordType(record.recordType) ? 'Clinical ' : 'Diary '}<span className="text-[#FF6B00]">Notes.</span>
               </h3>
             </div>
 
@@ -168,7 +172,7 @@ const CareRecordDetailPage: React.FC = () => {
 
           <div className="pt-10 flex items-center justify-end gap-3 border-t border-stone-100">
             <button 
-              onClick={() => navigate('/care-records')}
+              onClick={() => router.push('/care-records')}
               className="px-6 h-[52px] rounded-xl border border-stone-200 text-stone-600 font-bold text-[14px] hover:border-stone-400 transition-all active:scale-95"
             >
               목록
@@ -180,7 +184,7 @@ const CareRecordDetailPage: React.FC = () => {
               삭제
             </button>
             <button 
-              onClick={() => navigate(`/care-records/edit/${record.id}`)}
+              onClick={() => router.push(`/care-records/edit/${record.id}`)}
               className="px-10 h-[52px] bg-[#FF6B00] text-white rounded-xl font-black text-[14px] shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
               기록 수정하기

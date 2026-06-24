@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { dogApi } from '@/api/dogApi';
 import type { Dog } from '@/types/dog';
@@ -16,7 +16,7 @@ interface FilterBarProps {
 export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [localKeyword, setLocalKeyword] = useState(filters.keyword ?? '');
-  const navigate = useNavigate();
+  const router = useRouter();
   
   const { codes: allRecordTypes } = useCommonCodes('RECORD_TYPE');
   const recordTypes = allRecordTypes.filter(t => t.code !== 'MEMO');
@@ -124,7 +124,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
           <Button
             variant="primary"
             className="w-full h-[56px] px-8 rounded-2xl shadow-lg shadow-main-green/20"
-            onClick={() => navigate('/care-records/new')}
+            onClick={() => router.push('/care-records/new')}
           >
             + 기록하기
           </Button>

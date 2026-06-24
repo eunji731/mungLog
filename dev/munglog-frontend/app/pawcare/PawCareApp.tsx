@@ -22,19 +22,22 @@ function PawCareRoute() {
   if (section === 'mypage') return <MyPage />;
 
   if (section === 'dogs') {
-    if (action === 'new' || action === 'edit') return <DogFormPage />;
+    if (action === 'new') return <DogFormPage />;
+    if (action === 'edit') return <DogFormPage id={segments[2]} />;
     return <DogListPage />;
   }
 
   if (section === 'care-records') {
-    if (action === 'new' || action === 'edit') return <CareRecordFormPage />;
-    if (action) return <CareRecordDetailPage />;
+    if (action === 'new') return <CareRecordFormPage />;
+    if (action === 'edit') return <CareRecordFormPage id={segments[2]} />;
+    if (action) return <CareRecordDetailPage id={action} />;
     return <CareRecordListPage />;
   }
 
   if (section === 'schedules') {
-    if (action === 'new' || action === 'edit') return <ScheduleFormPage />;
-    if (action) return <ScheduleDetailPage />;
+    if (action === 'new') return <ScheduleFormPage />;
+    if (action === 'edit') return <ScheduleFormPage id={segments[2]} />;
+    if (action) return <ScheduleDetailPage id={action} />;
     return <ScheduleListPage />;
   }
 

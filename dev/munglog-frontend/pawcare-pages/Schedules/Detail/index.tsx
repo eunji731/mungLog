@@ -1,26 +1,24 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useScheduleDetail } from './hooks/useScheduleDetail';
 import { ScheduleDetailHeader } from './components/ScheduleDetailHeader';
 import { ScheduleDetailInfo } from './components/ScheduleDetailInfo';
 import { CareRecordAttachmentGallery } from '@/pages/CareRecords/Detail/components/CareRecordAttachmentGallery';
 import { scheduleApi } from '@/api/scheduleApi';
-import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { useToast } from '@/context/ToastContext';
 
-const ScheduleDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+interface ScheduleDetailPageProps {
+  id?: string;
+}
+
+const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
+  const router = useRouter();
   const { showToast } = useToast();
   const { schedule, files, isLoading, error, refetch } = useScheduleDetail(id);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // 공통 코드 로드
-  const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
-  const { codes: expenseCategories } = useCommonCodes('EXPENSE_CATEGORY');
-  const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
+  const [isConverting, setIsConverting] = useState(false);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -28,7 +26,7 @@ const ScheduleDetailPage: React.FC = () => {
       setIsDeleting(true);
       await scheduleApi.deleteSchedule(id);
       setIsDeleteModalOpen(false);
-      navigate('/schedules');
+      router.push('/schedules');
     } catch (err) {
       console.error('Delete failed:', err);
       showToast('일정 삭제에 실패했습니다.', 'error');
@@ -40,65 +38,29 @@ const ScheduleDetailPage: React.FC = () => {
   const handleToggleComplete = async () => {
     if (!schedule) return;
     try {
-      await scheduleApi.toggleCompletion(schedule.id, !schedule.isCompleted);
+      await scheduleApi.toggleCompletion(schedule.id);
       refetch();
     } catch (err) {
       console.error('Toggle complete failed:', err);
     }
   };
 
-  const handleConvertToCareRecord = () => {
-    if (!id || !schedule || recordTypes.length === 0) return;
-    
-    // 현재 일정의 영문 코드명 확인 (타입 안정성 보강)
-    const foundType = schedule.scheduleTypeId 
-      ? scheduleTypes.find(t => t.id === schedule.scheduleTypeId) 
-      : null;
-    
-    const currentTypeCode = foundType?.code || String(schedule.scheduleTypeCode || 'ETC');
- 
-    // 1. 목표 레코드 타입 ID 찾기 (MEDICAL 또는 EXPENSE)
-    let targetRecordType: 'MEDICAL' | 'EXPENSE' = 'MEDICAL';
-    // 'GROOMING', 'ETC' 타입은 지출(EXPENSE)로 분류
-    if (['GROOMING', 'ETC'].includes(currentTypeCode)) {
-      targetRecordType = 'EXPENSE';
-    }
-    
-    const recordTypeObj = recordTypes.find(t => t.code === targetRecordType);
-    const recordTypeId = recordTypeObj?.id;
+  // 백엔드가 직접 케어기록을 생성하고 새 ID를 돌려줍니다. 생성 후 수정 페이지로 이동해 추가 정보를 입력합니다.
+  const handleConvertToCareRecord = async () => {
+    if (!id) return;
+    if (!window.confirm('이 일정을 케어기록으로 전환하시겠습니까? \n전환 후 등록된 기록을 바로 수정할 수 있습니다.')) return;
 
-    // 2. 지출인 경우 카테고리 ID 찾기
-    let categoryId: number | null = null;
-    if (targetRecordType === 'EXPENSE') {
-      const targetCatCode = currentTypeCode === 'GROOMING' ? 'GROOMING' : 'ETC';
-      categoryId = expenseCategories.find(c => c.code === targetCatCode)?.id || null;
+    try {
+      setIsConverting(true);
+      const newRecordId = await scheduleApi.convertToCareRecord(id);
+      showToast('케어기록으로 전환되었습니다! ✨', 'success');
+      router.push(`/care-records/edit/${newRecordId}`);
+    } catch (err) {
+      console.error('Convert to care record failed:', err);
+      showToast('케어기록 전환에 실패했습니다.', 'error');
+    } finally {
+      setIsConverting(false);
     }
-
-    if (!window.confirm(`이 일정을 ${targetRecordType === 'MEDICAL' ? '진료 기록' : '지출 기록'}으로 전환하시겠습니까? \n추가 정보를 입력할 수 있는 등록 페이지로 이동합니다.`)) return;
-    
-    navigate('/care-records/new', { 
-      state: { 
-        prefillData: {
-          dogId: schedule.dogId,
-          recordDate: schedule.scheduleDate.split('T')[0],
-          title: schedule.title,
-          note: schedule.memo || '',
-          recordTypeId: recordTypeId,
-          recordType: targetRecordType,
-          medicalDetails: targetRecordType === 'MEDICAL' ? {
-            clinicName: schedule.location || '',
-            symptomTags: schedule.symptomTags || []
-          } : null,
-          expenseDetails: targetRecordType === 'EXPENSE' ? {
-            categoryTypeId: categoryId,
-            categoryCode: categoryId,
-            memo: schedule.memo || ''
-          } : null,
-          files: files || [],
-          fromScheduleId: schedule.id
-        } 
-      } 
-    });
   };
 
   if (isLoading) {
@@ -119,7 +81,7 @@ const ScheduleDetailPage: React.FC = () => {
             삭제된 일정이거나 <br /> 잘못된 접근입니다.
           </p>
           <button
-            onClick={() => navigate('/schedules')}
+            onClick={() => router.push('/schedules')}
             className="w-full h-[56px] bg-main-green text-white rounded-xl font-black text-[15px] shadow-lg shadow-main-green/20 active:scale-95 transition-all"
           >
             목록으로 돌아가기
@@ -203,7 +165,7 @@ const ScheduleDetailPage: React.FC = () => {
           {/* Action Bar */}
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-end gap-3 border-t border-border">
             <button 
-              onClick={() => navigate('/schedules')}
+              onClick={() => router.push('/schedules')}
               className="w-full sm:w-auto px-6 h-[48px] rounded-xl border border-border text-foreground font-bold text-[13px] hover:bg-surface-green transition-all active:scale-95"
             >
               목록
@@ -215,16 +177,17 @@ const ScheduleDetailPage: React.FC = () => {
               삭제
             </button>
             <button 
-              onClick={() => navigate(`/schedules/edit/${schedule.id}`)}
+              onClick={() => router.push(`/schedules/edit/${schedule.id}`)}
               className="w-full sm:w-auto px-8 h-[48px] bg-background border-2 border-main-green text-main-green rounded-xl font-black text-[13px] hover:bg-main-green/5 active:scale-[0.98] transition-all"
             >
               수정하기
             </button>
-            <button 
+            <button
               onClick={handleConvertToCareRecord}
-              className="w-full sm:w-auto px-8 h-[48px] bg-main-green text-white rounded-xl font-black text-[13px] shadow-lg shadow-main-green/20 hover:shadow-main-green/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              disabled={isConverting}
+              className="w-full sm:w-auto px-8 h-[48px] bg-main-green text-white rounded-xl font-black text-[13px] shadow-lg shadow-main-green/20 hover:shadow-main-green/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              ✅ 케어기록으로 전환
+              {isConverting ? '전환 중...' : '✅ 케어기록으로 전환'}
             </button>
           </div>
 

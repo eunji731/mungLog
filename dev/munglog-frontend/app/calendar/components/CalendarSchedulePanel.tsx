@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { X, Calendar } from 'lucide-react';
 import type { Schedule } from '@/types/schedule';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
@@ -15,7 +15,7 @@ interface CalendarSchedulePanelProps {
 }
 
 export default function CalendarSchedulePanel({ date, schedules, onClose }: CalendarSchedulePanelProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { getCodeById } = useCommonCodes('SCHEDULE_TYPE');
 
   const formattedDate = React.useMemo(() => {
@@ -39,20 +39,14 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
   }, [schedules, formattedDate]);
 
   const handleAddNew = () => {
-    navigate('/schedules/new', { 
-      state: { 
-        prefillData: { 
-          scheduleDate: formattedDate 
-        } 
-      } 
-    });
+    router.push(`/schedules/new?date=${formattedDate}`);
   };
 
   const getTypeIcon = (type: string) => {
     switch(type) {
-      case 'MEDICAL': return '🏥';
+      case 'HOSPITAL': return '🏥';
       case 'GROOMING': return '✂️';
-      case 'MEDICATION':
+      case 'MEDICINE':
       case 'HEARTWORM': return '💊';
       case 'CHECKUP': return '🩺';
       default: return '📅';
@@ -132,7 +126,7 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
             return (
               <div 
                 key={schedule.id}
-                onClick={() => navigate(`/schedules/${schedule.id}`)}
+                onClick={() => router.push(`/schedules/${schedule.id}`)}
                 className="group flex flex-col p-6 bg-background rounded-[24px] border border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
               >
                 <div className="flex justify-between items-center mb-3">

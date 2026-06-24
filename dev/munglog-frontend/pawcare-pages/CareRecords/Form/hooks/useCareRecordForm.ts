@@ -1,19 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { careApi } from '@/api/careApi';
 import { fileApi } from '@/api/fileApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { isMedicalRecordType } from '@/lib/codeGroups';
 import { useToast } from '@/context/ToastContext';
-import type { CareRecord, CareRecordCreateRequest } from '@/types/care';
+import type { CareRecordCreateRequest } from '@/types/care';
 
 export const useCareRecordForm = (id?: string, options?: { prefillDate?: string; onSaveSuccess?: () => void }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
   const { showToast } = useToast();
-  
+
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
-  const { codes: targetTypeCodes } = useCommonCodes('FILE_TARGET_TYPE');
 
   const [recordTypeId, setRecordTypeId] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,11 +49,10 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
 
   const fileUploader = useFileUpload('CARE_RECORD');
 
-  // 파일 조회 완료 여부 플래그
   const fileLoadedRef = useRef(false);
 
   const getRecordTypeCode = (typeId: number) => {
-    return recordTypes.find(t => t.id === typeId)?.code || 'MEDICAL';
+    return recordTypes.find(t => t.id === typeId)?.code || 'ETC';
   };
 
   // 상세 데이터 본문 로드
@@ -64,54 +62,42 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
       try {
         setIsFetching(true);
         const record = await careApi.getRecordDetail(id);
-        console.log('[useCareRecordForm] Loaded record data:', record);
         if (!record) return;
 
-        const raw = record as any;
-        const recordTypeIdVal = Number(record.recordTypeId || raw.record_type_id || raw.record_type?.id || 0);
-        setRecordTypeId(recordTypeIdVal);
-        
-        const currentDogId = record.dogId || raw.dog_id || (record.dog?.id) || '';
-        
+        setRecordTypeId(record.recordTypeId || 0);
         setCommonData({
-          dogId: currentDogId.toString(),
+          dogId: (record.dogId || '').toString(),
           recordDate: record.recordDate || new Date().toISOString().split('T')[0],
           title: record.title || '',
           note: record.note || ''
         });
 
-        const getField = (camelField: string, snakeField: string) => 
-            raw[camelField] || raw[snakeField] || 
-            raw.medicalDetails?.[camelField] || raw.medical_details?.[snakeField] ||
-            raw.expenseDetails?.[camelField] || raw.expense_details?.[snakeField];
-
-        const recordAmount = record.amount?.toString() || '';
-
         setMedicalData({
-          clinicName: getField('clinicName', 'clinic_name') || '',
-          symptoms: getField('symptoms', 'symptoms') || '',
-          symptomTags: record.symptomTags || getField('symptomTags', 'symptom_tags') || [],
-          diagnosis: getField('diagnosis', 'diagnosis') || '',
-          treatment: getField('treatment', 'treatment') || '',
-          amount: recordAmount,
-          hasMedication: !!getField('medicationStartDate', 'medication_start_date'),
-          medicationStartDate: getField('medicationStartDate', 'medication_start_date') || new Date().toISOString().split('T')[0],
-          medicationDays: getField('medicationDays', 'medication_days')?.toString() || '',
-          isMedicationCompleted: !!getField('isMedicationCompleted', 'is_medication_completed')
+          clinicName: record.clinicName || '',
+          symptoms: record.symptoms || '',
+          symptomTags: record.symptomTags || [],
+          diagnosis: record.diagnosis || '',
+          treatment: record.treatment || '',
+          amount: record.amount?.toString() || '',
+          hasMedication: !!record.medicationStartDate,
+          medicationStartDate: record.medicationStartDate || new Date().toISOString().split('T')[0],
+          medicationDays: record.medicationDays?.toString() || '',
+          isMedicationCompleted: record.medicationStatus === 'COMPLETED'
         });
 
         setExpenseData({
-          categoryCode: record.categoryTypeId || raw.category_type_id || record.categoryId || raw.category_id || 
-                        raw.expenseDetails?.categoryId || raw.expense_details?.category_id || 
-                        raw.expenseDetails?.categoryTypeId || raw.expense_details?.category_type_id || '',
-          amount: recordAmount,
-          memo: getField('memo', 'memo') || '',
-          relatedMedicalRecordId: record.relatedMedicalRecordId || raw.related_medical_record_id || 
-                                  raw.expenseDetails?.relatedMedicalRecordId || raw.expense_details?.related_medical_record_id || 
-                                  record.relatedMedicalRecord?.id || raw.related_medical_record?.id || '',
-          relatedMedicalRecord: record.relatedMedicalRecord || raw.related_medical_record || 
-                                raw.expenseDetails?.relatedMedicalRecord || raw.expense_details?.related_medical_record || null
+          categoryCode: record.categoryTypeId || '',
+          amount: record.amount?.toString() || '',
+          memo: record.note || '',
+          relatedMedicalRecordId: record.relatedMedicalRecordId || '',
+          relatedMedicalRecord: record.relatedMedicalRecord || null
         });
+
+        if (!fileLoadedRef.current) {
+          fileLoadedRef.current = true;
+          const files = await fileApi.getFiles('CARE_RECORD', id);
+          if (files.length > 0) fileUploader.setInitialFiles(files);
+        }
       } catch (err) {
         console.error('Failed to load record:', err);
       } finally {
@@ -119,49 +105,33 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
       }
     };
     fetchRecord();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // 공통코드가 준비되면 파일 정보를 별도로 가져옴
-  useEffect(() => {
-    if (!id || targetTypeCodes.length === 0 || fileLoadedRef.current) return;
-
-    const fetchFiles = async () => {
-      const found = targetTypeCodes.find(c => c.code === 'CARE_RECORD');
-      if (found && found.id) {
-        try {
-          const files = await fileApi.getFiles(found.id, id);
-          if (files && files.length > 0) fileUploader.setInitialFiles(files);
-          fileLoadedRef.current = true; // 중복 호출 방지
-        } catch (err) {
-          console.error('Failed to load files:', err);
-        }
-      }
-    };
-    fetchFiles();
-  }, [id, targetTypeCodes, fileUploader]);
-
-  // recordTypeId 초기값 설정 (코드가 로드되면 기본값 MEDICAL(id:1) 등 설정)
+  // recordTypeId 초기값 설정 (신규 등록 시 첫 번째 타입으로 기본 선택)
   useEffect(() => {
     if (!id && recordTypeId === 0 && recordTypes.length > 0) {
-      const medicalType = recordTypes.find(t => t.code === 'MEDICAL');
-      if (medicalType) setRecordTypeId(medicalType.id);
-      else setRecordTypeId(recordTypes[0].id);
+      setRecordTypeId(recordTypes[0].id);
     }
   }, [id, recordTypeId, recordTypes]);
 
-  // 전환 데이터 처리 (신규 등록 시)
+  // 일정 -> 케어기록 전환 시 넘어온 프리필 데이터 처리 (sessionStorage 경유)
   useEffect(() => {
     if (id) return;
-    const prefillData = location.state?.prefillData;
-    if (prefillData) {
-      const targetType = prefillData.recordTypeId || (prefillData as any).recordType;
+    const stored = sessionStorage.getItem('careRecordPrefill');
+    if (!stored) return;
+    sessionStorage.removeItem('careRecordPrefill');
+
+    try {
+      const prefillData = JSON.parse(stored);
+      const targetType = prefillData.recordTypeId || prefillData.recordType;
       if (typeof targetType === 'number') {
         setRecordTypeId(targetType);
       } else if (typeof targetType === 'string') {
         const found = recordTypes.find(t => t.code === targetType);
         if (found) setRecordTypeId(found.id);
       }
-      
+
       setCommonData({
         dogId: prefillData.dogId?.toString() || '',
         recordDate: prefillData.recordDate || options?.prefillDate || new Date().toISOString().split('T')[0],
@@ -193,21 +163,29 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
       if (prefillData.fromScheduleId) {
         setFromScheduleId(String(prefillData.fromScheduleId));
       }
-    } else if (options?.prefillDate) {
-      setCommonData(prev => ({
-        ...prev,
-        recordDate: options.prefillDate!
-      }));
+    } catch (err) {
+      console.error('Failed to parse care record prefill data:', err);
     }
-  }, [id, location.state, recordTypes, options?.prefillDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, recordTypes]);
+
+  // 신규 등록 시 날짜 프리필 처리 (캘린더에서 날짜 지정 후 등록)
+  useEffect(() => {
+    if (id || !options?.prefillDate) return;
+    setCommonData(prev => ({
+      ...prev,
+      recordDate: options.prefillDate!
+    }));
+  }, [id, options?.prefillDate]);
 
   useEffect(() => {
     const typeCode = getRecordTypeCode(recordTypeId);
-    if (typeCode === 'MEDICAL') {
+    if (isMedicalRecordType(typeCode)) {
       setExpenseData(prev => ({ ...prev, amount: medicalData.amount }));
     } else {
       setMedicalData(prev => ({ ...prev, amount: expenseData.amount }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicalData.amount, expenseData.amount, recordTypeId, recordTypes]);
 
   const handleSave = async () => {
@@ -215,30 +193,22 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
     if (!commonData.title.trim()) return showToast('제목을 입력해주세요.', 'warning');
 
     const typeCode = getRecordTypeCode(recordTypeId);
-    if (typeCode === 'EXPENSE' && !expenseData.categoryCode) {
+    const isMedical = isMedicalRecordType(typeCode);
+    if (!isMedical && !expenseData.categoryCode) {
       return showToast('지출 카테고리를 선택해주세요.', 'warning');
     }
 
     try {
       setIsLoading(true);
 
-      let uploadedFileIds: Array<string | number> = [];
-      if (fileUploader.localFiles.length > 0) {
-        const uploadedFiles = await fileUploader.upload(id ?? null);
-        if (uploadedFiles) uploadedFileIds = uploadedFiles.map(f => f.id);
-      }
-
-      const combinedFileIds = [...fileUploader.existingFileIds, ...uploadedFileIds];
-
       const payload: CareRecordCreateRequest = {
         dogId: commonData.dogId,
-        recordTypeId: recordTypeId, 
+        recordTypeId,
         recordDate: commonData.recordDate,
         title: commonData.title.trim(),
         note: commonData.note.trim() || undefined,
-        fileIds: combinedFileIds.length > 0 ? combinedFileIds : undefined,
         sourceScheduleId: fromScheduleId,
-        medicalDetails: typeCode === 'MEDICAL' ? {
+        medicalDetails: isMedical ? {
           clinicName: medicalData.clinicName.trim() || undefined,
           symptoms: medicalData.symptoms.trim() || undefined,
           symptomTags: medicalData.symptomTags,
@@ -249,29 +219,35 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
           medicationDays: medicalData.hasMedication && medicalData.medicationDays ? Number(medicalData.medicationDays) : null,
           isMedicationCompleted: medicalData.isMedicationCompleted
         } : null,
-        expenseDetails: typeCode === 'EXPENSE' ? {
-          categoryId: Number(expenseData.categoryCode), 
+        expenseDetails: !isMedical ? {
+          categoryId: Number(expenseData.categoryCode),
           amount: Number(expenseData.amount || 0),
           memo: expenseData.memo.trim() || undefined,
           relatedMedicalRecordId: expenseData.relatedMedicalRecordId ? String(expenseData.relatedMedicalRecordId) : null
         } : null
       };
 
+      const savedRecord = id
+        ? await careApi.updateRecord(id, payload)
+        : await careApi.createRecord(payload);
+
+      if (fileUploader.localFiles.length > 0) {
+        await fileUploader.syncToServer(savedRecord.id);
+      }
+
       if (id) {
-        await careApi.updateRecord(id, payload);
         showToast('기록이 수정되었습니다! ✨', 'success');
         if (options?.onSaveSuccess) {
           options.onSaveSuccess();
         } else {
-          navigate(`/care-records/${id}`); 
+          router.push(`/care-records/${id}`);
         }
       } else {
-        await careApi.createRecord(payload);
         showToast('기록이 저장되었습니다! ✨', 'success');
         if (options?.onSaveSuccess) {
           options.onSaveSuccess();
         } else {
-          navigate('/care-records'); 
+          router.push('/care-records');
         }
       }
     } catch (err: any) {

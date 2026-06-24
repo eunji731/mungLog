@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import type { Dog } from '@/types/dog';
 import { Card } from '@/components/common/Card';
 
@@ -9,7 +9,7 @@ interface DogCardProps {
 }
 
 export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,7 +33,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
 
   return (
     <Card
-      onClick={() => navigate(`/dogs/edit/${dog.id}`)}
+      onClick={() => router.push(`/dogs/edit/${dog.id}`)}
       className="group relative aspect-[4/5] overflow-hidden border-none ring-1 ring-black/5 shadow-xl transition-all duration-700 hover:-translate-y-2 hover:shadow-[0_40px_100px_rgba(0,0,0,0.1)]"
     >
       {/* 1. BACKGROUND IMAGE AREA */}
@@ -58,7 +58,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/dogs/edit/${dog.id}`);
+            router.push(`/dogs/edit/${dog.id}`);
           }}
           className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/20 hover:bg-main-green hover:border-main-green transition-all active:scale-90"
         >

@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -8,9 +8,12 @@ import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { FileUploader } from '@/components/common/FileUploader';
 import { useDogForm } from '@/pages/Dogs/Form/hooks/useDogForm';
 
-const DogFormPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+interface DogFormPageProps {
+  id?: string;
+}
+
+const DogFormPage = ({ id }: DogFormPageProps) => {
+  const router = useRouter();
   const {
     formData,
     setFormData,
@@ -45,7 +48,7 @@ const DogFormPage = () => {
             <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">소중한 가족의 프로필을 완성하세요. 아이의 성장을 PetLifeLog가 함께 기록합니다.</p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="px-4 font-bold text-text-sub text-xs">취소</Button>
+            <Button variant="ghost" onClick={() => router.back()} className="px-4 font-bold text-text-sub text-xs">취소</Button>
             <Button onClick={handleSave} disabled={isLoading} className="px-6 h-[40px] text-xs font-black rounded-xl">
               {isLoading ? '저장 중...' : (isEdit ? '수정' : '등록')}
             </Button>
@@ -122,7 +125,7 @@ const DogFormPage = () => {
                 {/* ACTION BAR */}
                 <div className="mt-8 pt-6 border-t border-border">
                   <FormActions 
-                    onCancel={() => navigate(-1)} 
+                    onCancel={() => router.back()} 
                     onSave={handleSave} 
                     onDelete={isEdit ? () => setIsDeleteModalOpen(true) : undefined}
                     isSubmitting={isLoading} 

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { dogApi } from '@/api/dogApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/context/ToastContext';
 import type { DogCreateRequest } from '@/types/dog';
 
 export const useDogForm = (id?: string) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { showToast } = useToast();
   const isEdit = !!id;
 
@@ -37,16 +37,15 @@ export const useDogForm = (id?: string) => {
             birthDate: dogData.birthDate || '',
             weight: dogData.weight?.toString() || '',
           });
-          
+
           if (dogData.profileImageUrl) {
-            // URL에서 실제 파일명을 추출하거나, 최소한 .jpg를 붙여 이미지임을 인식하게 함
             const urlParts = dogData.profileImageUrl.split('/');
             const fileName = urlParts[urlParts.length - 1] || 'profile.jpg';
 
             photoUploader.setInitialFiles([{
               id: 0,
               fileUrl: dogData.profileImageUrl,
-              originalFileName: fileName, // 확장자가 포함되어야 이미지로 인식됨
+              originalFileName: fileName,
               storedFileName: fileName,
               fileSize: 0,
               fileType: 'image/jpeg',
@@ -57,7 +56,7 @@ export const useDogForm = (id?: string) => {
           }
         } catch (err: any) {
           showToast('정보를 불러오지 못했습니다.', 'error');
-          navigate('/dogs');
+          router.push('/dogs');
         } finally {
           setIsFetching(false);
         }
@@ -65,7 +64,7 @@ export const useDogForm = (id?: string) => {
       initData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isEdit, navigate]);
+  }, [id, isEdit, router]);
 
   // ============ 저장 ============
   const handleSave = async () => {
@@ -77,42 +76,24 @@ export const useDogForm = (id?: string) => {
     try {
       setIsLoading(true);
 
-      // 1단계: 신규 파일 업로드 및 ID 확보
-      let finalProfileImageUrl: string | null = photoUploader.existingFiles[0]?.fileUrl || null;
-      let finalFileId: string | number | null = null;
-
-      if (photoUploader.hasNewFiles) {
-        try {
-          const uploaded = await photoUploader.upload(id ?? null); 
-          if (uploaded && uploaded.length > 0) {
-            finalProfileImageUrl = uploaded[0].fileUrl || null;
-            finalFileId = uploaded[0].id;
-          }
-        } catch (uploadErr: any) {
-          console.error('파일 업로드 중 오류:', uploadErr);
-          showToast(uploadErr.message || '이미지 업로드에 실패했습니다.', 'error');
-          return;
-        }
-      }
-
-      // 2단계: 본문 저장
       const dogPayload: DogCreateRequest = {
         name: formData.name.trim(),
         breed: formData.breed.trim() || null,
         birthDate: formData.birthDate || null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
-        profileImageUrl: finalProfileImageUrl,
-        profileImageFileId: finalFileId
+        profileImageUrl: null,
       };
 
+      const newPhoto = photoUploader.localFiles[0] || null;
+
       if (isEdit) {
-        await dogApi.updateDog(id, dogPayload);
+        await dogApi.updateDog(id, dogPayload, newPhoto);
       } else {
-        await dogApi.createDog(dogPayload);
+        await dogApi.createDog(dogPayload, newPhoto);
       }
 
       showToast('성공적으로 저장되었습니다! ✨', 'success');
-      navigate('/dogs');
+      router.push('/dogs');
     } catch (err: any) {
       console.error('Save Error:', err);
       showToast(err.response?.data?.message || '저장 중 오류가 발생했습니다.', 'error');
@@ -127,7 +108,7 @@ export const useDogForm = (id?: string) => {
       setIsLoading(true);
       await dogApi.deleteDog(id);
       showToast('삭제되었습니다.', 'success');
-      navigate('/dogs');
+      router.push('/dogs');
     } catch (err: any) {
       showToast('삭제 중 오류가 발생했습니다.', 'error');
     } finally {

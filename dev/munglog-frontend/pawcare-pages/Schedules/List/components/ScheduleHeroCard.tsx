@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // 추가
+import { useRouter } from 'next/navigation';
 import type { Schedule } from '@/types/schedule';
 import { Badge } from '@/components/common/Badge';
 import { calculateDDay } from '@/utils/dateUtils';
@@ -10,7 +10,7 @@ interface ScheduleHeroCardProps {
 }
 
 export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) => {
-  const navigate = useNavigate(); // 추가
+  const router = useRouter();
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
 
   if (!schedule) return null;
@@ -34,7 +34,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) 
 
   return (
     <div 
-      onClick={() => navigate(`/schedules/${schedule.id}`)} // 전체 카드 클릭 시 상세 이동
+      onClick={() => router.push(`/schedules/${schedule.id}`)}
       className="bg-[#2D2D2D] rounded-[32px] p-8 md:p-10 shadow-2xl shadow-main-green/5 relative overflow-hidden group cursor-pointer hover:ring-4 hover:ring-main-green/20 transition-all active:scale-[0.99]"
     >
       {/* Background Decor */}

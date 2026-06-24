@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { X, Calendar } from 'lucide-react';
 import type { CareRecord } from '@/types/care';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { isMedicalRecordType } from '@/lib/codeGroups';
 import { Button } from '@/components/common/Button';
 
 interface CalendarCarePanelProps {
@@ -15,7 +16,7 @@ interface CalendarCarePanelProps {
 }
 
 export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew }: CalendarCarePanelProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
   const { getCodeNameById } = useCommonCodes('EXPENSE_CATEGORY');
 
@@ -40,30 +41,17 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
     if (onAddNew) {
       onAddNew();
     } else {
-      navigate('/care-records/new', { 
-        state: { 
-          prefillData: { 
-            recordDate: formattedDate 
-          } 
-        } 
-      });
+      router.push('/care-records/new');
     }
   };
 
   const getTypeName = (record: CareRecord) => {
-    const rawRecord = record as any;
-    let typeCode = String(rawRecord.recordType || '');
-    if (record.recordTypeId || rawRecord.record_type_id) {
-      const typeId = record.recordTypeId || rawRecord.record_type_id;
-      typeCode = recordTypes.find(t => t.id === Number(typeId))?.code || typeCode;
-    }
+    const typeCode = String(record.recordType || '');
     return recordTypes.find(t => t.code === typeCode)?.codeName || typeCode || '기록';
   };
 
   const getCategoryName = (record: CareRecord) => {
-    const rawRecord = record as any;
-    const categoryId = record.categoryTypeId || rawRecord.category_type_id || rawRecord.categoryId || rawRecord.category_id;
-    return categoryId ? getCodeNameById(Number(categoryId)) : (record.categoryCode || '지출');
+    return record.categoryTypeId ? getCodeNameById(record.categoryTypeId) : (record.categoryCode || '지출');
   };
 
   const renderEmptyState = () => (
@@ -128,14 +116,12 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
 
         <div className="max-w-4xl mx-auto space-y-4">
           {filteredRecords.map((record) => {
-            const rawRecord = record as any;
-            const typeCode = String(rawRecord.recordType || '');
-            const isMed = record.recordTypeId === 1 || typeCode === 'MEDICAL';
+            const isMed = isMedicalRecordType(record.recordType);
 
             return (
               <div 
                 key={record.id}
-                onClick={() => navigate(`/care-records/${record.id}`)}
+                onClick={() => router.push(`/care-records/${record.id}`)}
                 className="group flex flex-col p-6 bg-background rounded-[24px] border border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
               >
                 <div className="flex justify-between items-center mb-3">

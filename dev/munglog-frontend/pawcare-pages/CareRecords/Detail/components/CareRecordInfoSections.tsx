@@ -1,23 +1,19 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { parseISO, addDays, isBefore, startOfDay, format } from 'date-fns';
 import type { CareRecord } from '@/types/care';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { isMedicalRecordType } from '@/lib/codeGroups';
 
 interface CareRecordInfoSectionsProps {
   record: CareRecord;
 }
 
 export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ record }) => {
-  const navigate = useNavigate();
-  const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
-  
-  let recordTypeCode = String((record as any).recordType || '');
-  if (record.recordTypeId) {
-    recordTypeCode = recordTypes.find(t => t.id === record.recordTypeId)?.code || recordTypeCode;
-  }
+  const router = useRouter();
 
-  const isMedical = recordTypeCode === 'MEDICAL';
+  const recordTypeCode = String(record.recordType || '');
+  const isMedical = isMedicalRecordType(recordTypeCode);
   const isExpense = recordTypeCode === 'EXPENSE';
 
   // 카테고리명 변환을 위한 훅 (ID 기반 조회 헬퍼 포함)
@@ -111,7 +107,7 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
 
       {isExpense && relatedMedical && (
         <div 
-          onClick={() => navigate(`/care-records/${relatedMedical.id}`)}
+          onClick={() => router.push(`/care-records/${relatedMedical.id}`)}
           className="group bg-white rounded-[24px] p-6 shadow-sm border border-stone-200/60 cursor-pointer hover:border-[#FF6B00] transition-all"
         >
           <div className="flex items-center justify-between">

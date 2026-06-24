@@ -1,22 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fileApi } from '@/api/fileApi';
-import { useCommonCodes } from './useCommonCodes';
 import type { FileItem } from '@/types/file';
 
 /**
  * 파일 선택/미리보기/업로드를 담당하는 공통 훅
- * 
- * 업로드 플로우:
- * 1. POST /api/files/upload  → 파일 물리 저장 + fileId 반환
- * 2. 각 도메인 저장 API에서 fileId 목록을 함께 전송 → FileMapping 생성
+ *
+ * 백엔드의 첨부파일 API는 부모(케어기록/일정/반려견)가 이미 생성되어 있어야
+ * parentId로 파일을 붙일 수 있습니다. 그래서 업로드 플로우는:
+ * 1. 화면에서는 로컬 File만 들고 있다가
+ * 2. 부모 레코드를 먼저 생성/수정한 뒤
+ * 3. syncToServer(parentId)로 실제 업로드를 진행합니다.
  */
-export const useFileUpload = (targetCode?: string) => {
-  const { codes: targetTypeCodes } = useCommonCodes('FILE_TARGET_TYPE');
+export const useFileUpload = (targetCode: string) => {
   const [existingFiles, setExistingFiles] = useState<FileItem[]>([]);
   const [localFiles, setLocalFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-
 
   const revokeAllPreviews = useCallback(() => {
     previewUrls.forEach(url => {
@@ -64,25 +63,19 @@ export const useFileUpload = (targetCode?: string) => {
   };
 
   /**
-   * 선택된 파일을 서버에 임시 업로드합니다.
-   * 반환된 FileItem[]의 id 목록을 도메인 저장 API에 fileIds로 전달하세요.
+   * 부모(케어기록/일정/반려견) 레코드가 생성/수정된 뒤, parentId로 로컬에 쌓인 파일을 업로드합니다.
    */
-  const upload = async (targetId: string | number | null = null): Promise<FileItem[] | null> => {
-    if (localFiles.length === 0) return null;
+  const syncToServer = async (parentId: string | number): Promise<FileItem[]> => {
+    if (localFiles.length === 0) return [];
 
     try {
       setIsUploading(true);
-      
-      // targetCode에 해당하는 targetTypeId 찾기
-      const found = targetTypeCodes.find(t => t.code === targetCode);
-      const targetType = found ? found.id : (targetCode || '');
-
-      const result = await fileApi.uploadFiles({ 
-        targetType,
-        targetId,
-        files: localFiles 
-      });
-      return result;
+      const uploaded = await fileApi.addFiles(targetCode, parentId, localFiles);
+      revokeAllPreviews();
+      setLocalFiles([]);
+      setPreviewUrls([]);
+      setExistingFiles(prev => [...prev, ...uploaded]);
+      return uploaded;
     } catch (error) {
       console.error('파일 업로드 실패:', error);
       throw error;
@@ -100,12 +93,11 @@ export const useFileUpload = (targetCode?: string) => {
     existingFiles,
     existingFileIds: existingFiles.map(f => f.id),
     isUploading,
-    isReady: true, // 별도 준비 단계 불필요
     hasNewFiles: localFiles.length > 0,
     setInitialFiles,
     handleSelect,
     handleDelete,
-    upload,
+    syncToServer,
     clear: () => { revokeAllPreviews(); setLocalFiles([]); setPreviewUrls([]); setExistingFiles([]); }
   };
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import type { Dog } from '@/types/dog';
 import { Card } from '@/components/common/Card';
 
@@ -8,11 +8,11 @@ interface DogSummaryCardProps {
 }
 
 export const DogSummaryCard: React.FC<DogSummaryCardProps> = ({ dog }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <Card
-      onClick={() => navigate('/family')}
+      onClick={() => router.push('/family')}
       className="p-6 transition-all duration-500 hover:shadow-md border border-border group"
     >
       <div className="flex items-center gap-6">

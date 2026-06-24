@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { Section } from '@/components/common/Section';
 import { MedicalForm } from './components/MedicalForm';
@@ -8,6 +8,7 @@ import { CommonInfoForm } from './components/CommonInfoForm';
 import { FileUploader } from '@/components/common/FileUploader';
 import { useCareRecordForm } from './hooks/useCareRecordForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { isMedicalRecordType } from '@/lib/codeGroups';
 
 interface CareRecordFormPageProps {
   id?: string;
@@ -24,9 +25,8 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
   onCancel,
   isEmbedded = false
 }) => {
-  const { id: routeId } = useParams();
-  const id = propId || routeId;
-  const navigate = useNavigate();
+  const id = propId;
+  const router = useRouter();
   const isEdit = !!id;
 
   const {
@@ -45,8 +45,8 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
 
   const isMedicalSelected = React.useMemo(() => {
     const activeType = recordTypes.find(t => t.id === recordTypeId);
-    if (!activeType) return true; 
-    return activeType.code === 'MEDICAL';
+    if (!activeType) return true;
+    return isMedicalRecordType(activeType.code);
   }, [recordTypeId, recordTypes]);
 
   if (isFetching) {
@@ -70,7 +70,7 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
             {!isEmbedded && <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">반려견의 건강 정보를 기록하세요.</p>}
           </div>
           <div className="flex gap-2 shrink-0">
-            <Button variant="ghost" onClick={onCancel || (() => navigate(-1))} className="px-4 font-bold text-text-sub text-xs">취소</Button>
+            <Button variant="ghost" onClick={onCancel || (() => router.back())} className="px-4 font-bold text-text-sub text-xs">취소</Button>
             <Button onClick={handleSave} disabled={isLoading} className="px-6 h-[40px] text-xs font-black rounded-xl">
               {isLoading ? '저장 중...' : (isEdit ? '수정' : '저장')}
             </Button>
@@ -86,7 +86,7 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
           <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${isEmbedded ? 'pb-3' : 'pb-6 border-b border-border'}`}>
             {recordTypes.map((type) => {
               const isActive = recordTypeId === type.id;
-              const isMed = type.code === 'MEDICAL';
+              const isMed = isMedicalRecordType(type.code);
               return (
                 <button
                    key={type.id}

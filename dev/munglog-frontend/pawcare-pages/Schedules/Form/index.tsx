@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
 import { Section } from '@/components/common/Section';
@@ -12,10 +12,15 @@ import { useScheduleForm } from './hooks/useScheduleForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { FileUploader } from '@/components/common/FileUploader';
 
-const ScheduleFormPage: React.FC = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+interface ScheduleFormPageProps {
+  id?: string;
+}
+
+const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const isEdit = !!id;
+  const prefillDate = searchParams?.get('date') || undefined;
 
   const {
     formData,
@@ -25,7 +30,7 @@ const ScheduleFormPage: React.FC = () => {
     handleSave,
     isLoading,
     isFetching
-  } = useScheduleForm(id);
+  } = useScheduleForm(id, { prefillDate });
 
   // DB에서 일정 유형(SCHEDULE_TYPE) 코드 목록 실시간 호출
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
@@ -51,7 +56,7 @@ const ScheduleFormPage: React.FC = () => {
             <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">우리 아이의 건강을 위한 일정을 계획하고 꼼꼼하게 관리하세요.</p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="px-4 font-bold text-text-sub text-xs">취소</Button>
+            <Button variant="ghost" onClick={() => router.back()} className="px-4 font-bold text-text-sub text-xs">취소</Button>
             <Button onClick={handleSave} disabled={isLoading} className="px-6 h-[40px] text-xs font-black rounded-xl">
               {isLoading ? '저장 중...' : (isEdit ? '수정' : '등록')}
             </Button>

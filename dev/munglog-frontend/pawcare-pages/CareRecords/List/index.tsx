@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { Button } from '@/components/common/Button';
 import { useCareRecords } from './hooks/useCareRecords';
@@ -13,7 +13,7 @@ interface CareRecordListPageProps {
 }
 
 const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { records, calendarRecords, isLoading, filters, updateFilter } = useCareRecords();
   const [selectedDate, setSelectedDate] = useState<string>('');
 
@@ -107,7 +107,7 @@ const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
                 <div className="py-24 text-center bg-background rounded-3xl border border-border shadow-sm px-10">
                   <h3 className="text-[20px] font-black text-foreground mb-2 tracking-tight">기록된 케어가 없습니다.</h3>
                   <p className="text-text-sub font-medium mb-6 text-sm">아직 기록된 로그가 없습니다.</p>
-                  <Button variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green" onClick={() => navigate('/care-records/new')}>기록 시작하기</Button>
+                  <Button variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green" onClick={() => router.push('/care-records/new')}>기록 시작하기</Button>
                 </div>
               )}
             </div>

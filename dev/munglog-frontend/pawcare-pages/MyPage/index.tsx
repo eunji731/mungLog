@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { Input } from '@/components/common/Input';
@@ -9,7 +9,7 @@ import type { Dog } from '@/types/dog';
 import { dogApi } from '@/api/dogApi';
 
 export const MyPage = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
@@ -118,7 +118,7 @@ export const MyPage = () => {
                 <h3 className="text-[20px] font-black text-foreground tracking-tight">함께하는 가족</h3>
                 <Button
                   variant="outline"
-                  onClick={() => navigate('/family')}
+                  onClick={() => router.push('/family')}
                   className="rounded-xl border-border hover:border-main-green text-foreground hover:bg-surface-green font-bold px-4 h-10 text-xs"
                 >
                   + 새 가족 추가

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import type { Schedule } from '@/types/schedule';
 import { calculateDDay } from '@/utils/dateUtils';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
@@ -11,14 +11,14 @@ interface ScheduleListProps {
 }
 
 export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeId }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { getCodeById } = useCommonCodes('SCHEDULE_TYPE');
 
   const getTypeIcon = (type: string) => {
     switch(type) {
-      case 'MEDICAL': return '🏥';
+      case 'HOSPITAL': return '🏥';
       case 'GROOMING': return '✂️';
-      case 'MEDICATION':
+      case 'MEDICINE':
       case 'HEARTWORM': return '💊';
       case 'CHECKUP': return '🩺';
       default: return '📅';
@@ -39,7 +39,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeId 
         return (
           <div 
             key={schedule.id}
-            onClick={() => navigate(`/schedules/${schedule.id}`)}
+            onClick={() => router.push(`/schedules/${schedule.id}`)}
             className={`group flex items-center justify-between p-5 rounded-[24px] border transition-all cursor-pointer hover:border-main-green hover:shadow-lg hover:shadow-main-green/5 active:scale-[0.99]
               ${activeId === schedule.id 
                 ? 'bg-background border-main-green shadow-xl shadow-main-green/5' 

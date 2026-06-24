@@ -16,15 +16,17 @@ export const dogApi = {
     return dog;
   },
 
-  createDog: async (payload: DogCreateRequest) => {
+  createDog: async (payload: DogCreateRequest, profileImage?: File | null) => {
     const formData = new FormData();
     formData.append('data', new Blob([JSON.stringify(toPetPayload(payload))], { type: 'application/json' }));
+    if (profileImage) formData.append('profileImage', profileImage);
     return apiClient.post('/pets', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   },
 
-  updateDog: async (id: string | number, payload: DogUpdateRequest) => {
+  updateDog: async (id: string | number, payload: DogUpdateRequest, profileImage?: File | null) => {
     const formData = new FormData();
     formData.append('data', new Blob([JSON.stringify(toPetPayload(payload))], { type: 'application/json' }));
+    if (profileImage) formData.append('profileImage', profileImage);
     return apiClient.put(`/pets/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   },
 
