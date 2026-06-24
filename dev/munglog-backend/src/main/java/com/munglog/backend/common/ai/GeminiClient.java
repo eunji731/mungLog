@@ -31,12 +31,14 @@ public class GeminiClient {
     @Value("${gemini.url}")
     private String baseUrl;
 
-    public DailyLogResponse analyzeImages(List<String> base64Images, String prompt) {
+    public DailyLogResponse analyzeImages(List<String> base64Images, List<String> fileNames, String prompt) {
         try {
             List<Map<String, Object>> parts = new ArrayList<>();
             parts.add(Map.of("text", prompt));
-            for (String b64 : base64Images) {
-                parts.add(Map.of("inline_data", Map.of("mime_type", "image/jpeg", "data", b64)));
+            for (int i = 0; i < base64Images.size(); i++) {
+                String fileName = i < fileNames.size() ? fileNames.get(i) : "image" + i + ".jpg";
+                parts.add(Map.of("text", "[사진 파일명: " + fileName + "]"));
+                parts.add(Map.of("inline_data", Map.of("mime_type", "image/jpeg", "data", base64Images.get(i))));
             }
             String raw = callGemini(parts);
             String json = extractJson(raw);

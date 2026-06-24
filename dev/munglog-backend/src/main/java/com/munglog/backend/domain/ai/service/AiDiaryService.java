@@ -91,6 +91,7 @@ public class AiDiaryService {
 
         List<StoredFileInfo> storedFiles = new ArrayList<>();
         List<String> base64Images = new ArrayList<>();
+        List<String> imageFileNames = new ArrayList<>();
 
         for (MultipartFile file : files) {
             ExifMeta exif = extractExif(file);
@@ -112,6 +113,7 @@ public class AiDiaryService {
 
             try (InputStream is = fileStorageService.getInputStream(storedPath)) {
                 base64Images.add(Base64.getEncoder().encodeToString(is.readAllBytes()));
+                imageFileNames.add(file.getOriginalFilename());
             } catch (Exception e) {
                 log.warn("이미지 base64 변환 실패: {}", file.getOriginalFilename(), e);
             }
@@ -120,7 +122,7 @@ public class AiDiaryService {
         String petContext = petInfos != null ? petInfos.stream()
                 .map(p -> p.name()).reduce("", (a, b) -> a + ", " + b) : "";
         String prompt = buildAnalyzePrompt(targetDate.toString(), petContext, member.getAiContext());
-        DailyLogResponse aiResult = geminiClient.analyzeImages(base64Images, prompt);
+        DailyLogResponse aiResult = geminiClient.analyzeImages(base64Images, imageFileNames, prompt);
 
         recordUsage(member, targetDate, USAGE_TYPE_ANALYZE);
         recordUsage(member, targetDate, USAGE_TYPE_DAILY);
@@ -264,6 +266,8 @@ public class AiDiaryService {
                 추가 맥락: %s
 
                 위 사진들을 분석하여 반려동물의 하루를 일기 형식으로 작성해주세요.
+                각 사진 바로 앞에는 "[사진 파일명: 실제파일명]" 형태의 라벨이 붙어 있습니다.
+                moments의 photoFileNames에는 그 사진에 해당하는 라벨의 파일명을 정확히 그대로(대소문자, 확장자 포함) 적어주세요. 파일명을 변형하거나 새로 만들지 마세요.
                 반드시 아래 JSON 형식으로만 응답하세요:
                 {
                   "aiTitle": "제목",
