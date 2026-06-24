@@ -10,7 +10,6 @@ import {
   LayoutDashboard,
   FileText,
   ClipboardList,
-  Dog,
   Stethoscope,
   Settings,
   ChevronDown,
@@ -22,7 +21,7 @@ import {
 import Image from 'next/image';
 import { useToast } from '../hooks/useToast';
 import { useConfirm } from '../hooks/useConfirm';
-import { usePet, PetProfile, ALL_PETS_ID } from '../hooks/usePet';
+import { usePet, ALL_PETS_ID } from '../hooks/usePet';
 import clientApi, { getImagePath } from '../lib/clientApi';
 
 const navItems = [
@@ -31,7 +30,6 @@ const navItems = [
   { name: '아카이브', href: '/archive', icon: ImageIcon },
   { name: '가족 관리', href: '/family', icon: Users },
   { name: '지도', href: '/map', icon: MapPin },
-  { name: '반려견', href: '/dogs', icon: Dog },
   { name: '케어기록', href: '/care-records', icon: Stethoscope },
   { name: '일정/예약', href: '/schedules', icon: ClipboardList },
   { name: '마이페이지', href: '/mypage', icon: FileText },

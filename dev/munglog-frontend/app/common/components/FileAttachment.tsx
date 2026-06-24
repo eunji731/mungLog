@@ -35,7 +35,7 @@ function FileIcon({ contentType, name }: { contentType?: string; name?: string }
 interface FileCardProps {
   item: DisplayFile;
   onRemove: () => void;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   isCircle?: boolean;
 }
 
@@ -44,7 +44,8 @@ function FileCard({ item, onRemove, size = 'md', isCircle = false }: FileCardPro
     sm: 'w-20 h-20', 
     md: 'w-28 h-28', 
     lg: 'w-36 h-36',
-    xl: 'w-48 h-48'
+    xl: 'w-48 h-48',
+    '2xl': 'w-56 h-56'
   }[size];
   const isImg = item.type === 'existing'
     ? isImage(item.data.contentType, item.data.originalName)
@@ -115,7 +116,7 @@ interface FileAttachmentProps {
   hideHeader?: boolean;
 
   /** 카드 크기 */
-  cardSize?: 'sm' | 'md' | 'lg' | 'xl';
+  cardSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
   /** 원형 여부 (프로필 등) */
   isCircle?: boolean;
@@ -160,7 +161,8 @@ export default function FileAttachment({
     sm: 'w-20 h-20', 
     md: 'w-28 h-28', 
     lg: 'w-36 h-36',
-    xl: 'w-48 h-48'
+    xl: 'w-48 h-48',
+    '2xl': 'w-56 h-56'
   }[cardSize];
   const roundedClass = isCircle ? 'rounded-full' : 'rounded-2xl';
 

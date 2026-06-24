@@ -146,373 +146,403 @@ export default function FamilyPage() {
     return age > 0 ? `${age}세` : '1세 미만';
   };
 
+  // 공통 인풋 스타일링 클래스 (둥근 상자 룩 복원)
+  const modernInputClass = "w-full px-4 py-3 bg-zinc-50 border border-border/80 rounded-xl focus:bg-background focus:border-main-green focus:ring-2 focus:ring-main-green/10 text-sm font-medium text-text-main placeholder:text-text-sub/30 transition-all outline-none";
+  const modernLabelClass = "text-xs font-semibold text-text-main/85 tracking-wide block mb-2";
+
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-surface-green/30 overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-zinc-50/50 overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-[100] bg-background/95 backdrop-blur-xl border-b border-border shrink-0">
-        <div className="w-full px-4 md:px-10 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-8 h-8 bg-main-green/10 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-main-green" />
+        <div className="w-full px-4 md:px-10 h-12 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-6 h-6 bg-main-green/10 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-3 h-3 text-main-green" />
             </div>
-            <h1 className="text-lg font-black tracking-tight whitespace-nowrap">
+            <h1 className="text-sm font-black tracking-tight whitespace-nowrap">
               우리 가족<span className="text-main-green"> 관리</span>
             </h1>
           </div>
           
-          <button 
-            onClick={() => {
-              resetForm();
-              setViewingPet(null);
-              setIsAdding(true);
-            }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-main-green text-white font-black rounded-xl text-xs shadow-md shadow-main-green/20 hover:scale-105 active:scale-95 transition-all"
-          >
-            <Plus className="w-4 h-4" /> 아이 추가하기
-          </button>
+          {/* 등록/수정/상세가 아닐 때만 '아이 추가하기' 버튼 노출 */}
+          {!isAdding && !viewingPet && (
+            <button 
+              onClick={() => {
+                resetForm();
+                setViewingPet(null);
+                setIsAdding(true);
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 bg-main-green text-white font-black rounded-xl text-xs shadow-md shadow-main-green/20 hover:scale-105 active:scale-95 transition-all animate-in fade-in"
+            >
+              <Plus className="w-4 h-4" /> 아이 추가하기
+            </button>
+          )}
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-10">
         <div className="max-w-5xl mx-auto">
-          {/* Add/Edit Pet Form */}
+          
+          {/* 1) Add/Edit Pet Form */}
           {isAdding && (
-            <div className="mb-12 bg-background rounded-[32px] border-2 border-main-green/20 shadow-xl overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="p-8 lg:p-10">
-                <div className="flex justify-between items-start mb-8">
-                  <h2 className="text-2xl font-black text-text-main flex items-center gap-2">
-                    <Heart className="w-6 h-6 text-main-green fill-main-green" /> 
+            <div className="bg-background rounded-2xl border border-border/80 shadow-sm p-6 lg:p-10 space-y-8 animate-in fade-in duration-300">
+              
+              {/* Form Header */}
+              <div className="flex justify-between items-center border-b border-border pb-4 mb-2">
+                <div className="flex items-baseline gap-2">
+                  <h2 className="text-lg font-bold text-text-main tracking-tight">
                     {editingPetId ? '아이 정보 수정' : '새로운 가족 등록'}
                   </h2>
-                  <button onClick={resetForm} className="p-2 hover:bg-surface-green rounded-xl transition-colors">
-                    <X className="w-6 h-6 text-text-sub" />
-                  </button>
+                  <span className="text-[10px] font-medium text-text-sub hidden sm:inline">AI 프로필 정보를 입력해 주세요.</span>
                 </div>
+                <button onClick={resetForm} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-all">
+                  <X className="w-4 h-4 text-text-sub" />
+                </button>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                  {/* Photo Upload */}
-                  <div className="flex flex-col items-center gap-4">
+              {/* Form Content - 3-Column Split by borders */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-border/60 items-start">
+                
+                {/* Column 1: Photo & Tone Upload */}
+                <div className="pb-6 lg:pb-0 lg:pr-8 flex flex-col items-center justify-center space-y-5">
+                  <div className="w-full flex flex-col items-center gap-4 py-2">
+                    <span className={modernLabelClass}>프로필 사진</span>
                     <FileAttachment
                       attachedFiles={profilePhoto}
                       accept="image/*"
                       multiple={false}
                       isCircle={true}
                       hideHeader={true}
-                      cardSize="xl"
+                      cardSize="2xl"
                       emptyText="사진 추가"
                     />
-                    
-                    <div className="w-full space-y-2">
-                      <label className="text-sm font-black text-text-main">일기 말투</label>
-                      <input 
-                        type="text" value={newDiaryTone} onChange={e => setNewDiaryTone(e.target.value)}
-                        placeholder="예: 발랄하게, 정중하게"
-                        className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold"
-                      />
+                  </div>
+                  
+                  <div className="w-full space-y-1">
+                    <label className={modernLabelClass}>일기 말투</label>
+                    <input 
+                      type="text" value={newDiaryTone} onChange={e => setNewDiaryTone(e.target.value)}
+                      placeholder="예: 발랄하게, 정중하게"
+                      className={modernInputClass}
+                    />
+                  </div>
+                </div>
+
+                {/* Column 2: Core Basic Info */}
+                <div className="py-6 lg:py-0 lg:px-8 space-y-5">
+                  <div className="space-y-1">
+                    <label className={modernLabelClass}>이름 *</label>
+                    <input 
+                      type="text" value={newName} onChange={e => setNewName(e.target.value)}
+                      placeholder="이름"
+                      className={modernInputClass}
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className={modernLabelClass}>견종 *</label>
+                    <input 
+                      type="text" value={newBreed} onChange={e => setNewBreed(e.target.value)}
+                      placeholder="견종"
+                      className={modernInputClass}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className={modernLabelClass}>생일 *</label>
+                      <div className="relative">
+                        <input 
+                          type="date" value={newBirthDate} onChange={e => setNewBirthDate(e.target.value)}
+                          className={modernInputClass}
+                        />
+                        <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub/55 pointer-events-none" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className={modernLabelClass}>성별</label>
+                      <div className="flex bg-zinc-50 border border-border/80 rounded-xl p-1 h-[46px] items-center">
+                        <button
+                          type="button"
+                          onClick={() => setNewGender('MALE')}
+                          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${newGender === 'MALE' ? 'bg-background text-main-green border border-border/30 shadow-sm font-extrabold' : 'text-text-sub'}`}
+                        >
+                          남아
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewGender('FEMALE')}
+                          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${newGender === 'FEMALE' ? 'bg-background text-main-green border border-border/30 shadow-sm font-extrabold' : 'text-text-sub'}`}
+                        >
+                          여아
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Fields */}
-                  <div className="md:col-span-2 space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">이름 *</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className={modernLabelClass}>입양일</label>
+                      <div className="relative">
                         <input 
-                          type="text" value={newName} onChange={e => setNewName(e.target.value)}
-                          placeholder="이름"
-                          className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold"
+                          type="date" value={newAdoptionDate} onChange={e => setNewAdoptionDate(e.target.value)}
+                          className={modernInputClass}
                         />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">견종 *</label>
-                        <input 
-                          type="text" value={newBreed} onChange={e => setNewBreed(e.target.value)}
-                          placeholder="견종"
-                          className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold"
-                        />
+                        <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub/55 pointer-events-none" />
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">생일 *</label>
-                        <div className="relative">
-                          <input 
-                            type="date" value={newBirthDate} onChange={e => setNewBirthDate(e.target.value)}
-                            className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold appearance-none dark:color-scheme-dark"
-                          />
-                          <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub pointer-events-none" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">성별</label>
-                        <div className="flex bg-surface-green border border-border rounded-xl p-1">
-                          <button
-                            type="button"
-                            onClick={() => setNewGender('MALE')}
-                            className={`flex-1 py-2 text-xs font-black rounded-lg transition-all ${newGender === 'MALE' ? 'bg-background text-blue-500 shadow-sm' : 'text-text-sub'}`}
-                          >
-                            남아
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setNewGender('FEMALE')}
-                            className={`flex-1 py-2 text-xs font-black rounded-lg transition-all ${newGender === 'FEMALE' ? 'bg-background text-pink-500 shadow-sm' : 'text-text-sub'}`}
-                          >
-                            여아
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">입양일</label>
-                        <div className="relative">
-                          <input 
-                            type="date" value={newAdoptionDate} onChange={e => setNewAdoptionDate(e.target.value)}
-                            className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold appearance-none dark:color-scheme-dark"
-                          />
-                          <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub pointer-events-none" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">몸무게 (kg)</label>
-                        <input 
-                          type="number" step="0.01" value={newWeightKg} onChange={e => setNewWeightKg(e.target.value)}
-                          placeholder="0.00"
-                          className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">좋아하는 것</label>
-                        <input 
-                          type="text" value={newLikes} onChange={e => setNewLikes(e.target.value)}
-                          placeholder="좋아하는 간식, 장난감 등"
-                          className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-black text-text-main">싫어하는 것</label>
-                        <input 
-                          type="text" value={newDislikes} onChange={e => setNewDislikes(e.target.value)}
-                          placeholder="싫어하는 행동, 소리 등"
-                          className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-black text-text-main">외형적 특징</label>
+                    <div className="space-y-1">
+                      <label className={modernLabelClass}>몸무게 (kg)</label>
                       <input 
-                        type="text" value={newAppearance} onChange={e => setNewAppearance(e.target.value)}
-                        placeholder="예: 한쪽 귀가 접혀있음, 털이 곱슬거림"
-                        className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-bold"
+                        type="number" step="0.01" value={newWeightKg} onChange={e => setNewWeightKg(e.target.value)}
+                        placeholder="0.00"
+                        className={modernInputClass}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-black text-text-main flex items-center justify-between">
-                        <span>성격 및 특징 (AI 참고용)</span>
-                        <div className="group relative">
-                          <Info className="w-4 h-4 text-text-sub cursor-help" />
-                          <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-text-main text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 leading-relaxed">
-                            여기에 입력한 정보가 AI 일기 작성 시 반영됩니다. 평소 행동 습관을 적어주면 더 생생한 일기를 써드려요!
-                          </div>
-                        </div>
-                      </label>
-                      <textarea 
-                        rows={3} value={newTraits} onChange={e => setNewTraits(e.target.value)}
-                        placeholder="아이의 성격을 자세히 적어주세요. AI가 더 똑똑해집니다."
-                        className="w-full px-4 py-3 bg-surface-green border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-main-green/20 font-medium resize-none"
-                      />
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <button onClick={resetForm} className="flex-1 py-4 bg-surface-green text-text-sub font-black rounded-2xl hover:bg-border transition-all">취소</button>
-                      <button 
-                        onClick={handleSavePet} 
-                        disabled={loading}
-                        className="flex-[2] py-4 bg-main-green text-white font-black rounded-2xl shadow-lg shadow-main-green/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
-                      >
-                        {loading ? '처리 중...' : (editingPetId ? '수정하기' : '등록하기')}
-                      </button>
                     </div>
                   </div>
                 </div>
+
+                {/* Column 3: Detailed Description & Traits */}
+                <div className="pt-6 lg:pt-0 lg:pl-8 space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className={modernLabelClass}>좋아하는 것</label>
+                      <input 
+                        type="text" value={newLikes} onChange={e => setNewLikes(e.target.value)}
+                        placeholder="간식, 장난감 등"
+                        className={modernInputClass}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className={modernLabelClass}>싫어하는 것</label>
+                      <input 
+                        type="text" value={newDislikes} onChange={e => setNewDislikes(e.target.value)}
+                        placeholder="행동, 소리 등"
+                        className={modernInputClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className={modernLabelClass}>외형적 특징</label>
+                    <input 
+                      type="text" value={newAppearance} onChange={e => setNewAppearance(e.target.value)}
+                      placeholder="예: 귀가 접혀있음, 곱슬털"
+                      className={modernInputClass}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-main-green/80 tracking-widest uppercase flex items-center justify-between">
+                      <span>성격 및 특징 (AI 참고용)</span>
+                      <div className="group relative">
+                        <Info className="w-3.5 h-3.5 text-text-sub/60 cursor-help" />
+                        <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-text-main text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 leading-relaxed normal-case font-normal">
+                          여기에 입력한 정보가 AI 일기 작성 시 반영됩니다. 평소 행동 습관을 적어주면 더 생생한 일기를 써드려요!
+                        </div>
+                      </div>
+                    </label>
+                    <textarea 
+                      rows={2} value={newTraits} onChange={e => setNewTraits(e.target.value)}
+                      placeholder="아이의 성격을 자세히 적어주세요. AI가 더 똑똑해집니다."
+                      className="w-full px-3.5 py-2.5 bg-zinc-50/50 border border-zinc-200/80 rounded-xl focus:bg-background focus:border-main-green focus:ring-1 focus:ring-main-green/10 text-xs font-semibold text-text-main placeholder:text-text-sub/30 resize-none transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
               </div>
+
+              {/* Form Actions - Flat Web design (Align right, no footer container) */}
+              <div className="flex justify-end gap-3 pt-6 border-t border-border/60">
+                <button onClick={resetForm} className="px-6 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-text-sub font-bold rounded-xl text-xs transition-all">취소</button>
+                <button 
+                  onClick={handleSavePet} 
+                  disabled={loading}
+                  className="px-10 py-2.5 bg-main-green text-white font-bold rounded-xl shadow-md shadow-main-green/10 hover:bg-main-green/90 active:scale-[0.98] transition-all disabled:opacity-50 text-xs"
+                >
+                  {loading ? '처리 중...' : (editingPetId ? '수정하기' : '등록하기')}
+                </button>
+              </div>
+
             </div>
           )}
 
-          {/* viewing pet detail */}
+          {/* 2) Viewing Pet Detailed Card */}
           {viewingPet && (
-            <div className="mb-12 bg-background rounded-[40px] border-2 border-main-green/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-              <div className="relative h-48 bg-gradient-to-br from-main-green/20 to-surface-green">
-                <button 
-                  onClick={() => setViewingPet(null)}
-                  className="absolute top-6 right-6 p-3 bg-background/80 backdrop-blur-md hover:bg-background rounded-2xl shadow-sm z-10 transition-all"
-                >
-                  <X className="w-6 h-6 text-text-main" />
-                </button>
-                
-                <div className="absolute -bottom-16 left-10 flex items-end gap-6">
-                  <div className="relative w-32 h-32 rounded-[32px] overflow-hidden border-4 border-background shadow-xl bg-background">
+            <div className="bg-background rounded-2xl border border-border/80 shadow-sm p-6 lg:p-10 space-y-8 animate-in fade-in duration-300">
+              
+              {/* Web Document style Profile Header */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-border pb-6">
+                <div className="flex items-center gap-6">
+                  {/* Square Profile Photo */}
+                  <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-border/80 bg-zinc-50 shrink-0">
                     <Image src={getImagePath(viewingPet.photo, 'profiles')} alt={viewingPet.name} fill className="object-cover" />
                   </div>
-                  <div className="pb-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h2 className="text-3xl font-black text-text-main tracking-tight">{viewingPet.name}</h2>
-                      <div className={`px-2.5 py-1 rounded-full text-[10px] font-black text-white ${viewingPet.gender === 'MALE' ? 'bg-blue-500' : 'bg-pink-500'}`}>
+                  <div>
+                    <div className="flex items-center gap-3.5 mb-1.5">
+                      <h2 className="text-2xl font-black text-text-main tracking-tight">{viewingPet.name}</h2>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black text-white ${viewingPet.gender === 'MALE' ? 'bg-blue-500' : 'bg-pink-500'}`}>
                         {viewingPet.gender === 'MALE' ? '남아' : '여아'}
-                      </div>
+                      </span>
                     </div>
-                    <p className="text-text-sub font-bold">{viewingPet.breed} · {calculateAge(viewingPet.birthDate)}</p>
+                    <p className="text-sm font-bold text-text-sub">{viewingPet.breed} · {calculateAge(viewingPet.birthDate)} ({viewingPet.birthDate} 생)</p>
                   </div>
+                </div>
+
+                <div className="flex gap-2.5 w-full sm:w-auto self-stretch sm:self-auto shrink-0">
+                  <button 
+                    onClick={(e) => handleEditClick(e, viewingPet)}
+                    className="flex-1 sm:flex-initial px-5 py-2.5 bg-main-green hover:bg-main-green/90 text-white font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs shadow-sm shadow-main-green/10"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> 정보 수정
+                  </button>
+                  <button 
+                    onClick={(e) => handleRemovePet(e, viewingPet.id, viewingPet.name)}
+                    className="flex-1 sm:flex-initial px-5 py-2.5 bg-background border border-red-200 text-red-500 hover:bg-red-50 font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> 삭제
+                  </button>
+                  <button 
+                    onClick={() => setViewingPet(null)}
+                    className="p-2.5 bg-zinc-50 hover:bg-zinc-100 text-text-sub rounded-xl border border-border/60 transition-all shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="p-10 pt-20 grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-8">
+              {/* Info Body - Divide Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-border/60">
+                
+                {/* Left Block */}
+                <div className="pb-8 lg:pb-0 lg:pr-10 space-y-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-5 bg-surface-green/50 rounded-3xl border border-main-green/5">
+                    <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl">
                       <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                        <Calendar className="w-3 h-3" /> 생일
+                        <Calendar className="w-3.5 h-3.5" /> 생일
                       </div>
                       <div className="text-sm font-black text-text-main">{viewingPet.birthDate}</div>
                     </div>
-                    <div className="p-5 bg-surface-green/50 rounded-3xl border border-main-green/5">
+                    <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl">
                       <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                        <Heart className="w-3 h-3" /> 입양일
+                        <Heart className="w-3.5 h-3.5" /> 입양일
                       </div>
                       <div className="text-sm font-black text-text-main">{viewingPet.adoptionDate || '정보 없음'}</div>
                     </div>
-                    <div className="p-5 bg-surface-green/50 rounded-3xl border border-main-green/5">
+                    <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl">
                       <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                        <TrendingUp className="w-3 h-3" /> 몸무게
+                        <TrendingUp className="w-3.5 h-3.5" /> 몸무게
                       </div>
                       <div className="text-sm font-black text-text-main">{viewingPet.weightKg ? `${viewingPet.weightKg}kg` : '정보 없음'}</div>
                     </div>
-                    <div className="p-5 bg-surface-green/50 rounded-3xl border border-main-green/5">
+                    <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl">
                       <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                        <Sparkles className="w-3 h-3" /> 일기 말투
+                        <Sparkles className="w-3.5 h-3.5" /> 일기 말투
                       </div>
                       <div className="text-sm font-black text-text-main">{viewingPet.diaryTone || '기본 설정'}</div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <h4 className="text-xs font-black text-main-green tracking-widest uppercase">성격 및 특징</h4>
-                    <div className="p-6 bg-background border border-border rounded-3xl shadow-sm italic leading-relaxed text-sm font-medium text-text-main/80">
+                    <div className="p-5 bg-zinc-50/50 border border-border/60 rounded-xl italic leading-relaxed text-sm font-medium text-text-main/80">
                       &quot;{viewingPet.traits || '등록된 특징이 없습니다.'}&quot;
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-8">
+                {/* Right Block */}
+                <div className="pt-8 lg:pt-0 lg:pl-10 space-y-6">
                   <div className="space-y-4">
                     <h4 className="text-xs font-black text-main-green tracking-widest uppercase">좋아하고 싫어하는 것</h4>
                     <div className="space-y-3">
-                      <div className="flex items-start gap-4 p-5 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/50 dark:border-blue-900/20">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs shrink-0 font-black">Like</div>
-                        <p className="text-sm font-bold text-text-main leading-relaxed mt-1.5">{viewingPet.likes || '정보 없음'}</p>
+                      <div className="flex items-start gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl border border-blue-100/50 dark:border-blue-900/20">
+                        <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px] shrink-0 font-black">Like</div>
+                        <p className="text-sm font-bold text-text-main leading-relaxed mt-1">{viewingPet.likes || '정보 없음'}</p>
                       </div>
-                      <div className="flex items-start gap-4 p-5 bg-pink-50/50 dark:bg-pink-900/10 rounded-2xl border border-pink-100/50 dark:border-pink-900/20">
-                        <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs shrink-0 font-black">Hate</div>
-                        <p className="text-sm font-bold text-text-main leading-relaxed mt-1.5">{viewingPet.dislikes || '정보 없음'}</p>
+                      <div className="flex items-start gap-4 p-4 bg-pink-50/50 dark:bg-pink-900/10 rounded-xl border border-pink-100/50 dark:border-pink-900/20">
+                        <div className="w-7 h-7 bg-pink-500 rounded-full flex items-center justify-center text-white text-[10px] shrink-0 font-black">Hate</div>
+                        <p className="text-sm font-bold text-text-main leading-relaxed mt-1">{viewingPet.dislikes || '정보 없음'}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <h4 className="text-xs font-black text-main-green tracking-widest uppercase">외형적 특징</h4>
-                    <div className="p-6 bg-surface-green/20 border border-main-green/10 rounded-3xl text-sm font-bold text-text-main leading-relaxed">
+                    <div className="p-5 bg-zinc-50/50 border border-border/60 rounded-xl text-sm font-bold text-text-main leading-relaxed">
                       {viewingPet.appearance || '정보 없음'}
                     </div>
                   </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <button 
-                      onClick={(e) => handleEditClick(e, viewingPet)}
-                      className="flex-1 py-4 bg-main-green text-white font-black rounded-2xl shadow-lg shadow-main-green/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Sparkles className="w-4 h-4" /> 정보 수정
-                    </button>
-                    <button 
-                      onClick={(e) => handleRemovePet(e, viewingPet.id, viewingPet.name)}
-                      className="flex-1 py-4 bg-background border-2 border-red-100 dark:border-red-900/30 text-red-500 font-black rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" /> 삭제
-                    </button>
-                  </div>
                 </div>
               </div>
+
             </div>
           )}
 
-          {/* Pet List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {pets.map(pet => (
-              <div 
-                key={pet.id} 
-                onClick={() => {
-                  setViewingPet(pet);
-                  setIsAdding(false);
-                }}
-                className={`group bg-background rounded-[32px] border p-6 flex items-center gap-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer ${viewingPet?.id === pet.id ? 'border-main-green ring-4 ring-main-green/5' : 'border-border'}`}
-              >
-                <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-md shrink-0">
-                  <Image src={getImagePath(pet.photo, 'profiles')} alt={pet.name} fill className="object-cover" />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <h3 className="text-xl font-black text-text-main truncate">{pet.name}</h3>
-                      <span className={`shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black text-white ${pet.gender === 'MALE' ? 'bg-blue-500' : 'bg-pink-500'}`}>
-                        {pet.gender === 'MALE' ? '남아' : '여아'}
-                      </span>
+          {/* 3) Pet List Page (오직 등록/수정/상세 창이 꺼져있을 때만 독립 노출) */}
+          {!isAdding && !viewingPet && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+              {pets.map(pet => (
+                <div 
+                  key={pet.id} 
+                  onClick={() => {
+                    setViewingPet(pet);
+                    setIsAdding(false);
+                  }}
+                  className="group bg-background rounded-2xl border border-border/80 p-6 flex items-center gap-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                >
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-md shrink-0 bg-zinc-100">
+                    <Image src={getImagePath(pet.photo, 'profiles')} alt={pet.name} fill className="object-cover" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <h3 className="text-xl font-black text-text-main truncate">{pet.name}</h3>
+                        <span className={`shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black text-white ${pet.gender === 'MALE' ? 'bg-blue-500' : 'bg-pink-500'}`}>
+                          {pet.gender === 'MALE' ? '남아' : '여아'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={(e) => handleEditClick(e, pet)}
+                          className="p-2 text-text-sub hover:text-main-green opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-zinc-50 rounded-lg"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => handleRemovePet(e, pet.id, pet.name)}
+                          className="p-2 text-text-sub hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-zinc-50 rounded-lg"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => handleEditClick(e, pet)}
-                        className="p-2 text-text-sub hover:text-main-green opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => handleRemovePet(e, pet.id, pet.name)}
-                        className="p-2 text-text-sub hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="text-xs font-bold text-text-sub mb-3">
+                      {pet.breed} · {calculateAge(pet.birthDate)} ({pet.birthDate})
+                      {pet.weightKg && ` · ${pet.weightKg}kg`}
+                    </div>
+                    <div className="bg-zinc-50 p-3 rounded-xl border border-border/60">
+                      <p className="text-[11px] text-text-sub font-medium line-clamp-2 italic leading-relaxed">
+                        &quot;{pet.traits || '등록된 특징이 없습니다. AI를 위해 입력해 주세요!'}&quot;
+                      </p>
                     </div>
                   </div>
-                  <div className="text-xs font-bold text-text-sub mb-3">
-                    {pet.breed} · {calculateAge(pet.birthDate)} ({pet.birthDate})
-                    {pet.weightKg && ` · ${pet.weightKg}kg`}
-                  </div>
-                  <div className="bg-surface-green/50 p-3 rounded-2xl border border-main-green/5">
-                    <p className="text-[11px] text-text-sub font-medium line-clamp-2 italic leading-relaxed">
-                      &quot;{pet.traits || '등록된 특징이 없습니다. AI를 위해 입력해 주세요!'}&quot;
-                    </p>
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {pets.length === 0 && !isAdding && (
-              <div className="md:col-span-2 py-20 flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-main-green/10 rounded-full flex items-center justify-center mb-6">
-                  <User className="w-10 h-10 text-main-green" />
+              {pets.length === 0 && (
+                <div className="md:col-span-2 py-20 flex flex-col items-center text-center">
+                  <div className="w-20 h-20 bg-main-green/10 rounded-full flex items-center justify-center mb-6">
+                    <User className="w-10 h-10 text-main-green" />
+                  </div>
+                  <h3 className="text-xl font-black text-text-main">등록된 가족이 없어요</h3>
+                  <p className="text-text-sub mt-2 font-medium">우리 아이의 정보를 먼저 등록해 주세요!</p>
                 </div>
-                <h3 className="text-xl font-black text-text-main">등록된 가족이 없어요</h3>
-                <p className="text-text-sub mt-2 font-medium">우리 아이의 정보를 먼저 등록해 주세요!</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     </div>

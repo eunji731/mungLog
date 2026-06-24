@@ -118,7 +118,7 @@ export const MyPage = () => {
                 <h3 className="text-[20px] font-black text-foreground tracking-tight">함께하는 가족</h3>
                 <Button
                   variant="outline"
-                  onClick={() => navigate('/dogs/new')}
+                  onClick={() => navigate('/family')}
                   className="rounded-xl border-border hover:border-main-green text-foreground hover:bg-surface-green font-bold px-4 h-10 text-xs"
                 >
                   + 새 가족 추가

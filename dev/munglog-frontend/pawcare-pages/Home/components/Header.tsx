@@ -20,7 +20,7 @@ export const Header = () => {
 
   const menuItems = [
     { label: '홈', path: '/' },
-    { label: '반려견', path: '/dogs' },
+    { label: '가족 관리', path: '/family' },
     { label: '케어기록', path: '/care-records' },
     { label: '일정/예약', path: '/schedules' },
   ];

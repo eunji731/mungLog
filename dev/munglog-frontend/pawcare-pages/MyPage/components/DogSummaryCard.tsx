@@ -12,7 +12,7 @@ export const DogSummaryCard: React.FC<DogSummaryCardProps> = ({ dog }) => {
 
   return (
     <Card
-      onClick={() => navigate(`/dogs/edit/${dog.id}`)}
+      onClick={() => navigate('/family')}
       className="p-6 transition-all duration-500 hover:shadow-md border border-border group"
     >
       <div className="flex items-center gap-6">
