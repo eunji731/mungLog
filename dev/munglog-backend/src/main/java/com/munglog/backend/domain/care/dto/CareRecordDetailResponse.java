@@ -1,0 +1,77 @@
+package com.munglog.backend.domain.care.dto;
+
+import com.munglog.backend.common.file.dto.FileResponse;
+import com.munglog.backend.domain.care.domain.CareRecord;
+import com.munglog.backend.domain.care.domain.CareRecordType;
+import lombok.Builder;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+@Builder
+public record CareRecordDetailResponse(
+        UUID id,
+        UUID petId,
+        String petName,
+        CareRecordType recordType,
+        LocalDate recordDate,
+        String title,
+        String note,
+        MedicalDetailDto medicalDetail,
+        ExpenseDetailDto expenseDetail,
+        List<FileResponse> attachments
+) {
+    @Builder
+    public record MedicalDetailDto(
+            String clinicName,
+            String symptoms,
+            List<String> symptomTags,
+            String diagnosis,
+            String treatment,
+            LocalDate medicationStartDate,
+            Integer medicationDays,
+            Boolean isMedicationCompleted,
+            BigDecimal amount
+    ) {}
+
+    @Builder
+    public record ExpenseDetailDto(
+            String category,
+            BigDecimal amount,
+            String memo,
+            UUID relatedMedicalRecordId
+    ) {}
+
+    public static CareRecordDetailResponse from(CareRecord record, List<String> symptomTags,
+                                                 List<FileResponse> attachments) {
+        MedicalDetailDto medDto = null;
+        if (record.getMedicalDetail() != null) {
+            var med = record.getMedicalDetail();
+            medDto = MedicalDetailDto.builder()
+                    .clinicName(med.getClinicName()).symptoms(med.getSymptoms())
+                    .symptomTags(symptomTags).diagnosis(med.getDiagnosis())
+                    .treatment(med.getTreatment()).medicationStartDate(med.getMedicationStartDate())
+                    .medicationDays(med.getMedicationDays())
+                    .isMedicationCompleted(med.getIsMedicationCompleted())
+                    .amount(med.getAmount()).build();
+        }
+
+        ExpenseDetailDto expDto = null;
+        if (record.getExpenseDetail() != null) {
+            var exp = record.getExpenseDetail();
+            expDto = ExpenseDetailDto.builder()
+                    .category(exp.getCategory()).amount(exp.getAmount())
+                    .memo(exp.getMemo()).relatedMedicalRecordId(exp.getRelatedMedicalRecordId())
+                    .build();
+        }
+
+        return CareRecordDetailResponse.builder()
+                .id(record.getId()).petId(record.getPet().getId())
+                .petName(record.getPet().getName()).recordType(record.getRecordType())
+                .recordDate(record.getRecordDate()).title(record.getTitle()).note(record.getNote())
+                .medicalDetail(medDto).expenseDetail(expDto).attachments(attachments)
+                .build();
+    }
+}

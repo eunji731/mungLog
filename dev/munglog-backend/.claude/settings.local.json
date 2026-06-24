@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\petLifeLog -Recurse -Depth 2 | Select-Object FullName, PSIsContainer | Where-Object { $_.PSIsContainer -eq $false -or $_.FullName -notmatch 'node_modules|\\\\.git' } | Select-Object -First 50)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\pawCareChart -Recurse -Depth 2 | Select-Object FullName, PSIsContainer | Where-Object { $_.PSIsContainer -eq $false -or $_.FullName -notmatch 'node_modules|\\\\.git' } | Select-Object -First 50)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend -Depth 2 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.git' } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend\\\\src\\\\main\\\\java -Recurse | Where-Object { $_.Extension -eq '.java' } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\petLifeLog\\\\dev\\\\back\\\\petlifelog-backend\\\\src\\\\main\\\\java -Recurse | Where-Object { $_.Extension -eq '.java' } | Select-Object FullName | Sort-Object FullName)",
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\pawCareChart\\\\dev\\\\backend\\\\src\\\\main\\\\java -Recurse | Where-Object { $_.Extension -eq '.java' } | Select-Object FullName | Sort-Object FullName)",
+      "Bash(Test-Path *)",
+      "PowerShell(cd D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend; .\\\\gradlew bootRun 2>&1 | Where-Object { $_ -match \"ERROR|Exception|Caused by|Started munglog\" } | Select-Object -First 20)",
+      "PowerShell(cd D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend; .\\\\gradlew bootRun 2>&1 | Where-Object { $_ -match \"Caused by|ACTION|Description|Failed to start\" } | Select-Object -First 20)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(cd D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-backend; .\\\\gradlew bootRun 2>&1 | Where-Object { $_ -match \"Caused by|ACTION|Description|Started munglog|APPLICATION FAILED\" } | Select-Object -First 20)"
+    ]
+  }
+}
