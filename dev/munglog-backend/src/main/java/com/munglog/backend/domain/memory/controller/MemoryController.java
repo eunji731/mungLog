@@ -1,6 +1,7 @@
 package com.munglog.backend.domain.memory.controller;
 
 import com.munglog.backend.common.dto.ApiResponse;
+import com.munglog.backend.domain.memory.dto.MemoryDetailResponse;
 import com.munglog.backend.domain.memory.dto.MemoryListResponse;
 import com.munglog.backend.domain.memory.service.MemoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +33,15 @@ public class MemoryController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(ApiResponse.success(
                 memoryService.getMemories(UUID.fromString(user.getUsername()), startDate, endDate)));
+    }
+
+    @Operation(summary = "일지 상세 조회")
+    @GetMapping("/{memoryId}")
+    public ResponseEntity<ApiResponse<MemoryDetailResponse>> getMemory(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID memoryId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                memoryService.getMemoryDetail(memoryId, UUID.fromString(user.getUsername()))));
     }
 
     @Operation(summary = "일지 삭제")

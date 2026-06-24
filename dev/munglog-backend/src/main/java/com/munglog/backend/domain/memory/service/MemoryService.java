@@ -3,6 +3,7 @@ package com.munglog.backend.domain.memory.service;
 import com.munglog.backend.common.file.domain.ParentDomainType;
 import com.munglog.backend.common.file.service.AttachedFileService;
 import com.munglog.backend.domain.memory.domain.Memory;
+import com.munglog.backend.domain.memory.dto.MemoryDetailResponse;
 import com.munglog.backend.domain.memory.dto.MemoryListResponse;
 import com.munglog.backend.domain.memory.repository.MemoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,13 @@ public class MemoryService {
             memories = memoryRepository.findByUser_IdOrderByMemoryDateDesc(userId);
         }
         return memories.stream().map(m -> MemoryListResponse.from(m, baseUrl)).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public MemoryDetailResponse getMemoryDetail(UUID memoryId, UUID userId) {
+        Memory memory = memoryRepository.findByIdAndUser_Id(memoryId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("일지를 찾을 수 없습니다."));
+        return MemoryDetailResponse.from(memory);
     }
 
     @Transactional

@@ -83,30 +83,32 @@ export const useDiaryStore = create<DiaryState>()(
   )
 );
 
-interface MemoryMomentItem {
+interface MemoryListItem {
+  id: string;
+  memoryDate: string;
+}
+
+interface MemoryMomentDetail {
   id: string;
   category: string;
   aiTitle: string;
   aiContent: string;
   locationName?: string;
-  energyLevel?: number;
-  tags?: string; // JSON 문자열 "[\"태그1\",\"태그2\"]"
-  representativePhotoPath?: string;
+  energyLevel?: string;
+  tags: string[];
   photos: { id: string; path: string }[];
 }
 
-interface MemoryApiItem {
+interface MemoryDetailItem {
   id: string;
-  dateKey: string;
+  memoryDate: string;
   aiTitle: string;
-  aiSummary: string;
+  summary: string;
+  location?: string;
+  energyLevel?: string;
   representativePhotoPath?: string;
-  aiDiary?: string;
-  locationName?: string;
-  energyLevel?: number;
-  photos: { id: string; path: string }[];
   petIds: string[];
-  moments?: MemoryMomentItem[];
+  moments: MemoryMomentDetail[];
 }
 
 export const useDiary = () => {
@@ -123,56 +125,53 @@ export const useDiary = () => {
 
   const syncFromBackend = async (params?: { startDate?: string; endDate?: string }) => {
     try {
-      const queryString = params 
+      const queryString = params
         ? `?${new URLSearchParams(Object.entries(params).filter(([_, v]) => !!v) as string[][]).toString()}`
         : '';
-      
-      const res = await clientApi.get(`/api/memories${queryString}`);
-      const memories: MemoryApiItem[] = res.data?.data ?? [];
+
+      const listRes = await clientApi.get(`/api/memories${queryString}`);
+      const memoryList: MemoryListItem[] = listRes.data?.data ?? [];
+
+      const details = await Promise.all(
+        memoryList.map(async (item) => {
+          try {
+            const res = await clientApi.get(`/api/memories/${item.id}`);
+            return res.data?.data as MemoryDetailItem;
+          } catch {
+            return null;
+          }
+        })
+      );
 
       const logs: Record<string, DailyLog[]> = {};
-      for (const m of memories) {
-        const parseTags = (tagsJson?: string): string[] => {
-          try { return tagsJson ? JSON.parse(tagsJson) : []; } catch { return []; }
-        };
+      for (const m of details) {
+        if (!m) continue;
 
-        const moments: Moment[] = m.moments && m.moments.length > 0
-          ? m.moments.map(mo => ({
-              id: mo.id,
-              category: (mo.category as Moment['category']) || 'GENERAL',
-              locationName: mo.locationName || '알 수 없는 곳',
-              aiTitle: mo.aiTitle || '기록',
-              aiContent: mo.aiContent || '',
-              energyLevel: mo.energyLevel || 3,
-              photos: (mo.photos || []).map(p => ({ id: p.id, path: p.path })),
-              tags: parseTags(mo.tags),
-              dogIds: m.petIds || [],
-            }))
-          : [{
-              id: `m-${m.id}`,
-              category: 'GENERAL' as Moment['category'],
-              locationName: m.locationName || '알 수 없는 곳',
-              aiTitle: m.aiTitle || '기록',
-              aiContent: m.aiDiary || '',
-              energyLevel: m.energyLevel || 3,
-              photos: (m.photos || []).map(p => ({ id: p.id, path: p.path })),
-              tags: [],
-              dogIds: m.petIds || [],
-            }];
+        const moments: Moment[] = m.moments.map(mo => ({
+          id: mo.id,
+          category: (mo.category as Moment['category']) || 'GENERAL',
+          locationName: mo.locationName || '알 수 없는 곳',
+          aiTitle: mo.aiTitle || '기록',
+          aiContent: mo.aiContent || '',
+          energyLevel: Number(mo.energyLevel) || 3,
+          photos: mo.photos.map(p => ({ id: p.id, path: p.path })),
+          tags: mo.tags || [],
+          dogIds: m.petIds || [],
+        }));
 
         const log: DailyLog = {
           id: m.id,
-          dateKey: m.dateKey,
+          dateKey: m.memoryDate,
           aiTitle: m.aiTitle || '기록',
-          aiSummary: m.aiSummary || '',
+          aiSummary: m.summary || '',
           representativePhotoPath: m.representativePhotoPath || undefined,
           moments,
         };
 
-        if (!logs[m.dateKey]) {
-          logs[m.dateKey] = [];
+        if (!logs[m.memoryDate]) {
+          logs[m.memoryDate] = [];
         }
-        logs[m.dateKey].push(log);
+        logs[m.memoryDate].push(log);
       }
       setDailyLogs(logs);
     } catch (e) {

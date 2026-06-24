@@ -154,6 +154,8 @@ public class AiDiaryService {
         DailyLogResponse aiResult = request.getAiResult();
         List<StoredFileInfo> storedFiles = request.getStoredFiles();
 
+        List<Photo> allPhotos = new ArrayList<>();
+
         if (aiResult.moments() != null) {
             int sortOrder = 0;
             for (MomentResponse momentResp : aiResult.moments()) {
@@ -197,11 +199,18 @@ public class AiDiaryService {
                                                     }
                                                 });
                                     }
+                                    allPhotos.add(photo);
                                 });
                     }
                 }
             }
         }
+
+        allPhotos.stream()
+                .filter(p -> Boolean.TRUE.equals(p.getIsBest()))
+                .findFirst()
+                .or(() -> allPhotos.stream().findFirst())
+                .ifPresent(memory::setRepresentativePhoto);
 
         return memory.getId();
     }

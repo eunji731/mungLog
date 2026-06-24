@@ -29,11 +29,25 @@ interface ApiResponse<T> {
   data: T;
 }
 
-interface FileResponse {
-  id: string;
-  fileUrl: string;
-  originalName: string;
+// 백엔드 PetResponse 응답 형태 (photo 대신 profileImageUrl로 내려옴)
+interface PetResponseDto extends Omit<PetProfile, 'photo' | 'isActive' | 'addedAt'> {
+  profileImageUrl: string | null;
 }
+
+const mapPetResponse = (dto: PetResponseDto): PetProfile => ({
+  ...dto,
+  photo: dto.profileImageUrl ?? '',
+  isActive: true,
+  addedAt: '',
+});
+
+// 백엔드 PetController는 멀티파트(data: JSON Blob + profileImage: File)만 받음
+const toPetFormData = (data: Partial<PetFormData>, photo?: File | null): FormData => {
+  const formData = new FormData();
+  formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+  if (photo) formData.append('profileImage', photo);
+  return formData;
+};
 
 export const ALL_PETS_ID = 'ALL';
 
@@ -44,9 +58,8 @@ interface PetState {
   error: string | null;
   fetchPets: () => Promise<void>;
   setSelectedPetId: (id: string | typeof ALL_PETS_ID | null) => void;
-  addPet: (data: PetFormData) => Promise<PetProfile>;
-  updatePet: (id: string, data: Partial<PetFormData>) => Promise<PetProfile>;
-  uploadPetPhoto: (petId: string, photo: File) => Promise<string>;
+  addPet: (data: PetFormData, photo?: File | null) => Promise<PetProfile>;
+  updatePet: (id: string, data: Partial<PetFormData>, photo?: File | null) => Promise<PetProfile>;
   removePet: (id: string) => Promise<void>;
 }
 
@@ -61,8 +74,8 @@ export const usePetStore = create<PetState>()(
       fetchPets: async () => {
         set({ loading: true, error: null });
         try {
-          const res = await clientApi.get<ApiResponse<PetProfile[]>>('/api/pets');
-          const pets = res.data.data;
+          const res = await clientApi.get<ApiResponse<PetResponseDto[]>>('/api/pets');
+          const pets = res.data.data.map(mapPetResponse);
           set({ pets, loading: false });
           
           // 만약 선택된 펫이 'ALL'이 아니고 목록에도 없으면 'ALL'로 전환
@@ -77,11 +90,15 @@ export const usePetStore = create<PetState>()(
 
       setSelectedPetId: (id) => set({ selectedPetId: id }),
 
-      addPet: async (data) => {
+      addPet: async (data, photo) => {
         set({ loading: true, error: null });
         try {
-          const res = await clientApi.post<ApiResponse<PetProfile>>('/api/pets', data);
-          const pet = res.data.data;
+          const res = await clientApi.post<ApiResponse<PetResponseDto>>(
+            '/api/pets',
+            toPetFormData(data, photo),
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          );
+          const pet = mapPetResponse(res.data.data);
           set((state) => ({ pets: [...state.pets, pet], loading: false }));
           if (!get().selectedPetId) set({ selectedPetId: pet.id });
           return pet;
@@ -91,11 +108,15 @@ export const usePetStore = create<PetState>()(
         }
       },
 
-      updatePet: async (id, data) => {
+      updatePet: async (id, data, photo) => {
         set({ loading: true, error: null });
         try {
-          const res = await clientApi.put<ApiResponse<PetProfile>>(`/api/pets/${id}`, data);
-          const pet = res.data.data;
+          const res = await clientApi.put<ApiResponse<PetResponseDto>>(
+            `/api/pets/${id}`,
+            toPetFormData(data, photo),
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          );
+          const pet = mapPetResponse(res.data.data);
           set((state) => ({
             pets: state.pets.map((p) => (p.id === id ? pet : p)),
             loading: false,
@@ -105,27 +126,6 @@ export const usePetStore = create<PetState>()(
           set({ error: err.response?.data?.message || err.message, loading: false });
           throw err;
         }
-      },
-
-      uploadPetPhoto: async (petId, photo) => {
-        const formData = new FormData();
-        formData.append('file', photo);
-
-        const res = await clientApi.put<ApiResponse<FileResponse>>(
-          `/api/files/PET_PROFILE/${petId}/replace`,
-          formData,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
-
-        const fileUrl = res.data.data.fileUrl;
-
-        set((state) => ({
-          pets: state.pets.map((p) =>
-            p.id === petId ? { ...p, photo: fileUrl } : p
-          ),
-        }));
-
-        return fileUrl;
       },
 
       removePet: async (id) => {

@@ -10,7 +10,7 @@ import { useAttachedFiles } from '@/app/common/hooks/useAttachedFiles';
 import FileAttachment from '@/app/common/components/FileAttachment';
 
 export default function FamilyPage() {
-  const { pets, addPet, updatePet, uploadPetPhoto, removePet, loading } = usePet();
+  const { pets, addPet, updatePet, removePet, loading } = usePet();
   const { success, error: toastError, warning } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [editingPetId, setEditingPetId] = useState<string | null>(null);
@@ -84,19 +84,12 @@ export default function FamilyPage() {
     };
 
     try {
+      const newFile = profilePhoto.pendingFiles[0] ?? null;
       if (editingPetId) {
-        // 1) 기본 정보 수정
-        await updatePet(editingPetId, petData);
-        // 2) 사진 변경이 있으면 파일 API로 동기화 (신규 추가된 경우만)
-        const newFile = profilePhoto.pendingFiles[0];
-        if (newFile) await uploadPetPhoto(editingPetId, newFile);
+        await updatePet(editingPetId, petData, newFile);
         success(`${newName}의 정보가 수정되었습니다! ✨`);
       } else {
-        // 1) 기본 정보 등록
-        const created = await addPet(petData);
-        // 2) 사진이 있으면 파일 API로 업로드
-        const newFile = profilePhoto.pendingFiles[0];
-        if (newFile) await uploadPetPhoto(created.id, newFile);
+        await addPet(petData, newFile);
         success(`${newName}가 우리 가족으로 등록되었습니다! 🐶`);
       }
       resetForm();

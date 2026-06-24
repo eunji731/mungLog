@@ -211,11 +211,11 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
     try {
       const formData = new FormData();
       formData.append('targetDate', targetDateStr);
-      photoFiles.forEach(file => formData.append('images', file));
+      photoFiles.forEach(file => formData.append('files', file));
 
       const selectedPets = pets.filter(p => selectedDogIds.includes(p.id));
-      formData.append('petInfo', JSON.stringify(selectedPets));
-      if (userTags.length > 0) formData.append('userTags', JSON.stringify(userTags));
+      const petInfos = selectedPets.map(p => ({ id: p.id, name: p.name }));
+      formData.append('petInfos', new Blob([JSON.stringify(petInfos)], { type: 'application/json' }));
 
       const response = await clientApi.post('/api/ai/analyze', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -343,7 +343,7 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
     // 2) 메타데이터 누락 체크 (백엔드 EXIF — 신뢰할 수 있는 결과)
     try {
       const metaForm = new FormData();
-      photoFiles.forEach(file => metaForm.append('images', file));
+      photoFiles.forEach(file => metaForm.append('files', file));
       const metaRes = await clientApi.post('/api/ai/check-metadata', metaForm, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
