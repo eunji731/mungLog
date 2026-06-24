@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
-import { PageLayout } from '@/components/layout/PageLayout';
 import { Button } from '@/components/common/Button';
 import { Section } from '@/components/common/Section';
 import { Input } from '@/components/common/Input';
@@ -33,36 +32,39 @@ const ScheduleFormPage: React.FC = () => {
 
   if (isFetching) {
     return (
-      <div className="min-h-screen bg-[#FCFAF8] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-stone-200 border-t-[#FF6B00] rounded-full animate-spin" />
+      <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden items-center justify-center">
+        <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FCFAF8]">
-      <PageLayout title="" maxWidth="max-w-[1000px]">
-        <header className="pt-12 pb-16 flex flex-col md:flex-row justify-between items-end gap-8 border-b border-stone-100 mb-12">
-          <div className="space-y-4">
-            <h1 className="text-[48px] lg:text-[56px] font-black text-[#2D2D2D] leading-[0.95] tracking-tight">
-              {isEdit ? 'Edit' : 'New'} <span className="text-[#FF6B00]">Plan.</span>
+    <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
+      {/* Header */}
+      <div className="bg-background border-b border-border p-6 lg:px-10 lg:py-6 shrink-0">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Schedule Form</span>
+            <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+              {isEdit ? '일정 수정하기' : '새 일정 등록하기'}
             </h1>
-            <p className="text-[17px] text-stone-400 font-medium max-w-xl">
-              우리 아이의 건강을 위한 미래의 일정을 계획하고 꼼꼼하게 관리하세요.
-            </p>
+            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">우리 아이의 건강을 위한 일정을 계획하고 꼼꼼하게 관리하세요.</p>
           </div>
-          <div className="flex gap-3 pb-1">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="px-6 font-bold text-stone-400">취소</Button>
-            <Button onClick={handleSave} disabled={isLoading} className="px-10 h-[64px] text-[16px] shadow-2xl">
-              {isLoading ? '저장 중...' : (isEdit ? '일정 수정하기' : '일정 예약하기')}
+          <div className="flex gap-2 shrink-0">
+            <Button variant="ghost" onClick={() => navigate(-1)} className="px-4 font-bold text-text-sub text-xs">취소</Button>
+            <Button onClick={handleSave} disabled={isLoading} className="px-6 h-[40px] text-xs font-black rounded-xl">
+              {isLoading ? '저장 중...' : (isEdit ? '수정' : '등록')}
             </Button>
           </div>
-        </header>
+        </div>
+      </div>
 
-        <div className="space-y-12 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Main Content Area with inner scroll */}
+      <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 bg-surface-green/10">
+        <div className="max-w-4xl mx-auto space-y-6">
 
           <Section title="기본 정보" description="누구의 어떤 일정인가요?">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
                 label="반려견 선택"
                 value={formData.dogId}
@@ -74,12 +76,10 @@ const ScheduleFormPage: React.FC = () => {
               />
               <Select
                 label="일정 유형"
-                // 현재 선택된 ID값을 문자열로 변환하여 Select 컴포넌트와 호환
                 value={formData.scheduleTypeId?.toString() || ''}
                 onChange={(e) => setFormData({ ...formData, scheduleTypeId: Number(e.target.value) })}
                 options={[
                   { label: '유형을 선택해주세요', value: '' },
-                  // DB에서 가져온 실제 공통코드 데이터(ID, 명칭) 매핑
                   ...scheduleTypes.map(t => ({ 
                     label: t.codeName, 
                     value: t.id.toString() 
@@ -90,8 +90,8 @@ const ScheduleFormPage: React.FC = () => {
           </Section>
 
           <Section title="상세 일정" description="언제, 어디서, 어떤 활동을 계획하시나요?">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="일정 제목"
                   placeholder="예: 튼튼동물병원 정기검진"
@@ -105,7 +105,7 @@ const ScheduleFormPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <DatePicker
                   label="날짜"
                   variant="form"
@@ -123,7 +123,7 @@ const ScheduleFormPage: React.FC = () => {
           </Section>
 
           <Section title="추가 메모" description="일정 시 참고할 사항이나 증상을 미리 적어보세요.">
-            <div className="space-y-8">
+            <div className="space-y-4">
               <TagInput
                 label="관련 증상 키워드 (선택)"
                 placeholder="증상을 입력하고 엔터를 누르세요 (예: 구토, 설사)"
@@ -135,7 +135,7 @@ const ScheduleFormPage: React.FC = () => {
                 placeholder="수의사 선생님께 여쭤볼 내용이나 미용 시 주의사항을 적어주세요."
                 value={formData.memo}
                 onChange={(e) => setFormData({ ...formData, memo: e.target.value })}
-                rows={5}
+                rows={4}
               />
             </div>
           </Section>
@@ -154,18 +154,18 @@ const ScheduleFormPage: React.FC = () => {
             </div>
           </Section>
 
-          <div className="pt-10 flex justify-center">
+          <div className="pt-6 flex justify-center">
             <Button
-              size="lg"
+              size="md"
               onClick={handleSave}
               disabled={isLoading}
-              className="w-full max-w-sm h-[64px] text-[17px] shadow-2xl"
+              className="w-full max-w-sm h-[48px] text-[14px] font-black rounded-2xl"
             >
               {isLoading ? '저장 중...' : (isEdit ? '일정 수정 완료' : '일정 예약 완료')}
             </Button>
           </div>
         </div>
-      </PageLayout>
+      </div>
     </div>
   );
 };

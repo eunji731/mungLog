@@ -193,3 +193,10 @@ button {
     top: 20px !important;
   }
 }
+
+/* PawCareChart is rendered inside the PetLifeLog shell, so page-level wrappers
+   should not repaint a second app background inside the main content area. */
+.pawcare-integrated > .min-h-screen {
+  min-height: 100%;
+  background: transparent;
+}

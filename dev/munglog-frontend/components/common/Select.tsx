@@ -10,7 +10,7 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, className
   return (
     <div className="w-full space-y-2 text-left">
       {label && (
-        <label className="text-[13px] font-black text-stone-400 uppercase tracking-wider ml-1">
+        <label className="text-[13px] font-black text-text-sub uppercase tracking-wider ml-1">
           {label}
         </label>
       )}
@@ -18,22 +18,22 @@ export const Select: React.FC<SelectProps> = ({ label, options, error, className
         <select
           className={`
             w-full px-5 py-3.5 rounded-xl border transition-all duration-300 outline-none
-            bg-white text-[15px] font-medium appearance-none cursor-pointer
+            bg-background text-[15px] font-medium appearance-none cursor-pointer
             ${error 
-              ? 'border-red-300 focus:border-red-500 ring-4 ring-red-50' 
-              : 'border-stone-100 focus:border-[#FF6B00] focus:ring-4 focus:ring-[#FF6B00]/5 shadow-sm'}
-            text-[#2D2D2D]
+              ? 'border-red-300 focus:border-red-500 ring-4 ring-red-500/10' 
+              : 'border-border focus:border-main-green focus:ring-4 focus:ring-main-green/5 shadow-sm'}
+            text-foreground
             ${className}
           `}
           {...props}
         >
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+            <option key={opt.value} value={opt.value} className="bg-background text-foreground">
               {opt.label}
             </option>
           ))}
         </select>
-        <span className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-300 font-bold group-hover:text-[#FF6B00] transition-colors">
+        <span className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-text-sub font-bold group-hover:text-main-green transition-colors">
           ▼
         </span>
       </div>

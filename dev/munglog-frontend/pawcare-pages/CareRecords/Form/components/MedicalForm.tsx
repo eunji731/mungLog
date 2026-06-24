@@ -103,16 +103,16 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
       </Section>
 
       <Section title="복약 관리" description="가정에서의 약 복용 계획이 있나요?">
-        <div className="space-y-8 bg-stone-50/50 p-8 rounded-[32px] border border-stone-100">
+        <div className="space-y-8 bg-surface-green p-8 rounded-[32px] border border-border">
           <div className="flex items-center gap-4">
             <input 
               type="checkbox" 
               id="hasMedication" 
-              className="w-5 h-5 accent-[#FF6B00] rounded"
+              className="w-5 h-5 accent-main-green rounded"
               checked={data.hasMedication}
               onChange={(e) => onChange({ ...data, hasMedication: e.target.checked })}
             />
-            <label htmlFor="hasMedication" className="text-[15px] font-bold text-stone-700 cursor-pointer">복약 처방이 있습니다.</label>
+            <label htmlFor="hasMedication" className="text-[15px] font-bold text-foreground cursor-pointer">복약 처방이 있습니다.</label>
           </div>
 
           {data.hasMedication && (

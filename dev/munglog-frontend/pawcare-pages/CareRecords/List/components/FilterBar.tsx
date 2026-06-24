@@ -40,7 +40,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
   const endDate = filters.endDate ? parseISO(filters.endDate) : null;
 
   return (
-    <div className="bg-white rounded-[28px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.02)] border border-[#F0F0F0]">
+    <div className="bg-background rounded-[28px] p-6 border border-border shadow-sm">
       <div className="flex flex-col xl:flex-row gap-6 items-stretch xl:items-center">
 
         <div className="flex-grow flex flex-col sm:flex-row gap-3">
@@ -50,7 +50,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
               value={localKeyword}
               onChange={(e) => setLocalKeyword(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full bg-[#F9F9F9] h-[56px] pl-12 pr-6 rounded-2xl border border-transparent focus:border-[#FF6B00] focus:bg-white outline-none text-[15px] font-bold transition-all duration-300 shadow-inner"
+              className="w-full bg-surface-green h-[56px] pl-12 pr-6 rounded-2xl border border-border focus:border-main-green focus:bg-background outline-none text-[15px] font-bold text-foreground transition-all duration-300 shadow-inner"
             />
             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg opacity-20 group-focus-within:opacity-100 transition-opacity">🔍</span>
           </div>
@@ -59,23 +59,23 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
             <select
               value={filters.dogId ?? ''}
               onChange={(e) => onChange({ dogId: e.target.value || undefined })}
-              className="w-full h-[56px] px-6 rounded-2xl bg-[#F9F9F9] border border-transparent focus:border-[#FF6B00] focus:bg-white text-[14px] font-black appearance-none outline-none cursor-pointer transition-all duration-300 shadow-inner"
+              className="w-full h-[56px] px-6 rounded-2xl bg-surface-green border border-border focus:border-main-green focus:bg-background text-[14px] font-black text-foreground appearance-none outline-none cursor-pointer transition-all duration-300 shadow-inner"
             >
-              <option value="">모든 아이들 🐾</option>
+              <option value="" className="bg-background text-foreground">모든 아이들 🐾</option>
               {dogs.map((dog) => (
-                <option key={dog.id} value={dog.id}>{dog.name}</option>
+                <option key={dog.id} value={dog.id} className="bg-background text-foreground">{dog.name}</option>
               ))}
             </select>
-            <span className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-300 font-bold group-hover:text-[#FF6B00] transition-colors">▼</span>
+            <span className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-text-sub font-bold group-hover:text-main-green transition-colors">▼</span>
           </div>
         </div>
 
-        <div className="flex p-1.5 bg-[#F5F5F5] rounded-[18px] shadow-inner">
+        <div className="flex p-1.5 bg-surface-green border border-border rounded-[18px] shadow-inner">
           <button
             onClick={() => onChange({ type: 'ALL', recordTypeId: undefined })}
             className={`px-8 h-[44px] rounded-[14px] text-[13px] font-black transition-all duration-300 active:scale-95 ${(filters.type === 'ALL' && !filters.recordTypeId)
-              ? 'bg-white text-[#FF6B00] shadow-sm'
-              : 'text-stone-400 hover:text-stone-600'
+              ? 'bg-background text-main-green shadow-sm'
+              : 'text-text-sub hover:text-foreground'
               }`}
           >
             Total
@@ -88,8 +88,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
                 key={type.id}
                 onClick={() => onChange({ type: type.code as any, recordTypeId: type.id })}
                 className={`px-8 h-[44px] rounded-[14px] text-[13px] font-black transition-all duration-300 active:scale-95 ${isActive
-                  ? 'bg-white text-[#FF6B00] shadow-sm'
-                  : 'text-stone-400 hover:text-stone-600'
+                  ? 'bg-background text-main-green shadow-sm'
+                  : 'text-text-sub hover:text-foreground'
                   }`}
               >
                 {type.codeName}
@@ -99,7 +99,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
         </div>
 
         {/* [개편] 프리미엄 기간 카드 스타일 적용 */}
-        <div className="flex items-center px-5 h-[56px] bg-[#F9F9F9] rounded-2xl border border-transparent focus-within:border-[#FF6B00] focus-within:bg-white transition-all shadow-inner">
+        <div className="flex items-center px-5 h-[56px] bg-surface-green rounded-2xl border border-border focus-within:border-main-green focus-within:bg-background transition-all shadow-inner">
           <div className="flex items-center gap-2">
             <span className="text-base opacity-30">📅</span>
             <div className="flex items-center">
@@ -109,7 +109,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
                   onChange={(date) => onChange({ startDate: date ? date.toISOString().split('T')[0] : undefined })}
                 />
               </div>
-              <span className="text-stone-300 font-light mx-1">~</span>
+              <span className="text-text-sub font-light mx-1">~</span>
               <div className="w-[95px]">
                 <DatePicker 
                   selected={endDate}
@@ -123,7 +123,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
         <div className="flex-shrink-0">
           <Button
             variant="primary"
-            className="w-full h-[56px] px-8 rounded-2xl shadow-lg shadow-orange-500/20"
+            className="w-full h-[56px] px-8 rounded-2xl shadow-lg shadow-main-green/20"
             onClick={() => navigate('/care-records/new')}
           >
             + 기록하기

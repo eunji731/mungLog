@@ -49,7 +49,7 @@ export const CareCalendar: React.FC<CareCalendarProps> = ({
 
       <div className="grid grid-cols-7 text-center">
         {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((d, i) => (
-          <div key={d} className={`text-[10px] font-black tracking-[0.2em] pb-6 ${i === 0 ? 'text-red-400/50' : 'text-stone-300'}`}>
+          <div key={d} className={`text-[10px] font-black tracking-[0.2em] pb-6 ${i === 0 ? 'text-red-400/70' : 'text-text-sub/65'}`}>
             {d}
           </div>
         ))}
@@ -67,16 +67,16 @@ export const CareCalendar: React.FC<CareCalendarProps> = ({
               className={`relative h-[68px] flex flex-col items-center justify-center rounded-xl transition-all duration-300 cursor-pointer group
                 ${!isCurrentMonth ? 'opacity-0 pointer-events-none' : ''}
                 ${isSelected 
-                  ? 'bg-[#FF6B00] shadow-lg scale-105 z-10' 
-                  : 'hover:bg-[#F9F9F9]'}
+                  ? 'bg-main-green shadow-lg shadow-main-green/20 scale-105 z-10' 
+                  : 'hover:bg-main-green/5'}
               `}
             >
               <span className={`text-[17px] font-bold tabular-nums transition-colors duration-300 ${
                 isSelected 
                   ? 'text-white' 
                   : isToday 
-                    ? 'text-[#FF6B00] border-b-2 border-[#FF6B00]' 
-                    : 'text-[#2D2D2D]'
+                    ? 'text-main-green border-b-2 border-main-green' 
+                    : 'text-foreground'
               }`}>
                 {dayNumber}
               </span>
@@ -84,12 +84,12 @@ export const CareCalendar: React.FC<CareCalendarProps> = ({
               <div className="flex gap-1.5 mt-1.5 h-1.5 items-center">
                 {hasMedical && (
                   <div className={`w-1.5 h-1.5 rounded-full ${
-                    isSelected ? 'bg-white' : 'bg-[#FF6B00]'
+                    isSelected ? 'bg-white' : 'bg-main-green'
                   }`} />
                 )}
                 {hasExpense && (
                   <div className={`w-1.5 h-1.5 rounded-full ${
-                    isSelected ? 'bg-white/60' : 'bg-[#FFB380]'
+                    isSelected ? 'bg-white/60' : 'bg-main-yellow'
                   }`} />
                 )}
               </div>

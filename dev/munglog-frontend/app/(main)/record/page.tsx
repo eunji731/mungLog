@@ -13,22 +13,25 @@ export default function RecordPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-surface-green/30 overflow-hidden">
       {/* Header */}
-      <div className="bg-background border-b border-border p-6 lg:p-10 shrink-0">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Archive</span>
-            <h1 className="text-3xl lg:text-4xl font-black text-text-main tracking-tight">추억 기록 보관함</h1>
-            <p className="text-text-sub text-sm lg:text-base font-bold mt-2">아이와 함께한 모든 소중한 순간들이 계층별로 보관되어 있습니다.</p>
+      <div className="sticky top-0 z-[100] bg-background/95 backdrop-blur-xl border-b border-border shrink-0">
+        <div className="w-full px-4 md:px-10 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-8 h-8 bg-main-green/10 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-main-green" />
+            </div>
+            <h1 className="text-lg font-black tracking-tight whitespace-nowrap">
+              추억 기록<span className="text-main-green"> 보관함</span>
+            </h1>
           </div>
           
           <div className="flex gap-2">
-            <button className="p-3 bg-surface-green rounded-xl border border-border hover:bg-border transition-all"><Filter className="w-5 h-5 text-text-main" /></button>
+            <button className="p-2 bg-surface-green rounded-xl border border-border hover:bg-border transition-all"><Filter className="w-4 h-4 text-text-main" /></button>
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-sub" />
               <input 
                 type="text" 
                 placeholder="추억 검색..."
-                className="pl-11 pr-4 py-3 bg-surface-green border border-border rounded-xl text-sm font-bold focus:outline-none w-48 lg:w-64"
+                className="pl-9 pr-3 py-1.5 bg-surface-green border border-border rounded-xl text-xs font-bold focus:outline-none w-36 lg:w-48"
               />
             </div>
           </div>

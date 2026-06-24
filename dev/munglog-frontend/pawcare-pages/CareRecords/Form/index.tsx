@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PageLayout } from '@/components/layout/PageLayout';
 import { Button } from '@/components/common/Button';
 import { Section } from '@/components/common/Section';
 import { MedicalForm } from './components/MedicalForm';
@@ -37,37 +36,39 @@ const CareRecordFormPage: React.FC = () => {
 
   if (isFetching) {
     return (
-      <div className="min-h-screen bg-[#FCFAF8] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-stone-200 border-t-[#FF6B00] rounded-full animate-spin" />
+      <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden items-center justify-center">
+        <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FCFAF8]">
-      <PageLayout title="" maxWidth="max-w-[900px]">
-        {/* HERO HEADER */}
-        <header className="pt-12 pb-16 flex flex-col md:flex-row justify-between items-end gap-8 border-b border-stone-100 mb-12">
-          <div className="space-y-4">
-            <h1 className="text-[48px] lg:text-[56px] font-black text-[#2D2D2D] leading-[0.95] tracking-tight">
-              {isEdit ? 'Edit' : 'New'} <span className="text-[#FF6B00]">Record.</span>
+    <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
+      {/* Header */}
+      <div className="bg-background border-b border-border p-6 lg:px-10 lg:py-6 shrink-0">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Care Records Form</span>
+            <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">
+              {isEdit ? '케어기록 수정' : '새 케어기록 등록'}
             </h1>
-            <p className="text-[17px] text-stone-400 font-medium max-w-xl">
-              반려견의 건강 정보를 기록하세요.
-            </p>
+            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">반려견의 건강 정보를 기록하세요.</p>
           </div>
-          <div className="flex gap-3 pb-1">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="px-6 font-bold text-stone-400">취소</Button>
-            <Button onClick={handleSave} disabled={isLoading} className="px-10 h-[64px] text-[16px] shadow-2xl">
-              {isLoading ? '저장 중...' : (isEdit ? '수정 완료' : '기록 저장')}
+          <div className="flex gap-2 shrink-0">
+            <Button variant="ghost" onClick={() => navigate(-1)} className="px-4 font-bold text-text-sub text-xs">취소</Button>
+            <Button onClick={handleSave} disabled={isLoading} className="px-6 h-[40px] text-xs font-black rounded-xl">
+              {isLoading ? '저장 중...' : (isEdit ? '수정' : '저장')}
             </Button>
           </div>
-        </header>
+        </div>
+      </div>
 
-        <div className="space-y-12 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Main Content Area with inner scroll */}
+      <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 bg-surface-green/10">
+        <div className="max-w-4xl mx-auto space-y-6">
           
           {/* 기록 종류 선택 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-12 border-b border-stone-100/60">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-border">
             {recordTypes.map((type) => {
               const isActive = recordTypeId === type.id;
               const isMed = type.code === 'MEDICAL';
@@ -76,44 +77,42 @@ const CareRecordFormPage: React.FC = () => {
                   key={type.id}
                   type="button"
                   onClick={() => setRecordTypeId(type.id)}
-                  className={`group relative flex items-center p-6 rounded-[32px] text-left transition-all duration-500 active:scale-[0.98] overflow-hidden ${
+                  className={`group relative flex items-center p-4 rounded-2xl text-left transition-all duration-300 active:scale-[0.98] overflow-hidden ${
                     isActive
-                      ? 'bg-white shadow-[0_20px_40px_-12px_rgba(255,107,0,0.12)] border border-[#FF6B00]/20'
-                      : 'bg-transparent border border-stone-200/60 hover:border-stone-300 hover:bg-white/50'
+                      ? 'bg-surface-green/30 shadow-sm border border-main-green/20'
+                      : 'bg-background border border-border hover:border-main-green/30 hover:bg-surface-green/10'
                   }`}
                 >
                   {isActive && (
-                    <div className="absolute inset-0 bg-linear-to-r from-[#FF6B00]/5 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-linear-to-r from-main-green/5 to-transparent pointer-events-none" />
                   )}
                   
                   <div className="relative flex items-center justify-between w-full">
-                    <div className="flex items-center gap-5">
-                      <div className={`w-14 h-14 flex items-center justify-center rounded-[20px] text-[24px] transition-all duration-500 ${
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 flex items-center justify-center rounded-xl text-[20px] transition-all duration-300 ${
                         isActive 
-                          ? 'bg-[#FF6B00] text-white shadow-xl shadow-[#FF6B00]/30 scale-105' 
-                          : 'bg-white border border-stone-100 text-stone-400 shadow-sm group-hover:scale-105 group-hover:border-stone-200 group-hover:text-stone-500'
+                          ? 'bg-main-green text-white shadow-md' 
+                          : 'bg-background border border-border text-text-sub shadow-sm'
                       }`}>
                         {isMed ? '🏥' : '💳'}
                       </div>
                       
-                      <div className="flex flex-col gap-0.5">
-                        <span className={`text-[19px] font-black tracking-tight transition-colors duration-500 ${
-                          isActive ? 'text-[#2D2D2D]' : 'text-stone-400 group-hover:text-stone-600'
+                      <div className="flex flex-col">
+                        <span className={`text-[15px] font-black tracking-tight ${
+                          isActive ? 'text-foreground' : 'text-text-sub'
                         }`}>
                           {type.codeName}
                         </span>
-                        <span className={`text-[13px] font-bold tracking-tight transition-colors duration-500 ${
-                          isActive ? 'text-[#FF6B00]' : 'text-stone-400/80 group-hover:text-stone-500/80'
-                        }`}>
+                        <span className="text-[11px] font-bold text-text-sub/80">
                           {isMed ? '증상 및 처방 관리' : '병원비 및 지출 내역'}
                         </span>
                       </div>
                     </div>
 
-                    <div className={`w-6 h-6 rounded-full border-[2.5px] flex items-center justify-center transition-all duration-500 ${
-                      isActive ? 'border-[#FF6B00]' : 'border-stone-200'
+                    <div className={`w-5 h-5 rounded-full border-[2px] flex items-center justify-center ${
+                      isActive ? 'border-main-green' : 'border-border'
                     }`}>
-                      <div className={`w-2.5 h-2.5 rounded-full bg-[#FF6B00] transition-transform duration-500 ${
+                      <div className={`w-2 h-2 rounded-full bg-main-green transition-transform duration-300 ${
                         isActive ? 'scale-100' : 'scale-0'
                       }`} />
                     </div>
@@ -127,7 +126,7 @@ const CareRecordFormPage: React.FC = () => {
           <CommonInfoForm data={commonData} onChange={setCommonData} />
 
           {/* 조건부 상세 폼 (평면 구조 유지) */}
-          <div className="pt-10 border-t border-stone-100">
+          <div className="pt-6 border-t border-border">
             {isMedicalSelected ? (
               <MedicalForm data={medicalData} onChange={setMedicalData} />
             ) : (
@@ -155,18 +154,18 @@ const CareRecordFormPage: React.FC = () => {
             </div>
           </Section>
 
-          <div className="pt-10 flex justify-center border-t border-stone-100">
+          <div className="pt-6 flex justify-center border-t border-border">
             <Button 
-              size="lg" 
+              size="md" 
               onClick={handleSave} 
               disabled={isLoading}
-              className="w-full max-w-sm h-[64px] text-[17px] shadow-2xl"
+              className="w-full max-w-sm h-[48px] text-[14px] font-black rounded-2xl"
             >
               {isLoading ? '저장 중...' : (isEdit ? '수정 완료' : '기록 저장하기')}
             </Button>
           </div>
         </div>
-      </PageLayout>
+      </div>
     </div>
   );
 };

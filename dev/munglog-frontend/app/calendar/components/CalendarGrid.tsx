@@ -11,11 +11,17 @@ import { getImagePath } from '@/app/common/lib/clientApi';
 export default function CalendarGrid({ 
   onDateSelect, 
   selectedDate,
-  currentDate
+  currentDate,
+  tab = 'petlog',
+  careRecords = [],
+  schedules = []
 }: { 
   onDateSelect: (date: Date) => void;
   selectedDate: Date;
   currentDate: Date;
+  tab?: 'petlog' | 'care' | 'schedule';
+  careRecords?: any[];
+  schedules?: any[];
 }) {
   const { dailyLogs } = useDiary();
   const { selectedPetId } = usePet();
@@ -61,7 +67,9 @@ export default function CalendarGrid({
   const days = generateDays();
 
   const getDayContent = (date: Date) => {
-    const dateKey = date.toLocaleDateString('en-CA');
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60 * 1000);
+    const dateKey = localDate.toISOString().split('T')[0];
     const logs = dailyLogs[dateKey] || [];
     
     // 필터링된 결과 확인
@@ -112,44 +120,101 @@ export default function CalendarGrid({
                 {isToday && <div className="w-1 h-1 rounded-full bg-main-green" />}
               </div>
 
-              {/* Log Indicator - Stacked Thumbnails */}
-              <div className="mt-auto mb-1 lg:mb-2 flex flex-col items-center">
-                {hasLogs ? (
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="relative flex items-center justify-center h-6 lg:h-10">
-                      {logs.slice(0, 3).reverse().map((log, idx, arr) => (
-                        <div 
-                          key={log.id} 
-                          className="relative w-6 h-6 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-background shadow-sm ring-1 ring-main-green/20"
-                          style={{
-                            marginLeft: idx === 0 ? 0 : '-12px',
-                            zIndex: idx
-                          }}
-                        >
-                          <Image
-                            src={getImagePath(log.representativePhotoPath)}
-                            alt="Log"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ))}
-                      {logs.length > 3 && (
-                        <div className="absolute -right-2 -top-1 bg-main-green text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-background z-10">
-                          +{logs.length - 3}
-                        </div>
-                      )}
+              {/* Log Indicator - Stacked Thumbnails or Markers based on Tab */}
+              <div className="mt-auto mb-1 lg:mb-2 flex flex-col items-center w-full min-h-[24px] lg:min-h-[40px]">
+                {tab === 'petlog' && (
+                  hasLogs ? (
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="relative flex items-center justify-center h-6 lg:h-10">
+                        {logs.slice(0, 3).reverse().map((log, idx, arr) => (
+                          <div 
+                            key={log.id} 
+                            className="relative w-6 h-6 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-background shadow-sm ring-1 ring-main-green/20"
+                            style={{
+                              marginLeft: idx === 0 ? 0 : '-12px',
+                              zIndex: idx
+                            }}
+                          >
+                            <Image
+                              src={getImagePath(log.representativePhotoPath)}
+                              alt="Log"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ))}
+                        {logs.length > 3 && (
+                          <div className="absolute -right-2 -top-1 bg-main-green text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-background z-10">
+                            +{logs.length - 3}
+                          </div>
+                        )}
+                      </div>
+                      {/* Count Dots for all logs */}
+                      <div className="flex gap-0.5 mt-1">
+                        {logs.map((log) => (
+                          <div key={log.id} className="w-1 h-1 rounded-full bg-main-green/60" />
+                        ))}
+                      </div>
                     </div>
-                    {/* Count Dots for all logs */}
-                    <div className="flex gap-0.5 mt-1">
-                      {logs.map((log) => (
-                        <div key={log.id} className="w-1 h-1 rounded-full bg-main-green/60" />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-6 lg:h-10 w-1 bg-transparent" />
+                  ) : (
+                    <div className="h-6 lg:h-10 w-1 bg-transparent" />
+                  )
                 )}
+
+                {tab === 'care' && (() => {
+                  const offset = day.date.getTimezoneOffset();
+                  const localDate = new Date(day.date.getTime() - offset * 60 * 1000);
+                  const dateStr = localDate.toISOString().split('T')[0];
+                  const dayCares = careRecords.filter(r => r.recordDate === dateStr);
+                  if (dayCares.length > 0) {
+                    return (
+                      <div className="flex flex-wrap justify-center gap-0.5 max-w-full px-0.5 py-0.5">
+                        {dayCares.slice(0, 4).map((care) => {
+                          const rawRecord = care as any;
+                          let typeCode = String(rawRecord.recordType || '');
+                          if (care.recordTypeId || rawRecord.record_type_id) {
+                            const typeId = care.recordTypeId || rawRecord.record_type_id;
+                            if (Number(typeId) === 1) typeCode = 'MEDICAL';
+                          }
+                          const isMed = typeCode === 'MEDICAL';
+                          return (
+                            <span key={care.id} className="text-[12px] lg:text-[15px]" title={care.title}>
+                              {isMed ? '🏥' : '💳'}
+                            </span>
+                          );
+                        })}
+                        {dayCares.length > 4 && (
+                          <span className="text-[7px] font-black text-text-sub flex items-center">+{dayCares.length - 4}</span>
+                        )}
+                      </div>
+                    );
+                  }
+                  return <div className="h-6 lg:h-10 w-1 bg-transparent" />;
+                })()}
+
+                {tab === 'schedule' && (() => {
+                  const offset = day.date.getTimezoneOffset();
+                  const localDate = new Date(day.date.getTime() - offset * 60 * 1000);
+                  const dateStr = localDate.toISOString().split('T')[0];
+                  const daySchedules = schedules.filter(s => s.scheduleDate.startsWith(dateStr));
+                  if (daySchedules.length > 0) {
+                    return (
+                      <div className="flex flex-wrap justify-center gap-0.5 max-w-full px-0.5 py-0.5">
+                        {daySchedules.slice(0, 4).map((sch) => {
+                          return (
+                            <span key={sch.id} className="text-[12px] lg:text-[15px]" title={sch.title}>
+                              {sch.isCompleted ? '✅' : '⏰'}
+                            </span>
+                          );
+                        })}
+                        {daySchedules.length > 4 && (
+                          <span className="text-[7px] font-black text-text-sub flex items-center">+{daySchedules.length - 4}</span>
+                        )}
+                      </div>
+                    );
+                  }
+                  return <div className="h-6 lg:h-10 w-1 bg-transparent" />;
+                })()}
               </div>
             </div>
           );

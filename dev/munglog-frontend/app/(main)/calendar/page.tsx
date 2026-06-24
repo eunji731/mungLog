@@ -2,19 +2,32 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import CalendarHeader from '@/app/calendar/components/CalendarHeader';
 import CalendarGrid from '@/app/calendar/components/CalendarGrid';
 import DiaryPreview from '@/app/calendar/components/DiaryPreview';
+import { Tabs } from '@/components/common/Tabs';
 import DiaryEditor from '@/app/calendar/components/DiaryEditor';
 import MonthlyTimeline from '@/app/calendar/components/MonthlyTimeline';
 import { useDiary, DailyLog } from '@/app/common/hooks/useDiary';
 import { useCalendar } from '@/app/calendar/hooks/useCalendar';
+import { useCareRecords } from '@/pawcare-pages/CareRecords/List/hooks/useCareRecords';
+import { useSchedules } from '@/pawcare-pages/Schedules/List/hooks/useSchedules';
+import CalendarCarePanel from '@/app/calendar/components/CalendarCarePanel';
+import CalendarSchedulePanel from '@/app/calendar/components/CalendarSchedulePanel';
 
 function CalendarContent() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+
   const dateParam = searchParams?.get('date');
   const modeParam = searchParams?.get('mode');
+  const tabParam = searchParams?.get('tab') || 'petlog';
+
+  // 달력용 케어 및 일정 데이터 연동
+  const { calendarRecords } = useCareRecords();
+  const { schedules } = useSchedules();
 
   // URL에서 초기 날짜 계산 (렌더링 시점에 바로 결정)
   const getInitialDate = () => {
@@ -71,6 +84,17 @@ function CalendarContent() {
     }
   }, [dateParam, modeParam, goToDate, onSelectDate]);
 
+  const handleTabChange = (newTab: string) => {
+    setIsExpanded(false);
+    setShowSidePanel(true);
+    const params = new URLSearchParams(searchParams?.toString() || '');
+    params.set('tab', newTab);
+    // 탭 이동 시 펫로그 고유 파라미터들은 제거
+    params.delete('date');
+    params.delete('mode');
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
   const handleDateSelect = (date: Date) => {
     onSelectDate(date);
     setIsEditing(false);
@@ -116,93 +140,131 @@ function CalendarContent() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background relative overflow-hidden">
-      <div className="bg-background border-b border-border">
-        <div className="max-w-[1600px] mx-auto w-full">
-          <CalendarHeader 
-            currentDate={currentDate}
-            onPrevMonth={onPrevMonth}
-            onNextMonth={onNextMonth}
-            onToday={handleToday}
-            onGoToDate={goToDate}
-            onRecord={() => {
-              setIsEditing(true);
-              setShowSidePanel(true);
-              setIsTimelineMode(false);
-            }}
-            isTimelineMode={isTimelineMode}
-            onToggleView={() => {
-              const nextMode = !isTimelineMode;
-              if (!nextMode) {
-                setIsExpanded(false);
-                setShowSidePanel(true);
-              }
-              setIsTimelineMode(nextMode);
-            }}
-          />
-        </div>
-      </div>
 
-      <div className="flex-1 flex overflow-hidden flex-col lg:flex-row relative">
-        {isTimelineMode ? (
-          <MonthlyTimeline 
-            currentDate={currentDate} 
-            onDateSelect={handleDateSelect}
-            initialDateRange={dateParam ? { start: dateParam, end: dateParam } : undefined}
-          />
-        ) : (
-          <>
-            {/* Main Calendar Area */}
-            <div className={`flex-col min-h-0 bg-background p-2 lg:p-6 overflow-y-auto no-scrollbar transition-all duration-500 ${
-              isExpanded ? 'hidden lg:flex lg:w-0 lg:opacity-0 lg:invisible' : 'flex-1 flex lg:w-1/2 lg:flex-none'
-            }`}>
-              <div className="max-w-7xl mx-auto w-full h-full flex flex-col">
-                <div className="flex-1 min-h-[400px]">
-                  <CalendarGrid 
-                    selectedDate={selectedDate} 
-                    onDateSelect={handleDateSelect} 
-                    currentDate={currentDate}
-                  />
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="bg-background border-b border-border shrink-0">
+            <div className="max-w-[1600px] mx-auto w-full">
+              <CalendarHeader 
+                currentDate={currentDate}
+                onPrevMonth={onPrevMonth}
+                onNextMonth={onNextMonth}
+                onToday={handleToday}
+                onGoToDate={goToDate}
+                onRecord={() => {
+                  if (tabParam === 'petlog') {
+                    setIsEditing(true);
+                    setShowSidePanel(true);
+                    setIsTimelineMode(false);
+                  } else {
+                    const offset = selectedDate.getTimezoneOffset();
+                    const localDate = new Date(selectedDate.getTime() - offset * 60 * 1000);
+                    const formattedDate = localDate.toISOString().split('T')[0];
+                    if (tabParam === 'care') {
+                      router.push(`/care-records/new?date=${formattedDate}`);
+                    } else {
+                      router.push(`/schedules/new?date=${formattedDate}`);
+                    }
+                  }
+                }}
+                isTimelineMode={tabParam === 'petlog' && isTimelineMode}
+                onToggleView={() => {
+                  if (tabParam !== 'petlog') return;
+                  const nextMode = !isTimelineMode;
+                  if (!nextMode) {
+                    setIsExpanded(false);
+                    setShowSidePanel(true);
+                  }
+                  setIsTimelineMode(nextMode);
+                }}
+                activeTab={tabParam}
+                onTabChange={handleTabChange}
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 flex overflow-hidden flex-col lg:flex-row relative">
+            {tabParam === 'petlog' && isTimelineMode ? (
+              <MonthlyTimeline 
+                currentDate={currentDate} 
+                onDateSelect={handleDateSelect}
+                initialDateRange={dateParam ? { start: dateParam, end: dateParam } : undefined}
+              />
+            ) : (
+              <>
+                {/* Main Calendar Area */}
+                <div className={`flex-col min-h-0 bg-background p-2 lg:p-6 overflow-y-auto no-scrollbar transition-all duration-500 ${
+                  isExpanded ? 'hidden lg:flex lg:w-0 lg:opacity-0 lg:invisible' : 'flex-1 flex lg:w-1/2 lg:flex-none'
+                }`}>
+                  <div className="max-w-7xl mx-auto w-full h-full flex flex-col">
+                    <div className="flex-1 min-h-[400px]">
+                      <CalendarGrid 
+                        selectedDate={selectedDate} 
+                        onDateSelect={handleDateSelect} 
+                        currentDate={currentDate}
+                        tab={tabParam as any}
+                        careRecords={calendarRecords}
+                        schedules={schedules}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Side Panel: Preview or Editor */}
-            <div className={`
-              ${showSidePanel ? 'fixed inset-0 z-[150] flex' : 'hidden'} 
-              lg:relative lg:inset-auto lg:z-auto lg:flex
-              ${isExpanded ? 'lg:flex-1' : 'w-full lg:w-1/2'}
-              shrink-0 border-l border-border bg-background overflow-hidden flex-col transition-all duration-500
-            `}>
-              {/* Expand/Collapse Toggle Button (Desktop Only) */}
-              <button 
-                onClick={toggleExpand}
-                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-[160] p-2 bg-background border border-border border-l-0 rounded-r-xl shadow-md hover:bg-surface-green transition-all group"
-                title={isExpanded ? "달력 보기" : "크게 보기"}
-              >
-                {isExpanded ? (
-                  <ChevronRight className="w-4 h-4 text-text-main group-hover:translate-x-0.5 transition-transform" />
-                ) : (
-                  <ChevronLeft className="w-4 h-4 text-text-main group-hover:-translate-x-0.5 transition-transform" />
-                )}
-              </button>
+                {/* Side Panel: Preview, Editor, or Context Panel based on Tab */}
+                <div className={`
+                  ${showSidePanel ? 'fixed inset-0 z-[150] flex' : 'hidden'} 
+                  lg:relative lg:inset-auto lg:z-auto lg:flex
+                  ${isExpanded ? 'lg:flex-1' : 'w-full lg:w-1/2'}
+                  shrink-0 border-l border-border bg-background overflow-hidden flex-col transition-all duration-500
+                `}>
+                  {/* Expand/Collapse Toggle Button (Desktop Only, PetLog Only) */}
+                  {tabParam === 'petlog' && (
+                    <button 
+                      onClick={toggleExpand}
+                      className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-[160] p-2 bg-background border border-border border-l-0 rounded-r-xl shadow-md hover:bg-surface-green transition-all group"
+                      title={isExpanded ? "달력 보기" : "크게 보기"}
+                    >
+                      {isExpanded ? (
+                        <ChevronRight className="w-4 h-4 text-text-main group-hover:translate-x-0.5 transition-transform" />
+                      ) : (
+                        <ChevronLeft className="w-4 h-4 text-text-main group-hover:-translate-x-0.5 transition-transform" />
+                      )}
+                    </button>
+                  )}
 
-              {isEditing ? (
-                <DiaryEditor 
-                  date={selectedDate}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                />
-              ) : (
-                <DiaryPreview 
-                  date={selectedDate}
-                  onEdit={handleEditRequest}
-                  onClose={handleClosePanel}
-                  isExpanded={isExpanded}
-                />
-              )}
-            </div>
-          </>
-        )}
+                  {tabParam === 'petlog' ? (
+                    isEditing ? (
+                      <DiaryEditor 
+                        date={selectedDate}
+                        onSave={handleSave}
+                        onCancel={handleCancel}
+                      />
+                    ) : (
+                      <DiaryPreview 
+                        date={selectedDate}
+                        onEdit={handleEditRequest}
+                        onClose={handleClosePanel}
+                        isExpanded={isExpanded}
+                      />
+                    )
+                  ) : tabParam === 'care' ? (
+                    <CalendarCarePanel 
+                      date={selectedDate}
+                      careRecords={calendarRecords}
+                      onClose={handleClosePanel}
+                    />
+                  ) : (
+                    <CalendarSchedulePanel 
+                      date={selectedDate}
+                      schedules={schedules}
+                      onClose={handleClosePanel}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

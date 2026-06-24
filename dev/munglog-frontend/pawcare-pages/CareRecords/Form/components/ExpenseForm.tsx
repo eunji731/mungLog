@@ -127,23 +127,23 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ data, dogId, onDogChan
       <Section title="연관 정보" description="병원 진료와 관련된 지출인가요?">
         <div className="space-y-4">
           {selectedRecordInfo ? (
-            <div className="p-6 bg-[#FF6B00]/5 border-2 border-[#FF6B00]/20 rounded-[24px] flex items-center justify-between group">
+            <div className="p-6 bg-main-green/5 border-2 border-main-green/20 rounded-[24px] flex items-center justify-between group">
               <div className="space-y-1">
-                <span className="text-[#FF6B00] text-[10px] font-black uppercase tracking-widest">연결된 진료 기록</span>
-                <h4 className="text-[16px] font-bold text-stone-800">
+                <span className="text-main-green text-[10px] font-black uppercase tracking-widest">연결된 진료 기록</span>
+                <h4 className="text-[16px] font-bold text-foreground">
                   [{selectedRecordInfo.recordDate}] {selectedRecordInfo.title || selectedRecordInfo.clinicName || '진료 기록'}
                 </h4>
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-white border border-stone-200 rounded-xl text-[12px] font-bold text-stone-600 hover:border-[#FF6B00] transition-all">변경</button>
-                <button type="button" onClick={() => onChange({ ...data, relatedMedicalRecordId: null, relatedMedicalRecord: null })} className="px-4 py-2 bg-white border border-stone-200 rounded-xl text-[12px] font-bold text-red-400 hover:border-red-200 transition-all">해제</button>
+                <button type="button" onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-background border border-border rounded-xl text-[12px] font-bold text-foreground hover:border-main-green hover:text-main-green transition-all">변경</button>
+                <button type="button" onClick={() => onChange({ ...data, relatedMedicalRecordId: null, relatedMedicalRecord: null })} className="px-4 py-2 bg-background border border-border rounded-xl text-[12px] font-bold text-red-500 hover:border-red-500/30 transition-all">해제</button>
               </div>
             </div>
           ) : (
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="w-full p-8 border-2 border-dashed border-stone-200 rounded-[24px] text-stone-400 hover:border-[#FF6B00] hover:text-[#FF6B00] hover:bg-orange-50/30 transition-all flex flex-col items-center gap-2 group"
+              className="w-full p-8 border-2 border-dashed border-border rounded-[24px] text-text-sub hover:border-main-green hover:text-main-green hover:bg-main-green/5 transition-all flex flex-col items-center gap-2 group"
             >
               <span className="text-2xl group-hover:scale-110 transition-transform">🔍</span>
               <span className="font-bold text-[14px]">연관된 병원 진료 기록 찾기</span>

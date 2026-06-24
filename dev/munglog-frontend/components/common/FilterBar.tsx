@@ -20,15 +20,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 px-2">
-      <div className="flex items-center gap-1.5 p-1.5 bg-stone-100/50 rounded-[18px] w-full md:w-auto overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1.5 p-1.5 bg-surface-green border border-border rounded-[18px] w-full md:w-auto overflow-x-auto no-scrollbar">
         {options.map((option) => (
           <button
             key={option.value}
             onClick={() => onSelect(option.value)}
             className={`whitespace-nowrap px-6 py-2.5 rounded-[14px] text-[13px] font-black tracking-tight transition-all duration-300 ${
               selectedValue === option.value
-                ? 'bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20 active:scale-95'
-                : 'text-stone-400 hover:text-stone-600 hover:bg-stone-200/50'
+                ? 'bg-main-green text-white shadow-lg shadow-main-green/20 active:scale-95'
+                : 'text-text-sub hover:text-foreground hover:bg-main-green/5'
             }`}
           >
             {option.label}

@@ -24,18 +24,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     return (
       <div className={`w-full space-y-2 text-left ${className}`}>
         {label && (
-          <label className="text-[13px] font-black text-stone-400 uppercase tracking-wider ml-1">
+          <label className="text-[13px] font-black text-text-sub uppercase tracking-wider ml-1">
             {label}
           </label>
         )}
-        <div className="w-full px-5 py-3.5 rounded-xl border border-stone-100 focus-within:border-[#FF6B00] focus-within:ring-4 focus-within:ring-[#FF6B00]/5 shadow-sm bg-white transition-all duration-300">
+        <div className="w-full px-5 py-3.5 rounded-xl border border-border focus-within:border-main-green focus-within:ring-4 focus-within:ring-main-green/5 shadow-sm bg-background transition-all duration-300">
           <ReactDatePicker
             selected={selected}
             onChange={onChange}
             locale={ko}
             dateFormat="yyyy-MM-dd"
             placeholderText={placeholderText}
-            className="w-full bg-transparent border-none outline-none text-[15px] font-medium text-[#2D2D2D] cursor-pointer placeholder:text-stone-300"
+            className="w-full bg-transparent border-none outline-none text-[15px] font-medium text-foreground cursor-pointer placeholder:text-text-sub/50"
             portalId="root-portal"
             popperPlacement="bottom-start"
             fixedHeight
@@ -54,7 +54,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         locale={ko}
         dateFormat="yyyy-MM-dd"
         placeholderText={placeholderText}
-        className="w-full bg-transparent border-none outline-none text-[14px] font-black text-[#2D2D2D] cursor-pointer"
+        className="w-full bg-transparent border-none outline-none text-[14px] font-black text-foreground cursor-pointer"
         portalId="root-portal"
         popperPlacement="bottom-start"
         fixedHeight

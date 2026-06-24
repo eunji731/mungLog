@@ -1,6 +1,6 @@
 'use client';
 
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { MyPage } from '@/pages/MyPage';
@@ -13,27 +13,41 @@ import ScheduleListPage from '@/pages/Schedules/List';
 import ScheduleFormPage from '@/pages/Schedules/Form';
 import ScheduleDetailPage from '@/pages/Schedules/Detail';
 
+function PawCareRoute() {
+  const pathname = usePathname() ?? '/dogs';
+  const segments = pathname.split('/').filter(Boolean);
+  const section = segments[0];
+  const action = segments[1];
+
+  if (section === 'mypage') return <MyPage />;
+
+  if (section === 'dogs') {
+    if (action === 'new' || action === 'edit') return <DogFormPage />;
+    return <DogListPage />;
+  }
+
+  if (section === 'care-records') {
+    if (action === 'new' || action === 'edit') return <CareRecordFormPage />;
+    if (action) return <CareRecordDetailPage />;
+    return <CareRecordListPage />;
+  }
+
+  if (section === 'schedules') {
+    if (action === 'new' || action === 'edit') return <ScheduleFormPage />;
+    if (action) return <ScheduleDetailPage />;
+    return <ScheduleListPage />;
+  }
+
+  return <DogListPage />;
+}
+
 export default function PawCareApp() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/mypage" element={<MyPage />} />
-            <Route path="/dogs" element={<DogListPage />} />
-            <Route path="/dogs/new" element={<DogFormPage />} />
-            <Route path="/dogs/edit/:id" element={<DogFormPage />} />
-            <Route path="/care-records" element={<CareRecordListPage />} />
-            <Route path="/care-records/new" element={<CareRecordFormPage />} />
-            <Route path="/care-records/edit/:id" element={<CareRecordFormPage />} />
-            <Route path="/care-records/:id" element={<CareRecordDetailPage />} />
-            <Route path="/schedules" element={<ScheduleListPage />} />
-            <Route path="/schedules/new" element={<ScheduleFormPage />} />
-            <Route path="/schedules/edit/:id" element={<ScheduleFormPage />} />
-            <Route path="/schedules/:id" element={<ScheduleDetailPage />} />
-            <Route path="*" element={<Navigate to="/dogs" replace />} />
-          </Routes>
-        </BrowserRouter>
+        <div className="pawcare-integrated min-h-full">
+          <PawCareRoute />
+        </div>
       </AuthProvider>
     </ToastProvider>
   );

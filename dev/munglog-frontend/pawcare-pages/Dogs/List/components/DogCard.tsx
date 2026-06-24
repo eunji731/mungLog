@@ -37,7 +37,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
       className="group relative aspect-[4/5] overflow-hidden border-none ring-1 ring-black/5 shadow-xl transition-all duration-700 hover:-translate-y-2 hover:shadow-[0_40px_100px_rgba(0,0,0,0.1)]"
     >
       {/* 1. BACKGROUND IMAGE AREA */}
-      <div className="absolute inset-0 bg-[#F5F2F0]">
+      <div className="absolute inset-0 bg-surface-green">
         {dog.profileImageUrl ? (
           <img 
             src={dog.profileImageUrl} 
@@ -45,9 +45,9 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#F5F2F0] to-[#EAE6E2]">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-surface-green to-background/50">
             <span className="text-6xl mb-2 opacity-20 group-hover:scale-110 transition-transform duration-700">🐕</span>
-            <span className="text-[10px] font-black text-stone-400 tracking-[0.2em] uppercase opacity-50">Archives</span>
+            <span className="text-[10px] font-black text-text-sub tracking-[0.2em] uppercase opacity-50">Archives</span>
           </div>
         )}
       </div>
@@ -60,7 +60,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
             e.stopPropagation();
             navigate(`/dogs/edit/${dog.id}`);
           }}
-          className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/20 hover:bg-[#FF6B00] hover:border-[#FF6B00] transition-all active:scale-90"
+          className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/20 hover:bg-main-green hover:border-main-green transition-all active:scale-90"
         >
           <span className="text-sm">✏️</span>
         </button>
@@ -77,7 +77,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
       <div className="absolute inset-x-0 bottom-0 p-8 pt-24 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end">
         <div className="flex justify-between items-end gap-4">
           <div className="space-y-1">
-            <h3 className="text-[32px] font-black text-white tracking-tight leading-none group-hover:text-[#FF6B00] transition-colors duration-500">
+            <h3 className="text-[32px] font-black text-white tracking-tight leading-none group-hover:text-main-green transition-colors duration-500">
               {dog.name}
             </h3>
             <p className="text-[14px] font-bold text-white/70 tracking-tight flex items-center gap-2">
@@ -97,7 +97,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
       </div>
 
       {/* HOVER ACCENT LINE */}
-      <div className="absolute bottom-0 left-0 h-1 bg-[#FF6B00] transition-all duration-700 w-0 group-hover:w-full z-30" />
+      <div className="absolute bottom-0 left-0 h-1 bg-main-green transition-all duration-700 w-0 group-hover:w-full z-30" />
     </Card>
   );
 };

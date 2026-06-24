@@ -69,17 +69,17 @@ export const TagInput: React.FC<TagInputProps> = ({
     <div className="space-y-2 w-full" ref={containerRef}>
       {/* Label 렌더링 추가 */}
       {label && (
-        <label className="text-[12px] font-black text-stone-400 uppercase tracking-widest pl-1">
+        <label className="text-[12px] font-black text-text-sub uppercase tracking-widest pl-1">
           {label}
         </label>
       )}
       
       <div className="relative">
-        <div className="flex flex-wrap gap-2 p-3 bg-white border border-stone-200 rounded-xl focus-within:border-[#FF6B00] transition-all min-h-[52px]">
+        <div className="flex flex-wrap gap-2 p-3 bg-background border border-border rounded-xl focus-within:border-main-green transition-all min-h-[52px]">
           {tags.map((tag, index) => (
             <span 
               key={`${tag}-${index}`} 
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF6B00]/10 text-[#FF6B00] text-[13px] font-bold rounded-lg animate-in zoom-in-95 duration-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-main-green/10 text-main-green text-[13px] font-bold rounded-lg animate-in zoom-in-95 duration-200"
             >
               #{tag}
               <button 
@@ -99,18 +99,18 @@ export const TagInput: React.FC<TagInputProps> = ({
             onKeyDown={handleKeyDown}
             onFocus={() => { if(inputValue.trim()) setShowSuggestions(true); }}
             placeholder={tags.length === 0 ? placeholder : ''}
-            className="flex-grow bg-transparent border-none outline-none text-[14px] text-stone-700 min-w-[120px]"
+            className="flex-grow bg-transparent border-none outline-none text-[14px] text-foreground min-w-[120px]"
           />
         </div>
 
         {/* 추천 목록 */}
         {showSuggestions && filteredSuggestions.length > 0 && (
           <div 
-            className="absolute left-0 right-0 z-[9999] mt-2 bg-white border border-stone-100 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] max-h-[240px] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200"
+            className="absolute left-0 right-0 z-[9999] mt-2 bg-background border border-border rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] max-h-[240px] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200"
             style={{ top: '100%' }}
           >
             <div className="p-2">
-              <div className="px-3 py-2 text-[11px] font-black text-stone-400 uppercase tracking-widest border-b border-stone-50 mb-1">
+              <div className="px-3 py-2 text-[11px] font-black text-text-sub uppercase tracking-widest border-b border-border mb-1">
                 추천 증상
               </div>
               {filteredSuggestions.map((suggestion) => (
@@ -118,9 +118,9 @@ export const TagInput: React.FC<TagInputProps> = ({
                   key={suggestion}
                   type="button"
                   onClick={() => addTag(suggestion)}
-                  className="w-full text-left px-4 py-3 hover:bg-orange-50 text-[14px] font-bold text-stone-600 hover:text-[#FF6B00] rounded-xl transition-all flex items-center gap-2"
+                  className="w-full text-left px-4 py-3 hover:bg-main-green/5 text-[14px] font-bold text-foreground hover:text-main-green rounded-xl transition-all flex items-center gap-2"
                 >
-                  <span className="text-orange-300">#</span>
+                  <span className="text-main-green/50">#</span>
                   {suggestion}
                 </button>
               ))}

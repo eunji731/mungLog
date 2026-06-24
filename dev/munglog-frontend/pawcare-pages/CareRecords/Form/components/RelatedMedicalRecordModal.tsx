@@ -47,14 +47,14 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
       onClick={onClose}
     >
       <div 
-        className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300 border border-white/20"
+        className="bg-background w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300 border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-8 border-b border-stone-100 space-y-6">
+        <div className="p-8 border-b border-border space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-[20px] font-black text-stone-800 tracking-tight">연관 진료 기록 찾기</h3>
-            <button onClick={onClose} className="text-stone-300 hover:text-stone-500 text-2xl">✕</button>
+            <h3 className="text-[20px] font-black text-foreground tracking-tight">연관 진료 기록 찾기</h3>
+            <button onClick={onClose} className="text-text-sub hover:text-foreground text-2xl">✕</button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -63,14 +63,14 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
               <select
                 value={selectedDogId?.toString() || ''}
                 onChange={(e) => onDogChange(e.target.value)}
-                className="w-full h-[52px] px-5 rounded-2xl bg-stone-50 border border-transparent focus:border-[#FF6B00] focus:bg-white text-[14px] font-bold appearance-none outline-none cursor-pointer transition-all"
+                className="w-full h-[52px] px-5 rounded-2xl bg-surface-green border border-border focus:border-main-green focus:bg-background text-[14px] font-bold text-foreground appearance-none outline-none cursor-pointer transition-all"
               >
-                <option value="">강아지 선택 🐾</option>
+                <option value="" className="bg-background text-foreground">강아지 선택 🐾</option>
                 {dogs.map((dog) => (
-                  <option key={dog.id} value={dog.id.toString()}>{dog.name}</option>
+                  <option key={dog.id} value={dog.id.toString()} className="bg-background text-foreground">{dog.name}</option>
                 ))}
               </select>
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-300 font-bold group-hover:text-[#FF6B00] transition-colors">▼</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-sub font-bold group-hover:text-main-green transition-colors">▼</span>
             </div>
 
             <div className="relative group">
@@ -79,7 +79,7 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
                 placeholder="병원/진단명 검색..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className="w-full bg-stone-50 h-[52px] pl-10 pr-4 rounded-2xl border border-transparent focus:border-[#FF6B00] focus:bg-white outline-none text-[14px] font-bold transition-all"
+                className="w-full bg-surface-green h-[52px] pl-10 pr-4 rounded-2xl border border-border focus:border-main-green focus:bg-background text-[14px] font-bold text-foreground outline-none transition-all"
               />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base opacity-20 group-focus-within:opacity-100">🔍</span>
             </div>
@@ -96,19 +96,19 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
                   onSelect(record);
                   onClose();
                 }}
-                className="p-5 rounded-2xl hover:bg-orange-50 border border-transparent hover:border-orange-100 cursor-pointer transition-all group"
+                className="p-5 rounded-2xl hover:bg-main-green/5 border border-transparent hover:border-main-green/20 cursor-pointer transition-all group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black text-stone-300 uppercase tracking-widest group-hover:text-[#FF6B00]/60">
+                  <span className="text-[11px] font-black text-text-sub uppercase tracking-widest group-hover:text-main-green/80">
                     {record.recordDate}
                   </span>
                   {record.clinicName && (
-                    <span className="text-[10px] font-black text-white bg-stone-300 px-2 py-0.5 rounded-md group-hover:bg-[#FF6B00]/40">
+                    <span className="text-[10px] font-black text-foreground bg-surface-green border border-border px-2 py-0.5 rounded-md group-hover:bg-main-green/20">
                       {record.clinicName}
                     </span>
                   )}
                 </div>
-                <h4 className="text-[15px] font-bold text-stone-700 mt-1 group-hover:text-[#FF6B00]">
+                <h4 className="text-[15px] font-bold text-foreground mt-1 group-hover:text-main-green">
                   {record.title || record.diagnosis || '제목 없는 진료 기록'}
                 </h4>
               </div>
@@ -116,7 +116,7 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
           ) : (
             <div className="py-20 text-center">
               <span className="text-4xl block mb-4 opacity-20">{isLoading ? '⏳' : '🔎'}</span>
-              <p className="text-stone-400 font-bold text-[14px]">
+              <p className="text-text-sub font-bold text-[14px]">
                 {isLoading ? '검색 중입니다...' : '검색 결과가 없습니다.'}
               </p>
             </div>

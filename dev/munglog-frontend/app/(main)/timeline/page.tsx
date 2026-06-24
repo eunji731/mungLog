@@ -49,12 +49,15 @@ function TimelineContent() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
       {/* Header */}
-      <div className="bg-background border-b border-border p-6 lg:p-10 shrink-0">
-        <div className="max-w-4xl mx-auto flex items-end justify-between">
-          <div>
-            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Timeline</span>
-            <h1 className="text-3xl lg:text-4xl font-black text-text-main tracking-tight">아이와의 시간 여행</h1>
-            <p className="text-text-sub text-sm lg:text-base font-bold mt-2">우리가 함께한 모든 순간들을 시간 순서대로 만나보세요.</p>
+      <div className="sticky top-0 z-[100] bg-background/95 backdrop-blur-xl border-b border-border shrink-0">
+        <div className="w-full px-4 md:px-10 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-8 h-8 bg-main-green/10 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-main-green" />
+            </div>
+            <h1 className="text-lg font-black tracking-tight whitespace-nowrap">
+              아이와의<span className="text-main-green"> 시간 여행</span>
+            </h1>
           </div>
         </div>
       </div>

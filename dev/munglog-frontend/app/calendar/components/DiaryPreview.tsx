@@ -62,6 +62,12 @@ export default function DiaryPreview({
             <h3 className="text-xl font-black text-text-main">아직 기록이 없어요</h3>
             <p className="text-text-sub font-bold mt-2 leading-relaxed">오늘 아이와 어떤 추억을 만드셨나요?<br/>사진을 일괄 업로드하면 AI가 정리해 드려요!</p>
           </div>
+          <button 
+            onClick={() => onEdit({} as any)}
+            className="rounded-xl border border-border text-foreground hover:bg-surface-green px-6 py-2.5 text-sm font-bold transition-all shadow-sm active:scale-95 bg-background"
+          >
+            일기 작성하기
+          </button>
         </div>
       </div>
     </div>
@@ -234,8 +240,8 @@ export default function DiaryPreview({
 
   return (
     <div className="flex flex-col w-full h-full bg-background overflow-hidden shadow-[-12px_0_32px_rgba(0,0,0,0.03)] relative">
-      <div className="sticky top-0 z-[20] bg-background/90 backdrop-blur-md border-b border-border px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center shadow-sm shrink-0">
-        <h2 className="text-lg lg:text-xl font-black text-text-main tracking-tight">{formattedDate}</h2>
+      <div className="sticky top-0 z-[20] bg-background/90 backdrop-blur-md border-b border-border px-4 py-3 lg:px-5 lg:py-3.5 flex justify-between items-center shadow-sm shrink-0">
+        <h2 className="text-base lg:text-lg font-bold text-text-main tracking-tight">{formattedDate}</h2>
         {onClose && (
           <button onClick={onClose} className="p-2 hover:bg-surface-green rounded-xl transition-all">
             <X className="w-6 h-6 text-text-sub" />

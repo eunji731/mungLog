@@ -148,15 +148,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     return (
       <div className="flex flex-col items-center">
         <div className="relative group">
-          <div className="w-44 h-44 rounded-3xl overflow-hidden border-4 border-white shadow-2xl bg-[#F9F7F5] flex items-center justify-center relative">
+          <div className="w-44 h-44 rounded-3xl overflow-hidden border-4 border-background shadow-2xl bg-surface-green flex items-center justify-center relative">
             {file ? (
               isImageFile(file.url, file.name) ? <img src={file.url} alt="Preview" className="w-full h-full object-cover" /> : <span className="text-5xl">{getFileIcon(getFileExtension(file.url, file.name))}</span>
             ) : <span className="text-5xl opacity-10">🐶</span>}
             {loading && <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center"><div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /></div>}
           </div>
-          <button onClick={handleButtonClick} disabled={loading} className="absolute -bottom-2 -right-2 bg-[#FF6B00] text-white w-11 h-11 rounded-2xl border-4 border-white flex items-center justify-center shadow-lg hover:scale-110 transition-all">📷</button>
+          <button onClick={handleButtonClick} disabled={loading} className="absolute -bottom-2 -right-2 bg-main-green text-white w-11 h-11 rounded-2xl border-4 border-background flex items-center justify-center shadow-lg hover:scale-110 transition-all">📷</button>
         </div>
-        {file && <button onClick={(e) => handleDelete(e, 0)} className="mt-4 text-[12px] font-black text-stone-300 hover:text-red-500 transition-colors">✕ 삭제</button>}
+        {file && <button onClick={(e) => handleDelete(e, 0)} className="mt-4 text-[12px] font-black text-text-sub hover:text-red-500 transition-colors">✕ 삭제</button>}
         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept={accept} className="hidden" />
       </div>
     );
@@ -169,7 +169,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <button 
           onClick={handleButtonClick} 
           disabled={loading}
-          className="aspect-square rounded-xl border-2 border-dashed border-stone-200 bg-stone-50/50 flex flex-col items-center justify-center text-stone-300 hover:border-[#FF6B00] hover:bg-orange-50/30 transition-all gap-1 group"
+          className="aspect-square rounded-xl border-2 border-dashed border-border bg-surface-green flex flex-col items-center justify-center text-text-sub hover:border-main-green hover:bg-main-green/5 transition-all gap-1 group"
         >
           <span className="text-2xl group-hover:scale-110 transition-transform">+</span>
           <span className="text-[10px] font-bold">파일 추가</span>

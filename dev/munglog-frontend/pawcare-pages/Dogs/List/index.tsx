@@ -1,78 +1,70 @@
 import { useNavigate } from 'react-router-dom';
-import { PageLayout } from '@/components/layout/PageLayout';
 import { Button } from '@/components/common/Button';
 import { DogCard } from './components/DogCard';
 import { useDogList } from './hooks/useDogList';
 
 const DogListPage = () => {
   const navigate = useNavigate();
-  const { dogs, isLoading, error, refetch } = useDogList();
-
-  const handleDelete = async (id: string, name: string) => {
-    // 삭제 로직은 이전과 동일 (ConfirmModal 등을 통해 호출됨)
-    // 여기서는 UI 구조만 리디자인하므로 핸들러 연결 유지
-  };
+  const { dogs, isLoading, error } = useDogList();
 
   return (
-    <div className="min-h-screen bg-[#FCFAF8]">
-      <PageLayout title="" maxWidth="max-w-[1500px]">
-        {/* 1. HERO HEADER: 케어기록 페이지와 통일된 시스템 */}
-        <header className="pt-12 pb-16 flex flex-col md:flex-row justify-between items-end gap-8">
-          <div className="space-y-4">
-            <h1 className="text-[52px] lg:text-[64px] font-black text-[#2D2D2D] leading-[0.95] tracking-tight">
-              Family <span className="text-[#FF6B00]">Members.</span>
-            </h1>
-            <p className="text-[17px] text-stone-400 font-medium max-w-xl word-break-keep-all">
-              멍케어차트와 함께하는 소중한 반려견들을 관리하세요. <br />
-              각 아이들의 건강 상태와 기록을 한눈에 확인할 수 있습니다.
-            </p>
+    <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
+      {/* Header */}
+      <div className="bg-background border-b border-border p-6 lg:px-10 lg:py-6 shrink-0">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Family Members</span>
+            <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">반려견 정보</h1>
+            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">PetLifeLog와 함께하는 소중한 반려견들의 프로필을 관리하세요.</p>
           </div>
-          <div className="pb-1">
+          <div className="shrink-0">
             <Button 
-              size="lg" 
+              size="md" 
               onClick={() => navigate('/dogs/new')}
-              className="px-10 h-[64px] text-[16px] shadow-2xl transition-all hover:-translate-y-1"
+              className="px-6 h-[48px] text-[14px] font-black rounded-2xl"
             >
               + 새로운 가족 등록하기
             </Button>
           </div>
-        </header>
+        </div>
+      </div>
 
-        {/* 2. MAIN CONTENT AREA */}
-        <main className="pb-32">
+      {/* Main Content Area with inner scroll */}
+      <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 bg-surface-green/10">
+        <div className="max-w-7xl mx-auto">
           {isLoading ? (
-            <div className="h-[400px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 border-[5px] border-stone-100 border-t-[#FF6B00] rounded-full animate-spin mb-6" />
-              <p className="text-stone-300 font-black tracking-widest uppercase text-sm">Loading Members</p>
+            <div className="h-[300px] flex flex-col items-center justify-center">
+              <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin mb-4" />
+              <p className="text-text-sub font-black tracking-widest uppercase text-xs">Loading Members</p>
             </div>
           ) : error ? (
-            <div className="py-24 text-center bg-white rounded-[32px] border border-red-50 shadow-sm">
-              <p className="text-red-400 font-black text-[16px] mb-6">{error}</p>
-              <Button onClick={() => window.location.reload()} variant="outline" className="border-red-100 text-red-500">다시 시도하기</Button>
+            <div className="py-16 text-center bg-background rounded-3xl border border-border shadow-sm px-6">
+              <p className="text-red-500 font-bold text-[14px] mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()} variant="outline" size="sm" className="border-border text-foreground hover:bg-surface-green">다시 시도하기</Button>
             </div>
           ) : dogs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {dogs.map(dog => (
                 <DogCard key={dog.id} dog={dog} />
               ))}
             </div>
           ) : (
-            <div className="h-[600px] flex flex-col items-center justify-center bg-white rounded-[48px] border border-[#F0F0F0] shadow-[0_20px_60px_rgba(0,0,0,0.02)] px-10 text-center">
-              <div className="w-24 h-24 bg-[#FCFAF8] rounded-[32px] flex items-center justify-center mb-8 border border-[#F5F5F5]">
-                <span className="text-4xl grayscale opacity-40">🐕</span>
+            <div className="py-24 flex flex-col items-center justify-center bg-background rounded-3xl border border-border shadow-sm px-6 text-center">
+              <div className="w-16 h-16 bg-surface-green/20 rounded-2xl flex items-center justify-center mb-6 border border-border">
+                <span className="text-3xl grayscale opacity-40">🐕</span>
               </div>
-              <h3 className="text-[28px] font-black text-[#2D2D2D] mb-4 tracking-tight">No Members Yet.</h3>
-              <p className="text-stone-400 font-medium text-lg mb-12 max-w-xs leading-relaxed">
+              <h3 className="text-[20px] font-black text-foreground mb-2 tracking-tight">No Members Yet.</h3>
+              <p className="text-text-sub font-medium text-sm mb-6 max-w-xs leading-relaxed">
                 아직 등록된 반려견이 없습니다. <br />
                 첫 번째 가족을 등록하고 케어를 시작해보세요.
               </p>
-              <Button onClick={() => navigate('/dogs/new')} variant="outline" size="lg" className="rounded-full px-12 border-[#EEEEEE] text-[#2D2D2D] hover:bg-stone-50">
+              <Button onClick={() => navigate('/dogs/new')} variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green">
                 가족 등록 시작하기
               </Button>
             </div>
           )}
-        </main>
-      </PageLayout>
+        </div>
+      </div>
     </div>
   );
 };

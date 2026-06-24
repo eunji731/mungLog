@@ -149,12 +149,15 @@ export default function FamilyPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-surface-green/30 overflow-hidden">
       {/* Header */}
-      <div className="bg-background border-b border-border p-6 lg:p-10 shrink-0">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Family Management</span>
-            <h1 className="text-3xl lg:text-4xl font-black text-text-main tracking-tight">우리 가족 관리</h1>
-            <p className="text-text-sub text-sm lg:text-base font-bold mt-2">함께 지내는 아이들의 프로필을 관리하고 AI에게 알려주세요.</p>
+      <div className="sticky top-0 z-[100] bg-background/95 backdrop-blur-xl border-b border-border shrink-0">
+        <div className="w-full px-4 md:px-10 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-8 h-8 bg-main-green/10 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-main-green" />
+            </div>
+            <h1 className="text-lg font-black tracking-tight whitespace-nowrap">
+              우리 가족<span className="text-main-green"> 관리</span>
+            </h1>
           </div>
           
           <button 
@@ -163,9 +166,9 @@ export default function FamilyPage() {
               setViewingPet(null);
               setIsAdding(true);
             }}
-            className="flex items-center justify-center gap-2 px-8 py-4 bg-main-green text-white font-black rounded-2xl shadow-lg shadow-main-green/20 hover:scale-105 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 bg-main-green text-white font-black rounded-xl text-xs shadow-md shadow-main-green/20 hover:scale-105 active:scale-95 transition-all"
           >
-            <Plus className="w-5 h-5" /> 아이 추가하기
+            <Plus className="w-4 h-4" /> 아이 추가하기
           </button>
         </div>
       </div>

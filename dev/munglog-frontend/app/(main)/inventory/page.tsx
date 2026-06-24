@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Plus, Star, ShoppingBag, X, Calendar, Tag, Package, Activity, Pencil } from 'lucide-react';
+import { Plus, Star, ShoppingBag, X, Calendar, Tag, Package, Activity, Pencil, Sparkles } from 'lucide-react';
 import { useInventory } from '@/app/common/hooks/useInventory';
 import { getImagePath } from '@/app/common/lib/clientApi';
 
@@ -31,22 +31,23 @@ export default function InventoryPage() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-surface-green/30 overflow-hidden">
       {/* Header */}
-      <div className="bg-background border-b border-border p-6 lg:p-10 shrink-0">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div>
-            <span className="text-xs font-black text-main-yellow tracking-widest uppercase mb-1 block">Smart Inventory</span>
-            <h1 className="text-3xl lg:text-4xl font-black text-text-main tracking-tight">아이의 보물창고</h1>
-            <p className="text-text-sub text-sm lg:text-base font-bold mt-2">
-              AI 스캔으로 정보를 자동 입력하고 재고를 스마트하게 관리하세요.
-            </p>
+      <div className="sticky top-0 z-[100] bg-background/95 backdrop-blur-xl border-b border-border shrink-0">
+        <div className="w-full px-4 md:px-10 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-8 h-8 bg-main-yellow/10 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-main-yellow" />
+            </div>
+            <h1 className="text-lg font-black tracking-tight whitespace-nowrap">
+              아이의<span className="text-main-yellow"> 보물창고</span>
+            </h1>
           </div>
           
           <div className="flex gap-3">
             <button 
               onClick={() => router.push('/inventory/register')}
-              className="flex items-center gap-2 px-8 py-4 bg-main-yellow text-white font-black rounded-2xl shadow-lg shadow-main-yellow/30 hover:scale-105 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 bg-main-yellow text-white font-black rounded-xl text-xs shadow-md shadow-main-yellow/30 hover:scale-105 active:scale-95 transition-all"
             >
-              <Plus className="w-5 h-5" /> 등록
+              <Plus className="w-4 h-4" /> 등록
             </button>
           </div>
         </div>

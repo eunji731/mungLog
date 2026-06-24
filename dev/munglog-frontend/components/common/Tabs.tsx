@@ -14,8 +14,8 @@ export const Tabs = ({ tabs, activeTab, onChange, className = '' }: TabListProps
           onClick={() => onChange(tab.id)}
           className={`pb-3 border-b-[2px] transition-all duration-300 cursor-pointer ${
             activeTab === tab.id 
-              ? 'border-[#FF6B00] text-[#2D2D2D]' 
-              : 'border-transparent text-stone-300 hover:text-stone-500 hover:border-stone-200'
+              ? 'border-main-green text-foreground' 
+              : 'border-transparent text-text-sub hover:text-foreground hover:border-border'
           }`}
         >
           {tab.label}

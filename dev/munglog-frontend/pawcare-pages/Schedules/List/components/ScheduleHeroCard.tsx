@@ -35,10 +35,10 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) 
   return (
     <div 
       onClick={() => navigate(`/schedules/${schedule.id}`)} // 전체 카드 클릭 시 상세 이동
-      className="bg-[#2D2D2D] rounded-[32px] p-8 md:p-10 shadow-2xl shadow-stone-300 relative overflow-hidden group cursor-pointer hover:ring-4 hover:ring-[#FF6B00]/20 transition-all active:scale-[0.99]"
+      className="bg-[#2D2D2D] rounded-[32px] p-8 md:p-10 shadow-2xl shadow-main-green/5 relative overflow-hidden group cursor-pointer hover:ring-4 hover:ring-main-green/20 transition-all active:scale-[0.99]"
     >
       {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6B00]/10 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-[#FF6B00]/20 duration-700"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-main-green/10 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-main-green/20 duration-700"></div>
 
       <div className="relative z-10 space-y-8">
         {/* Top: D-Day & Icon */}
@@ -67,7 +67,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) 
           
           <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-stone-400 font-bold text-[15px]">
             <span className="flex items-center gap-2">
-               <span className="w-1.5 h-1.5 bg-[#FF6B00] rounded-full"></span>
+               <span className="w-1.5 h-1.5 bg-main-green rounded-full"></span>
                {new Date(schedule.scheduleDate).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })}
             </span>
             <span className="text-stone-600 hidden md:block">|</span>
@@ -78,7 +78,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) 
         {schedule.memo && (
           <div className="p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
             <p className="text-[14px] font-bold text-stone-300 leading-relaxed">
-              <span className="text-[#FF6B00] mr-2">Q.</span>
+              <span className="text-main-green mr-2">Q.</span>
               {schedule.memo}
             </p>
           </div>
@@ -103,7 +103,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) 
           <button className="px-6 h-[52px] rounded-xl text-stone-400 font-bold text-[14px] hover:text-white transition-all">
             ✏️ 수정
           </button>
-          <button className="px-8 h-[52px] bg-[#FF6B00] text-white rounded-xl font-black text-[15px] shadow-xl shadow-orange-500/20 hover:shadow-orange-500/40 active:scale-95 transition-all">
+          <button className="px-8 h-[52px] bg-main-green text-white rounded-xl font-black text-[15px] shadow-xl shadow-main-green/20 hover:shadow-main-green/40 active:scale-95 transition-all">
             ✅ 케어기록으로 전환
           </button>
         </div>
