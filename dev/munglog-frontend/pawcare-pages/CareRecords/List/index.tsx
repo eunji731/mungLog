@@ -98,18 +98,18 @@ const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
               </nav>
 
               <div className="flex items-center gap-2 shrink-0">
-                <div className="hidden sm:flex items-center bg-surface-green/50 rounded-full px-3 md:px-4 py-2 border border-transparent focus-within:border-main-green/30 focus-within:bg-background transition-all shadow-sm">
+                <div className="hidden sm:flex items-center bg-surface-green/50 rounded-full px-3 md:px-4 py-2 border border-transparent focus-within:border-main-green/30 focus-within:bg-background transition-all shadow-sm w-[150px] md:w-[220px] shrink-0">
                   <Search className="w-4 h-4 text-text-sub mr-2 shrink-0" />
                   <input
                     type="text"
                     placeholder="기록 검색..."
-                    className="bg-transparent border-none focus:outline-none text-[11px] font-bold text-text-main placeholder:text-text-sub/40 w-24 md:w-40"
+                    className="flex-1 bg-transparent border-none focus:outline-none text-[11px] font-bold text-text-main placeholder:text-text-sub/40 min-w-0"
                     value={localKeyword}
                     onChange={(e) => setLocalKeyword(e.target.value)}
                     onKeyDown={handleKeyDown}
                   />
                   {localKeyword && (
-                    <button onClick={() => { setLocalKeyword(''); updateFilter({ keyword: undefined }); }} className="ml-2">
+                    <button onClick={() => { setLocalKeyword(''); updateFilter({ keyword: undefined }); }} className="ml-2 shrink-0">
                       <X className="w-3.5 h-3.5 text-text-sub hover:text-red-500" />
                     </button>
                   )}
