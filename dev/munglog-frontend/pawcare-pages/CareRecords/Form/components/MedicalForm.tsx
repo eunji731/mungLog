@@ -46,9 +46,9 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <Section title="진료 정보" description="병원에서 어떤 증상이 있었나요?">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <Input 
             label="방문 병원 *" 
             placeholder="동물병원 이름을 입력하세요." 
@@ -76,7 +76,7 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
       </Section>
 
       <Section title="진단 및 처방" description="수의사 선생님의 소견은 어떠했나요?">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <Input 
             label="진단명" 
             placeholder="예: 급성 위염" 
@@ -103,7 +103,7 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
       </Section>
 
       <Section title="복약 관리" description="가정에서의 약 복용 계획이 있나요?">
-        <div className="space-y-8 bg-surface-green p-8 rounded-[32px] border border-border">
+        <div className="space-y-5 bg-surface-green p-5 rounded-[20px] border border-border">
           <div className="flex items-center gap-4">
             <input 
               type="checkbox" 
@@ -116,7 +116,7 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
           </div>
 
           {data.hasMedication && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in slide-in-from-top-2 duration-300">
               <Input 
                 label="복약 시작일" 
                 type="date" 

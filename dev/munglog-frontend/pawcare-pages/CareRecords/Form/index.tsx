@@ -83,55 +83,35 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
         <div className={`max-w-4xl mx-auto ${isEmbedded ? 'space-y-3' : 'space-y-6'}`}>
           
           {/* 기록 종류 선택 */}
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${isEmbedded ? 'pb-3' : 'pb-6 border-b border-border'}`}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 mb-2 w-full">
             {recordTypes.map((type) => {
               const isActive = recordTypeId === type.id;
-              const isMed = isMedicalRecordType(type.code);
+              
+              const getEmoji = (code: string) => {
+                switch (code) {
+                  case 'HOSPITAL': return '🏥';
+                  case 'MEDICINE': return '💊';
+                  case 'GROOMING': return '✂️';
+                  case 'VACCINATION': return '💉';
+                  case 'CHECKUP': return '🩺';
+                  case 'EXPENSE': return '💳';
+                  default: return '📝';
+                }
+              };
+
               return (
                 <button
-                   key={type.id}
+                  key={type.id}
                   type="button"
                   onClick={() => setRecordTypeId(type.id)}
-                  className={`group relative flex items-center p-4 rounded-2xl text-left transition-all duration-300 active:scale-[0.98] overflow-hidden ${
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-[11px] font-black transition-all duration-300 active:scale-[0.98] whitespace-nowrap ${
                     isActive
-                      ? 'bg-surface-green/30 shadow-sm border border-main-green/20'
-                      : 'bg-background border border-border hover:border-main-green/30 hover:bg-surface-green/10'
+                      ? 'bg-main-green border-main-green text-white shadow-sm shadow-main-green/10'
+                      : 'bg-background border-border text-text-sub hover:border-main-green/30 hover:text-main-green'
                   }`}
                 >
-                  {isActive && (
-                    <div className="absolute inset-0 bg-linear-to-r from-main-green/5 to-transparent pointer-events-none" />
-                  )}
-                  
-                  <div className="relative flex items-center justify-between w-full">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 flex items-center justify-center rounded-xl text-[20px] transition-all duration-300 ${
-                        isActive 
-                          ? 'bg-main-green text-white shadow-md' 
-                          : 'bg-background border border-border text-text-sub shadow-sm'
-                      }`}>
-                        {isMed ? '🏥' : '💳'}
-                      </div>
-                      
-                      <div className="flex flex-col">
-                        <span className={`text-[15px] font-black tracking-tight ${
-                          isActive ? 'text-foreground' : 'text-text-sub'
-                        }`}>
-                          {type.codeName}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-sub/80">
-                          {isMed ? '증상 및 처방 관리' : '병원비 및 지출 내역'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className={`w-5 h-5 rounded-full border-[2px] flex items-center justify-center ${
-                      isActive ? 'border-main-green' : 'border-border'
-                    }`}>
-                      <div className={`w-2 h-2 rounded-full bg-main-green transition-transform duration-300 ${
-                        isActive ? 'scale-100' : 'scale-0'
-                      }`} />
-                    </div>
-                  </div>
+                  <span className="text-[13px]">{getEmoji(type.code)}</span>
+                  <span>{type.codeName}</span>
                 </button>
               );
             })}

@@ -164,7 +164,7 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[12px] font-bold text-foreground bg-surface-green border border-border px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
-                {isMedical ? '🏥' : '🏷️'} {isMedical ? (record.clinicName || 'Clinic') : categoryName}
+                {isMedical ? '🏥' : '🏷️'} {isMedical ? (record.clinicName || recordTypes.find(t => t.code === recordTypeCode)?.codeName || '진료') : categoryName}
               </span>
 
               {isMedical && hasMedication && (
