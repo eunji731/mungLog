@@ -5,6 +5,7 @@ import { isMedicalRecordType } from '@/lib/codeGroups';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getImagePath } from '@/app/common/lib/clientApi';
+import { usePet } from '@/app/common/hooks/usePet';
 
 interface CareRecordDetailHeaderProps {
   record: CareRecord;
@@ -14,11 +15,14 @@ interface CareRecordDetailHeaderProps {
 export const CareRecordDetailHeader: React.FC<CareRecordDetailHeaderProps> = ({ record, onDelete }) => {
   const router = useRouter();
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
+  const { pets } = usePet();
 
   const recordTypeCode = String(record.recordType || '');
   const isMedical = isMedicalRecordType(recordTypeCode);
 
-  const dogProfileUrl = record.dogProfileImageUrl;
+  // usePetStore에서 일치하는 반려견의 프로필 이미지(photo)를 조회
+  const matchedDog = pets.find(p => String(p.id) === String(record.dogId || record.petId));
+  const dogProfileUrl = matchedDog?.photo || record.dogProfileImageUrl;
 
   return (
     <header className="space-y-4">
@@ -71,7 +75,7 @@ export const CareRecordDetailHeader: React.FC<CareRecordDetailHeaderProps> = ({ 
               )}
             </div>
             <div className="text-left">
-              <p className="text-[9px] font-black text-text-sub uppercase tracking-wider">Companion Dog</p>
+              <p className="text-[9px] font-black text-text-sub uppercase tracking-wider">Family</p>
               <span className="text-[14px] font-black text-text-main tracking-tight">{record.dogName}</span>
             </div>
           </div>
