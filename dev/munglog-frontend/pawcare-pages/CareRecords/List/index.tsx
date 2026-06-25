@@ -1,12 +1,13 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { PageLayout } from '@/components/layout/PageLayout';
+import { Stethoscope, Search, X, Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
+import { DatePicker } from '@/components/common/DatePicker';
+import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { useCareRecords } from './hooks/useCareRecords';
 import { TimelineItem } from './components/TimelineItem';
-import { FilterBar } from './components/FilterBar';
-import { Calendar } from '@/components/common/Calendar';
-import type { CalendarMarkers } from '@/components/common/Calendar';
 
 interface CareRecordListPageProps {
   showHeader?: boolean;
@@ -14,104 +15,189 @@ interface CareRecordListPageProps {
 
 const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
   const router = useRouter();
-  const { records, calendarRecords, isLoading, filters, updateFilter } = useCareRecords();
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const { records, isLoading, filters, updateFilter } = useCareRecords();
+  const { pets, selectedPetId } = usePet();
+  const { codes: allRecordTypes } = useCommonCodes('RECORD_TYPE');
+  const recordTypes = allRecordTypes.filter(t => t.code !== 'MEMO');
 
-  // 달력 마커 데이터 변환 (recordTypeId 기반으로 최적화)
-  const calendarMarkers = useMemo(() => {
-    const markers: CalendarMarkers = {};
-    calendarRecords.forEach(record => {
-      const date = record.recordDate;
-      if (!markers[date]) markers[date] = [];
-      
-      // recordTypeId가 있으면 우선 사용 (숫자), 없으면 recordType (문자열) 사용
-      // Calendar 컴포넌트는 string | number를 모두 수용합니다.
-      const markerType = record.recordTypeId ?? (record as any).recordType;
+  const selectedPet = pets.find(p => p.id === selectedPetId);
+  const petDisplayName = selectedPetId === ALL_PETS_ID ? '가족' : (selectedPet?.name || '아이');
 
-      if (markerType) {
-        markers[date].push({
-          type: markerType as string | number
-        });
+  const [localKeyword, setLocalKeyword] = useState(filters.keyword ?? '');
+  const [showDateFilter, setShowDateFilter] = useState(false);
+  const dateFilterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setLocalKeyword(filters.keyword ?? '');
+  }, [filters.keyword]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dateFilterRef.current && !dateFilterRef.current.contains(event.target as Node)) {
+        setShowDateFilter(false);
       }
-    });
-    return markers;
-  }, [calendarRecords]);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  // 달력의 달이 변경될 때 호출
-  const handleMonthChange = useCallback((year: number, month: number) => {
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-
-    setSelectedDate('');
-    updateFilter({ startDate, endDate });
-  }, [updateFilter]);
-
-  const handleDateClick = (date: string) => {
-    if (selectedDate === date) {
-      const d = new Date(date);
-      handleMonthChange(d.getFullYear(), d.getMonth() + 1);
-    } else {
-      setSelectedDate(date);
-      updateFilter({ startDate: date, endDate: date });
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      updateFilter({ keyword: localKeyword || undefined });
     }
   };
 
+  const startDate = filters.startDate ? parseISO(filters.startDate) : null;
+  const endDate = filters.endDate ? parseISO(filters.endDate) : null;
+  const hasDateFilter = Boolean(filters.startDate || filters.endDate);
+
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
-      {/* Header */}
-      {showHeader && (
-        <div className="bg-background border-b border-border p-6 lg:px-10 lg:py-6 shrink-0">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Care Records</span>
-              <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">반려견 케어기록</h1>
-              <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">반려견의 건강 기록과 병원 지출 흐름을 체계적으로 모니터링하세요.</p>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="h-full overflow-y-auto no-scrollbar bg-background text-text-main">
+      <div className="w-full relative">
 
-      {/* Main Content Area with inner scroll */}
-      <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 bg-surface-green/10">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <section className="mb-2">
-            <FilterBar filters={filters} onChange={updateFilter} />
-          </section>
+        {showHeader && (
+          <div className="sticky top-0 z-[100] bg-background/95 backdrop-blur-xl border-b border-border">
+            <div className="w-full px-4 md:px-10 h-16 flex items-center justify-between gap-3 md:gap-8">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-8 h-8 bg-main-green/10 rounded-lg flex items-center justify-center">
+                  <Stethoscope className="w-4 h-4 text-main-green" />
+                </div>
+                <h1 className="text-lg font-black tracking-tight whitespace-nowrap">
+                  {petDisplayName}<span className="text-main-green"> 케어기록</span>
+                </h1>
+              </div>
 
-          <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-0">
-              <div className="bg-background rounded-3xl p-6 border border-border shadow-sm">
-                <Calendar
-                  markers={calendarMarkers}
-                  selectedDate={selectedDate}
-                  onDateClick={handleDateClick}
-                  onMonthChange={handleMonthChange}
-                  legendType="CARE"
-                />
+              <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center overflow-x-auto no-scrollbar">
+                <button
+                  onClick={() => updateFilter({ type: 'ALL', recordTypeId: undefined })}
+                  className={`px-4 py-1.5 text-[11px] font-black rounded-full transition-all whitespace-nowrap ${
+                    filters.type === 'ALL' && !filters.recordTypeId
+                      ? 'bg-main-green/10 text-main-green'
+                      : 'text-text-sub hover:text-main-green hover:bg-main-green/5'
+                  }`}
+                >
+                  전체
+                </button>
+                {recordTypes.map((type) => {
+                  const isActive = filters.recordTypeId === type.id;
+                  return (
+                    <button
+                      key={type.id}
+                      onClick={() => updateFilter({ type: type.code as any, recordTypeId: type.id })}
+                      className={`px-4 py-1.5 text-[11px] font-black rounded-full transition-all whitespace-nowrap ${
+                        isActive
+                          ? 'bg-main-green/10 text-main-green'
+                          : 'text-text-sub hover:text-main-green hover:bg-main-green/5'
+                      }`}
+                    >
+                      {type.codeName}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="hidden sm:flex items-center bg-surface-green/50 rounded-full px-3 md:px-4 py-2 border border-transparent focus-within:border-main-green/30 focus-within:bg-background transition-all shadow-sm">
+                  <Search className="w-4 h-4 text-text-sub mr-2 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="기록 검색..."
+                    className="bg-transparent border-none focus:outline-none text-[11px] font-bold text-text-main placeholder:text-text-sub/40 w-24 md:w-40"
+                    value={localKeyword}
+                    onChange={(e) => setLocalKeyword(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                  {localKeyword && (
+                    <button onClick={() => { setLocalKeyword(''); updateFilter({ keyword: undefined }); }} className="ml-2">
+                      <X className="w-3.5 h-3.5 text-text-sub hover:text-red-500" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative" ref={dateFilterRef}>
+                  <button
+                    onClick={() => setShowDateFilter(prev => !prev)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[11px] font-black transition-all border ${
+                      hasDateFilter
+                        ? 'bg-main-green/10 text-main-green border-main-green/30'
+                        : 'bg-surface-green/50 text-text-sub border-transparent hover:text-main-green'
+                    }`}
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <span className="hidden md:inline">{hasDateFilter ? '기간 설정됨' : '기간'}</span>
+                  </button>
+
+                  {showDateFilter && (
+                    <div className="absolute top-full right-0 mt-2 w-72 bg-background border border-border shadow-2xl rounded-2xl p-4 z-[110] animate-in fade-in slide-in-from-top-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <DatePicker
+                            selected={startDate}
+                            onChange={(date) => updateFilter({ startDate: date ? date.toISOString().split('T')[0] : undefined })}
+                            placeholderText="시작일"
+                          />
+                        </div>
+                        <span className="text-text-sub font-light">~</span>
+                        <div className="flex-1">
+                          <DatePicker
+                            selected={endDate}
+                            onChange={(date) => updateFilter({ endDate: date ? date.toISOString().split('T')[0] : undefined })}
+                            placeholderText="종료일"
+                          />
+                        </div>
+                      </div>
+                      {hasDateFilter && (
+                        <button
+                          onClick={() => updateFilter({ startDate: undefined, endDate: undefined })}
+                          className="mt-3 w-full text-[11px] font-black text-text-sub hover:text-main-green transition-colors text-center"
+                        >
+                          기간 초기화
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="rounded-full px-4 shadow-md shadow-main-green/20 gap-1.5"
+                  onClick={() => router.push('/care-records/new')}
+                >
+                  <Plus className="w-3.5 h-3.5" /> 기록하기
+                </Button>
               </div>
             </div>
+          </div>
+        )}
 
-            <div className="lg:col-span-7 xl:col-span-8">
-              {isLoading ? (
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+        <div className="w-full px-4 md:px-8 pt-8 pb-32">
+          <div className="max-w-3xl mx-auto">
+            {isLoading ? (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+              </div>
+            ) : records.length > 0 ? (
+              <div className="flex flex-col gap-4 animate-in fade-in duration-500">
+                {records.map(record => (
+                  <TimelineItem key={record.id} record={record} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-32 gap-6 animate-in fade-in zoom-in duration-700">
+                <div className="w-20 h-20 bg-surface-green/50 rounded-full flex items-center justify-center">
+                  <Stethoscope className="w-8 h-8 text-main-green/30" />
                 </div>
-              ) : records.length > 0 ? (
-                <div className="flex flex-col gap-4">
-                  {records.map(record => (
-                    <TimelineItem key={record.id} record={record} />
-                  ))}
+                <div className="text-center space-y-1">
+                  <h3 className="text-lg font-black text-text-main">기록된 케어가 없습니다</h3>
+                  <p className="text-xs font-bold text-text-sub">반려견의 건강 기록과 지출을 남겨보세요.</p>
                 </div>
-              ) : (
-                <div className="py-24 text-center bg-background rounded-3xl border border-border shadow-sm px-10">
-                  <h3 className="text-[20px] font-black text-foreground mb-2 tracking-tight">기록된 케어가 없습니다.</h3>
-                  <p className="text-text-sub font-medium mb-6 text-sm">아직 기록된 로그가 없습니다.</p>
-                  <Button variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green" onClick={() => router.push('/care-records/new')}>기록 시작하기</Button>
-                </div>
-              )}
-            </div>
-          </main>
+                <Button variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green" onClick={() => router.push('/care-records/new')}>
+                  기록 시작하기
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { careApi } from '@/api/careApi';
+import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import type { CareRecord, CareRecordsFilter } from '@/types/care';
 
 export const useCareRecords = () => {
+  const { selectedPetId } = usePet();
   const [records, setRecords] = useState<CareRecord[]>([]);
   const [calendarRecords, setCalendarRecords] = useState<CareRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -14,21 +16,15 @@ export const useCareRecords = () => {
   const fetchRecords = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+      const petId = selectedPetId && selectedPetId !== ALL_PETS_ID ? selectedPetId : undefined;
+
       // 1. 리스트용 데이터 (날짜 필터 포함)
-      const listData = await careApi.getRecords(filters);
+      const listData = await careApi.getRecords({ ...filters, petId });
       setRecords(listData);
 
-      // 2. 달력 마커용 데이터 (날짜 필터 제외)
-      // 현재 선택된 강아지, 타입, 키워드는 유지하되 날짜만 전체로 조회
-      const calendarFilters = { 
-        ...filters, 
-        startDate: undefined, 
-        endDate: undefined 
-      };
-      const calendarData = await careApi.getRecords(calendarFilters);
+      // 2. 달력 마커용 데이터 (날짜 필터 제외, 캘린더 메뉴에서 사용)
+      const calendarData = await careApi.getRecords({ ...filters, petId, startDate: undefined, endDate: undefined });
       setCalendarRecords(calendarData);
-
     } catch (err) {
       console.error('CareRecords Load Failed:', err);
       setRecords([]);
@@ -36,7 +32,7 @@ export const useCareRecords = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, selectedPetId]);
 
   useEffect(() => {
     fetchRecords();
