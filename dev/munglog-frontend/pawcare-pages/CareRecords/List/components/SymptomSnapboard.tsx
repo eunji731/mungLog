@@ -7,11 +7,13 @@ import { format, subDays, parseISO, isWithinInterval, startOfDay, endOfDay } fro
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
+import { useConfirm } from '@/app/common/hooks/useConfirm';
 
 import { TagInput } from '@/components/common/TagInput';
 import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
 import TimelineTimePicker from './TimelineTimePicker';
 import { getImagePath } from '@/app/common/lib/clientApi';
+import { downloadFile } from '@/utils/fileUtils';
 
 export interface SymptomSnap {
   id: string;
@@ -35,6 +37,7 @@ interface SymptomSnapboardProps {
 
 export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: SymptomSnapboardProps) {
   const { selectedPetId, pets } = usePet();
+  const { confirm } = useConfirm();
   const [snaps, setSnaps] = useState<SymptomSnap[]>([]);
   const [mounted, setMounted] = useState(false);
   
@@ -57,8 +60,11 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   const [petDropdownOpen, setPetDropdownOpen] = useState(false);
   const petDropdownRef = useRef<HTMLDivElement>(null);
   const [editingSnapId, setEditingSnapId] = useState<string | null>(null);
+  const [viewingSnap, setViewingSnap] = useState<SymptomSnap | null>(null);
+  const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
 
   // 연동 관련 상태
+
   const [activeLinkId, setActiveLinkId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -235,8 +241,9 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   };
 
   // 스냅 삭제
-  const handleDeleteSnap = (id: string) => {
-    if (!confirm('기록된 증상 스냅을 삭제하시겠습니까?')) return;
+  const handleDeleteSnap = async (id: string) => {
+    const isConfirmed = await confirm('기록된 증상 스냅을 삭제하시겠습니까?');
+    if (!isConfirmed) return;
     const updated = snaps.filter(s => s.id !== id);
     setSnaps(updated);
     localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
@@ -264,8 +271,9 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   };
 
   // 연동 해제하기
-  const handleUnlinkRecord = (snapId: string) => {
-    if (!confirm('진료 연동을 해제하시겠습니까?')) return;
+  const handleUnlinkRecord = async (snapId: string) => {
+    const isConfirmed = await confirm('진료 연동을 해제하시겠습니까?');
+    if (!isConfirmed) return;
     const updated = snaps.map(s => {
       if (s.id === snapId) {
         return {
@@ -482,7 +490,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(snap)}
@@ -505,11 +513,19 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                 {/* Memo & Photo */}
                 <div className="flex gap-3 mb-3">
                   {snap.photoUrl && (
-                    <div className="w-14 h-14 rounded-lg overflow-hidden border border-border shrink-0 bg-stone-100 relative">
+                    <div 
+                      onClick={() => setViewingSnap(snap)}
+                      className="w-14 h-14 rounded-lg overflow-hidden border border-border shrink-0 bg-stone-100 relative cursor-pointer hover:opacity-85 hover:border-main-green/30 transition-all animate-in zoom-in-95 duration-200"
+                      title="사진 클릭하여 확인/다운로드"
+                    >
                       <img src={snap.photoUrl} alt={(snap.symptomTags || []).join(', ')} className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <p className="text-xs font-bold text-text-main leading-relaxed flex-1 break-all">
+                  <p 
+                    onClick={() => setViewingSnap(snap)}
+                    className="text-xs font-bold text-text-main leading-relaxed flex-1 break-all cursor-pointer hover:text-main-green transition-colors"
+                    title="기록 클릭하여 확인"
+                  >
                     {snap.memo || '이상 증상이 관찰됨.'}
                   </p>
                 </div>
@@ -590,8 +606,8 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
       {/* Register Modal */}
       {isRegisterOpen && mounted && createPortal(
         <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-background w-full max-w-md rounded-[32px] border border-border shadow-2xl overflow-visible animate-in zoom-in-95 duration-200">
-            <div className="p-5 border-b border-border flex items-center justify-between bg-surface-green/20 rounded-t-[32px]">
+          <div className="bg-background w-full max-w-lg rounded-[32px] border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-border flex items-center justify-between bg-surface-green/20 rounded-t-[32px] shrink-0">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-main-yellow" />
                 <h4 className="font-black text-sm text-text-main">
@@ -607,7 +623,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
               </button>
             </div>
 
-            <form onSubmit={handleRegisterSubmit} className="p-5 space-y-4">
+            <form onSubmit={handleRegisterSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 no-scrollbar pb-16">
               {/* Pet Selector (Only in ALL_PETS_ID view) */}
               {selectedPetId === ALL_PETS_ID && (
                 <div className="w-full space-y-1 text-left relative" ref={petDropdownRef}>
@@ -797,6 +813,170 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
         </div>,
         document.body
       )}
+
+      {/* View Snap Detail Modal */}
+      {viewingSnap && mounted && createPortal(
+        <div 
+          className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
+          onClick={() => setViewingSnap(null)}
+        >
+          <div 
+            className="bg-background w-full max-w-lg rounded-[32px] border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-border flex items-center justify-between bg-surface-green/20 shrink-0">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-main-yellow" />
+                <h4 className="font-black text-sm text-text-main">증상 관찰 기록 확인</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingSnap(null)}
+                className="p-1 hover:bg-border rounded-lg text-text-sub transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 overflow-y-auto flex-1 no-scrollbar pb-10">
+              {/* Pet Info & Time */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-surface-green border border-border flex items-center justify-center text-xs">
+                    🐶
+                  </div>
+                  <div>
+                    <span className="text-xs font-black text-text-main">
+                      {pets.find(p => p.id === viewingSnap.petId)?.name || '아이'}
+                    </span>
+                    <p className="text-[10px] text-text-sub font-bold mt-0.5">
+                      {viewingSnap.date} {viewingSnap.time} 발생
+                    </p>
+                  </div>
+                </div>
+                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
+                  viewingSnap.status === 'MONITORING' 
+                    ? 'bg-amber-100 text-amber-800' 
+                    : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  {viewingSnap.status === 'MONITORING' ? '● 관찰 중' : '✓ 진료 연동됨'}
+                </span>
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1.5">
+                {(viewingSnap.symptomTags || []).map((tag, idx) => (
+                  <span key={idx} className="text-xs font-black px-2.5 py-1 rounded-lg bg-main-green/10 text-main-green border border-main-green/20">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Photo */}
+              {viewingSnap.photoUrl && (
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">첨부된 사진 (클릭 시 확대)</span>
+                  <div 
+                    onClick={() => setFullscreenPhoto(viewingSnap.photoUrl || null)}
+                    className="relative rounded-2xl overflow-hidden border border-border bg-stone-950/5 flex items-center justify-center max-h-[320px] min-h-[180px] w-full cursor-zoom-in hover:opacity-90 transition-opacity"
+                  >
+                    <img 
+                      src={viewingSnap.photoUrl} 
+                      alt="Symptom Snap" 
+                      className="max-h-[320px] max-w-full w-auto h-auto object-contain" 
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const fileName = `symptom_snap_${viewingSnap.date}_${viewingSnap.time.replace(':', '')}.png`;
+                        downloadFile(viewingSnap.photoUrl!, fileName);
+                      }}
+                      className="absolute bottom-3 right-3 px-3 py-1.5 bg-black/60 hover:bg-black/85 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      ⬇ 다운로드
+                    </button>
+                  </div>
+                </div>
+              )}
+
+
+              {/* Memo */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">증상 상세 내용</span>
+                <div className="bg-stone-50/50 border border-border rounded-2xl p-4 text-xs font-bold text-text-main leading-relaxed break-all whitespace-pre-wrap">
+                  {viewingSnap.memo || '작성된 메모가 없습니다.'}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const txtContent = `[증상 관찰 기록]\n아이: ${pets.find(p => p.id === viewingSnap.petId)?.name || '아이'}\n날짜: ${viewingSnap.date} ${viewingSnap.time}\n증상: ${(viewingSnap.symptomTags || []).join(', ')}\n상태: ${viewingSnap.status === 'MONITORING' ? '관찰 중' : '진료 연동 완료'}\n상세 내용:\n${viewingSnap.memo}`;
+                    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = `symptom_snap_${viewingSnap.date}.txt`;
+                    link.click();
+                    URL.revokeObjectURL(blobUrl);
+                  }}
+                  className="flex-1 py-3 border border-border hover:bg-stone-50 rounded-xl text-xs font-black text-text-sub transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  기록 텍스트 다운로드
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewingSnap(null)}
+                  className="flex-1 py-3 bg-main-green hover:bg-main-green/90 text-white rounded-xl text-xs font-black transition-all cursor-pointer"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Fullscreen Photo Modal */}
+      {fullscreenPhoto && mounted && createPortal(
+        <div 
+          className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-xl animate-in fade-in duration-300"
+          onClick={() => setFullscreenPhoto(null)}
+        >
+          <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
+            <button 
+              className="absolute -top-16 right-0 text-white/40 hover:text-white transition-colors text-3xl cursor-pointer"
+              onClick={() => setFullscreenPhoto(null)}
+            >
+              ✕
+            </button>
+            
+            <img 
+              src={fullscreenPhoto} 
+              alt="Enlarged view" 
+              className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl"
+            />
+            
+            <div className="mt-8">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadFile(fullscreenPhoto, 'symptom_snap_enlarged.png');
+                }}
+                className="text-[11px] font-black text-main-green bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-full uppercase tracking-widest hover:bg-light-green transition-colors cursor-pointer"
+              >
+                Download Image
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
+

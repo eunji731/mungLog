@@ -86,17 +86,61 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
             <div className="lg:col-span-8 space-y-6 lg:space-y-8">
               <section className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border min-h-[220px] space-y-8">
                 {/* Section Header */}
-                <div className="flex items-center gap-3 border-b border-border pb-5">
-                  <div className="w-10 h-10 rounded-2xl bg-main-green/10 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5 text-main-green" />
+                <div className="flex items-center justify-between border-b border-border pb-5 flex-wrap gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-main-green/10 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-main-green" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black text-text-sub uppercase tracking-widest">Medical / Care Journal</span>
+                      <h3 className="text-[16px] font-black text-text-main tracking-widest uppercase mt-0.5">
+                        {isMedicalRecordType(record.recordType) ? 'Clinical ' : 'Diary '}<span className="text-main-green">Notes.</span>
+                      </h3>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] font-black text-text-sub uppercase tracking-widest">Medical / Care Journal</span>
-                    <h3 className="text-[16px] font-black text-text-main tracking-widest uppercase mt-0.5">
-                      {isMedicalRecordType(record.recordType) ? 'Clinical ' : 'Diary '}<span className="text-main-green">Notes.</span>
-                    </h3>
-                  </div>
+
+                  <button
+                    onClick={() => {
+                      const raw = record as any;
+                      const symptoms = raw.symptoms || raw.medicalDetails?.symptoms || raw.medical_details?.symptoms || '';
+                      const treatment = raw.treatment || raw.medicalDetails?.treatment || raw.medical_details?.treatment || '';
+                      
+                      let docContent = `[멍로그 케어 기록]\n`;
+                      docContent += `제목: ${record.title}\n`;
+                      docContent += `날짜: ${record.recordDate}\n`;
+                      docContent += `반려견: ${record.dogName || '아이'}\n`;
+                      docContent += `구분: ${isMedicalRecordType(record.recordType) ? '진료 기록 (Hospital)' : '일반 기록 (Diary)'}\n`;
+                      if (record.clinicName) docContent += `방문 병원: ${record.clinicName}\n`;
+                      if (record.amount !== undefined && record.amount !== null) docContent += `지출 비용: ${record.amount.toLocaleString()}원\n`;
+                      if (record.diagnosis) docContent += `진단명: ${record.diagnosis}\n`;
+                      
+                      if (symptoms.trim()) {
+                        docContent += `\n[발현 증상]\n${symptoms}\n`;
+                      }
+                      if (treatment.trim()) {
+                        docContent += `\n[처방 및 소견]\n${treatment}\n`;
+                      }
+                      if (record.note && record.note.trim()) {
+                        docContent += `\n[보호자 작성 노트]\n${record.note}\n`;
+                      }
+                      
+                      const blob = new Blob([docContent], { type: 'text/plain;charset=utf-8' });
+                      const blobUrl = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = blobUrl;
+                      link.download = `care_record_${record.recordDate}_${record.title.replace(/[\s/\\?%*:|"<>]/g, '_')}.txt`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(blobUrl);
+                    }}
+                    className="px-4 py-2 border border-main-green/30 hover:border-main-green/60 hover:bg-main-green/5 text-main-green rounded-xl text-[11px] font-black tracking-wide cursor-pointer transition-all flex items-center gap-1.5 shadow-sm"
+                    title="기록내용을 텍스트 파일(.txt)로 다운로드합니다"
+                  >
+                    📥 기록 다운로드
+                  </button>
                 </div>
+
 
                 <div className="flex flex-col gap-6">
                   {/* Symptom Tags */}

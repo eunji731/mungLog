@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { FileItem } from '@/types/file';
-import { isImageFile, getFileIcon, getFileExtension } from '@/utils/fileUtils';
+import { isImageFile, getFileIcon, getFileExtension, downloadFile } from '@/utils/fileUtils';
 import { getImagePath } from '@/app/common/lib/clientApi';
 
 interface CareRecordAttachmentGalleryProps {
@@ -91,14 +91,15 @@ export const CareRecordAttachmentGallery: React.FC<CareRecordAttachmentGalleryPr
             
             <div className="mt-8 flex flex-col items-center gap-2">
               <p className="text-white/80 text-[14px] font-black tracking-tight">{selectedFile.originalFileName}</p>
-              <a 
-                href={getImagePath(selectedFile.fileUrl)} 
-                download={selectedFile.originalFileName}
-                className="text-[11px] font-black text-main-green bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-full uppercase tracking-widest hover:bg-light-green transition-colors"
-                onClick={(e) => e.stopPropagation()}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadFile(getImagePath(selectedFile.fileUrl), selectedFile.originalFileName);
+                }}
+                className="text-[11px] font-black text-main-green bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-full uppercase tracking-widest hover:bg-light-green transition-colors cursor-pointer"
               >
                 Download Image
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -106,3 +107,4 @@ export const CareRecordAttachmentGallery: React.FC<CareRecordAttachmentGalleryPr
     </section>
   );
 };
+

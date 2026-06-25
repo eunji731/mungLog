@@ -43,3 +43,42 @@ export const getFileIcon = (extension: string): string => {
     default: return '📁';
   }
 };
+
+/**
+ * 파일을 브라우저에서 다운로드한다.
+ * Base64 data URL과 일반 URL을 모두 지원한다.
+ */
+export const downloadFile = async (url: string, fileName: string) => {
+  if (!url) return;
+
+  // Base64 데이터 URL인 경우
+  if (url.startsWith('data:')) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  }
+
+  // 일반 URL인 경우 blob으로 변환하여 CORS 우회 다운로드 시도
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    window.URL.revokeObjectURL(blobUrl);
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Download failed, fallback to opening in new window/tab', error);
+    // 폴백: 새 탭에서 열기
+    window.open(url, '_blank');
+  }
+};
+

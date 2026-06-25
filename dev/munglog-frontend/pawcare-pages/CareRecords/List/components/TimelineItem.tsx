@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { parseISO, addDays, isBefore, startOfDay, format } from 'date-fns';
 import type { CareRecord } from '@/types/care';
@@ -8,6 +9,9 @@ import { isMedicalRecordType } from '@/lib/codeGroups';
 import { usePet } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 import { careApi } from '@/api/careApi';
+import { downloadFile } from '@/utils/fileUtils';
+import { X, AlertCircle } from 'lucide-react';
+
 
 export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
   const router = useRouter();
@@ -16,6 +20,9 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
   const [linkedSnap, setLinkedSnap] = useState<any>(null);
   const [medInfo, setMedInfo] = useState<{ medStart: string | null; medDays: number; medStatus: string } | null>(null);
   const [loadingMed, setLoadingMed] = useState(false);
+  const [isViewingPhoto, setIsViewingPhoto] = useState(false);
+  const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
+
 
   const recordTypeCode = String(record.recordType || '');
   const isMedical = isMedicalRecordType(recordTypeCode);
@@ -165,7 +172,14 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
         {linkedSnap && (
           <div className="mb-5 p-3.5 bg-amber-500/5 border border-amber-100 rounded-2xl flex gap-3 items-start animate-in fade-in duration-300">
             {linkedSnap.photoUrl && (
-              <div className="w-12 h-12 rounded-lg overflow-hidden border border-amber-200/50 shrink-0 bg-stone-100 relative">
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsViewingPhoto(true);
+                }}
+                className="w-12 h-12 rounded-lg overflow-hidden border border-amber-200/50 shrink-0 bg-stone-100 relative cursor-pointer hover:opacity-85 hover:border-amber-400 transition-all"
+                title="사진 클릭하여 확인/다운로드"
+              >
                 <img src={linkedSnap.photoUrl} alt="Symptom" className="w-full h-full object-cover" />
               </div>
             )}
@@ -247,6 +261,120 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
 
         </div>
       </Card>
+
+      {isViewingPhoto && linkedSnap && typeof window !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsViewingPhoto(false);
+          }}
+        >
+          <div 
+            className="bg-background w-full max-w-lg rounded-[32px] border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-border flex items-center justify-between bg-amber-500/10 shrink-0">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-500" />
+                <h4 className="font-black text-sm text-text-main">연동된 증상 사진 확인</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsViewingPhoto(false)}
+                className="p-1 hover:bg-border rounded-lg text-text-sub transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 overflow-y-auto flex-1 no-scrollbar pb-10">
+              {/* Photo */}
+              <div 
+                onClick={() => setFullscreenPhoto(linkedSnap.photoUrl)}
+                className="relative rounded-2xl overflow-hidden border border-border bg-stone-950/5 flex items-center justify-center max-h-[320px] min-h-[180px] w-full cursor-zoom-in hover:opacity-90 transition-opacity"
+                title="사진 클릭하여 확대"
+              >
+                <img 
+                  src={linkedSnap.photoUrl} 
+                  alt="Symptom" 
+                  className="max-h-[320px] max-w-full w-auto h-auto object-contain" 
+                />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fileName = `linked_symptom_${record.recordDate}.png`;
+                    downloadFile(linkedSnap.photoUrl, fileName);
+                  }}
+                  className="absolute bottom-3 right-3 px-3 py-1.5 bg-black/60 hover:bg-black/85 text-white text-[10px] font-black rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  ⬇ 다운로드
+                </button>
+              </div>
+
+
+              {/* Info */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">증상 메모</span>
+                <p className="text-xs font-bold text-text-main leading-relaxed bg-stone-50/50 p-4 border border-border rounded-2xl">
+                  {linkedSnap.memo || '이상 증상이 관찰됨.'}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsViewingPhoto(false)}
+                  className="w-full py-3 bg-main-green hover:bg-main-green/90 text-white rounded-xl text-xs font-black transition-all cursor-pointer"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Fullscreen Photo Modal */}
+      {fullscreenPhoto && typeof window !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-xl animate-in fade-in duration-300"
+          onClick={() => setFullscreenPhoto(null)}
+        >
+          <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
+            <button 
+              className="absolute -top-16 right-0 text-white/40 hover:text-white transition-colors text-3xl cursor-pointer"
+              onClick={() => setFullscreenPhoto(null)}
+            >
+              ✕
+            </button>
+            
+            <img 
+              src={fullscreenPhoto} 
+              alt="Enlarged view" 
+              className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl"
+            />
+            
+            <div className="mt-8">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadFile(fullscreenPhoto, 'linked_symptom_enlarged.png');
+                }}
+                className="text-[11px] font-black text-main-green bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-full uppercase tracking-widest hover:bg-light-green transition-colors cursor-pointer"
+              >
+                Download Image
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };
+
