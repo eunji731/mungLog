@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PageLayout } from '@/components/layout/PageLayout';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useScheduleDetail } from './hooks/useScheduleDetail';
 import { ScheduleDetailHeader } from './components/ScheduleDetailHeader';
@@ -7,6 +8,7 @@ import { ScheduleDetailInfo } from './components/ScheduleDetailInfo';
 import { CareRecordAttachmentGallery } from '@/pages/CareRecords/Detail/components/CareRecordAttachmentGallery';
 import { scheduleApi } from '@/api/scheduleApi';
 import { useToast } from '@/context/ToastContext';
+import { CheckCircle2, Circle } from 'lucide-react';
 
 interface ScheduleDetailPageProps {
   id?: string;
@@ -66,7 +68,7 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
       </div>
     );
@@ -74,16 +76,16 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
 
   if (error || !schedule) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden items-center justify-center p-6">
-        <div className="text-center max-w-sm w-full p-12 bg-background rounded-3xl border border-border shadow-sm">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="text-center max-w-sm w-full p-12 bg-white dark:bg-zinc-900 rounded-3xl border border-border shadow-sm">
           <span className="text-5xl mb-6 block grayscale opacity-20">🗓️</span>
-          <h2 className="text-[22px] font-black text-foreground mb-3 tracking-tight">일정을 찾을 수 없습니다.</h2>
+          <h2 className="text-[22px] font-black text-text-main mb-3 tracking-tight">일정을 찾을 수 없습니다.</h2>
           <p className="text-text-sub font-medium mb-10 leading-relaxed text-sm px-4 break-keep">
             삭제된 일정이거나 <br /> 잘못된 접근입니다.
           </p>
           <button
             onClick={() => router.push('/schedules')}
-            className="w-full h-[56px] bg-main-green text-white rounded-xl font-black text-[15px] shadow-lg shadow-main-green/20 active:scale-95 transition-all"
+            className="w-full h-[56px] bg-main-green text-white rounded-[16px] font-black text-[15px] shadow-lg shadow-main-green/20 active:scale-95 transition-all hover:bg-main-green/90"
           >
             목록으로 돌아가기
           </button>
@@ -93,116 +95,163 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
-      {/* Header */}
-      <div className="bg-background border-b border-border p-6 lg:px-10 lg:py-6 shrink-0">
-        <div className="max-w-3xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Schedule Detail</span>
-            <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">일정 상세 정보</h1>
-            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">등록된 일정 및 예약의 상세 내용입니다.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area with inner scroll */}
-      <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 bg-surface-green/10">
-        <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <PageLayout title="" maxWidth="max-w-6xl" noPaddingTop>
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 pt-2 pb-16 space-y-6 lg:space-y-8">
           
-          {/* Header Block */}
           <ScheduleDetailHeader schedule={schedule} />
 
-          {/* Data Widgets */}
-          <section>
-            <ScheduleDetailInfo 
-              schedule={schedule} 
-              onToggleComplete={handleToggleComplete}
-            />
-          </section>
-
-          {/* Note Card */}
-          <section className="bg-background rounded-3xl p-8 shadow-sm border border-border min-h-[200px]">
-            <div className="flex items-center gap-3 border-b border-border pb-5 mb-6">
-              <span className="text-[20px]">📝</span>
-              <h3 className="text-[15px] font-black text-foreground tracking-widest uppercase">
-                Plan <span className="text-main-green">Memo.</span>
-              </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            {/* Left side: Info Cards sidebar */}
+            <div className="lg:col-span-5 space-y-4">
+              <ScheduleDetailInfo 
+                schedule={schedule} 
+              />
             </div>
 
-            <div className="flex flex-col gap-6">
-              {/* Symptom Tags (Placed directly under the main header) */}
-              {schedule.symptomTags && schedule.symptomTags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {schedule.symptomTags.map((tag: string) => (
-                    <span 
-                      key={tag} 
-                      className="px-3 py-1.5 rounded-xl bg-main-green text-white text-[12px] font-black shadow-lg shadow-main-green/20 flex items-center gap-1.5 animate-in zoom-in-95 duration-300"
-                    >
-                      <span className="opacity-70 text-[10px]">#</span>
-                      {tag}
-                    </span>
-                  ))}
+            {/* Right side: Detailed Notes, Gallery and Action Buttons */}
+            <div className="lg:col-span-7 space-y-6 lg:space-y-8">
+              
+              {/* Completion Action Card (완료 버튼 + 재고 연동 표시) */}
+              <div className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border flex flex-col gap-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black text-text-sub uppercase tracking-widest">Action / Integration</span>
+                    <h4 className="text-[15px] font-black text-text-main">일정 완료 처리</h4>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={handleToggleComplete}
+                    className={`h-[48px] px-6 rounded-full font-black text-[13px] flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] cursor-pointer shrink-0 ${
+                      schedule.isCompleted
+                        ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shadow-none hover:bg-emerald-500/15'
+                        : 'bg-main-green text-white shadow-main-green/10 hover:shadow-main-green/20'
+                    }`}
+                  >
+                    {schedule.isCompleted ? (
+                      <><CheckCircle2 className="w-4.5 h-4.5" /> 완료됨 · 취소하기</>
+                    ) : (
+                      <><Circle className="w-4.5 h-4.5" /> 완료 처리하기</>
+                    )}
+                  </button>
                 </div>
-              )}
 
-              <div className="space-y-3">
-                <h4 className="flex items-center gap-2 text-[11px] font-black text-text-sub uppercase tracking-widest">
-                  <span className="w-1 h-3 bg-border rounded-full" /> 상세 메모 및 참고사항
-                </h4>
-                <div className="text-[14px] leading-[1.8] text-foreground font-medium whitespace-pre-wrap pl-3 border-l-2 border-border">
-                  {schedule.memo || '작성된 메모가 없습니다.'}
+                <div className={`rounded-2xl p-4 border flex items-center gap-3 ${
+                  schedule.inventoryItemId
+                    ? 'bg-main-green/5 border-main-green/10'
+                    : 'bg-zinc-50 dark:bg-zinc-900/50 border-border'
+                }`}>
+                  <span className="text-lg shrink-0">📦</span>
+                  {schedule.inventoryItemId ? (
+                    <span className="text-[12px] font-bold text-foreground">
+                      <span className="text-main-green font-black">재고 연동됨</span> · {schedule.inventoryItemName} (재고 {schedule.inventoryItemStock ?? 0}개)
+                      {schedule.isCompleted ? ' · 완료 처리되어 재고가 차감되었습니다.' : ' · 완료 처리하면 재고가 자동으로 차감됩니다.'}
+                    </span>
+                  ) : (
+                    <span className="text-[12px] font-bold text-text-sub">
+                      재고 연동 안 됨 · 완료 처리해도 재고는 줄지 않습니다. (수정에서 연동 가능)
+                    </span>
+                  )}
                 </div>
               </div>
+
+              {/* Note Card */}
+              <section className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border min-h-[220px] space-y-8">
+                {/* Section Header */}
+                <div className="flex items-center gap-3 border-b border-border pb-5">
+                  <div className="w-10 h-10 rounded-2xl bg-main-green/10 flex items-center justify-center shrink-0">
+                    <span className="text-[20px]">📝</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-text-sub uppercase tracking-widest">Plan Memo / Note</span>
+                    <h3 className="text-[16px] font-black text-text-main tracking-widest uppercase mt-0.5">
+                      Plan <span className="text-main-green">Memo.</span>
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-6">
+                  {/* Symptom Tags */}
+                  {schedule.symptomTags && schedule.symptomTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {schedule.symptomTags.map((tag: string) => (
+                        <span 
+                          key={tag} 
+                          className="px-3.5 py-1.5 rounded-full bg-red-500/10 dark:bg-red-500/20 text-red-500 text-[11px] font-black border border-red-200/30 flex items-center gap-1.5 animate-in zoom-in-95 duration-300 shadow-xs"
+                        >
+                          <span className="opacity-70 text-[9px]">#</span>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Memo Content Block */}
+                  <div className="bg-surface-green/50 dark:bg-zinc-900/50 border border-border p-5 rounded-2xl space-y-2.5 transition-all duration-300">
+                    <h4 className="flex items-center gap-2 text-[11px] font-black text-text-sub uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 bg-text-sub rounded-full" /> 상세 메모 및 참고사항 (Plan Memo)
+                    </h4>
+                    <div className="text-[14px] md:text-[15px] leading-[1.8] text-text-main/85 font-bold whitespace-pre-wrap pl-0.5">
+                      {schedule.memo || '작성된 메모가 없습니다.'}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Attachment Gallery Card */}
+              {files && files.length > 0 && (
+                <section className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border">
+                  <CareRecordAttachmentGallery files={files} />
+                </section>
+              )}
+
+              {/* Action Bar */}
+              <div className="pt-6 flex items-center justify-between gap-3 border-t border-border flex-wrap">
+                <button 
+                  onClick={() => router.push('/schedules')}
+                  className="px-6 h-[48px] rounded-full border border-border text-text-sub font-black text-[13px] hover:border-text-sub hover:text-text-main hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                >
+                  목록으로
+                </button>
+                
+                <div className="flex items-center gap-2.5">
+                  <button 
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="px-5 h-[48px] rounded-full border border-border text-text-sub hover:text-red-500 hover:border-red-200/50 hover:bg-red-500/5 transition-all font-black text-[13px] active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    삭제
+                  </button>
+                  <button 
+                    onClick={() => router.push(`/schedules/edit/${schedule.id}`)}
+                    className="px-8 h-[48px] bg-background border-2 border-main-green text-main-green rounded-full font-black text-[13px] hover:bg-main-green/5 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    수정하기
+                  </button>
+                  {schedule.convertedCareRecordId ? (
+                    <button
+                      onClick={() => router.push(`/care-records/${schedule.convertedCareRecordId}`)}
+                      className="px-8 h-[48px] bg-emerald-500/10 text-emerald-600 border-2 border-emerald-500/20 rounded-full font-black text-[13px] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      ✅ 전환된 케어기록 보기
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleConvertToCareRecord}
+                      disabled={isConverting}
+                      className="px-8 h-[48px] bg-main-green text-white rounded-full font-black text-[13px] shadow-md shadow-main-green/10 hover:shadow-lg hover:shadow-main-green/20 hover:bg-main-green/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                    >
+                      {isConverting ? '전환 중...' : '✅ 케어기록으로 전환'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
             </div>
-          </section>
-
-          {/* Attachment Gallery Card */}
-          {files && files.length > 0 && (
-            <section className="bg-background rounded-3xl p-8 shadow-sm border border-border">
-              <CareRecordAttachmentGallery files={files} />
-            </section>
-          )}
-
-          {/* Action Bar */}
-          <div className="pt-6 flex flex-col sm:flex-row items-center justify-end gap-3 border-t border-border">
-            <button 
-              onClick={() => router.push('/schedules')}
-              className="w-full sm:w-auto px-6 h-[48px] rounded-xl border border-border text-foreground font-bold text-[13px] hover:bg-surface-green transition-all active:scale-95"
-            >
-              목록
-            </button>
-            <button 
-              onClick={() => setIsDeleteModalOpen(true)}
-              className="w-full sm:w-auto px-6 h-[48px] rounded-xl border border-border text-text-sub font-bold text-[13px] hover:bg-red-500/5 hover:text-red-500 hover:border-red-500/10 transition-all active:scale-95"
-            >
-              삭제
-            </button>
-            <button 
-              onClick={() => router.push(`/schedules/edit/${schedule.id}`)}
-              className="w-full sm:w-auto px-8 h-[48px] bg-background border-2 border-main-green text-main-green rounded-xl font-black text-[13px] hover:bg-main-green/5 active:scale-[0.98] transition-all"
-            >
-              수정하기
-            </button>
-            {schedule.convertedCareRecordId ? (
-              <button
-                onClick={() => router.push(`/care-records/${schedule.convertedCareRecordId}`)}
-                className="w-full sm:w-auto px-8 h-[48px] bg-emerald-500/10 text-emerald-600 border-2 border-emerald-500/20 rounded-xl font-black text-[13px] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-              >
-                ✅ 전환된 케어기록 보기
-              </button>
-            ) : (
-              <button
-                onClick={handleConvertToCareRecord}
-                disabled={isConverting}
-                className="w-full sm:w-auto px-8 h-[48px] bg-main-green text-white rounded-xl font-black text-[13px] shadow-lg shadow-main-green/20 hover:shadow-main-green/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {isConverting ? '전환 중...' : '✅ 케어기록으로 전환'}
-              </button>
-            )}
           </div>
 
         </div>
-      </div>
+      </PageLayout>
 
       {/* Delete Modal */}
       <ConfirmModal
