@@ -29,8 +29,11 @@ public record CareRecordListResponse(
 
         if (record.getMedicalDetail() != null) {
             amount = record.getMedicalDetail().getAmount();
-            medicationStatus = Boolean.TRUE.equals(record.getMedicalDetail().getIsMedicationCompleted())
-                    ? "COMPLETED" : "IN_PROGRESS";
+            if (record.getMedicalDetail().getMedicationStartDate() != null || 
+                (record.getMedicalDetail().getMedicationDays() != null && record.getMedicalDetail().getMedicationDays() > 0)) {
+                medicationStatus = Boolean.TRUE.equals(record.getMedicalDetail().getIsMedicationCompleted())
+                        ? "COMPLETED" : "IN_PROGRESS";
+            }
         }
         if (record.getExpenseDetail() != null) {
             amount = record.getExpenseDetail().getAmount();

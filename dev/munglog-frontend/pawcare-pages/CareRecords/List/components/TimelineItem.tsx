@@ -5,11 +5,20 @@ import type { CareRecord } from '@/types/care';
 import { Card } from '@/components/common/Card';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
+import { usePet } from '@/app/common/hooks/usePet';
+import { getImagePath } from '@/app/common/lib/clientApi';
+import { careApi } from '@/api/careApi';
 
 export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
   const router = useRouter();
+  const { pets } = usePet();
 
   const [linkedSnap, setLinkedSnap] = useState<any>(null);
+  const [medInfo, setMedInfo] = useState<{ medStart: string | null; medDays: number; medStatus: string } | null>(null);
+  const [loadingMed, setLoadingMed] = useState(false);
+
+  const recordTypeCode = String(record.recordType || '');
+  const isMedical = isMedicalRecordType(recordTypeCode);
 
   const loadLinkedSnap = () => {
     try {
@@ -30,12 +39,37 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
     return () => window.removeEventListener('symptom_snaps_updated', loadLinkedSnap);
   }, [record.id]);
 
+  // 리스트의 복약 뱃지 오표시 방지를 위한 상세정보 추가 페치
+  useEffect(() => {
+    if (!isMedical) return;
+    const fetchMedDetail = async () => {
+      try {
+        setLoadingMed(true);
+        const detail = await careApi.getRecordDetail(record.id);
+        if (detail) {
+          const rawDetail = detail as any;
+          const start = detail.medicationStartDate || rawDetail.medicalDetails?.medicationStartDate;
+          const days = Number(detail.medicationDays || rawDetail.medicalDetails?.medicationDays || 0);
+          const status = detail.medicationStatus || 'NONE';
+          setMedInfo({
+            medStart: start ?? null,
+            medDays: days,
+            medStatus: status
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch med detail in TimelineItem:', err);
+      } finally {
+        setLoadingMed(false);
+      }
+    };
+    fetchMedDetail();
+  }, [record.id, isMedical]);
+
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
   const { getCodeNameById } = useCommonCodes('EXPENSE_CATEGORY');
 
   const rawRecord = record as any;
-  const recordTypeCode = String(record.recordType || '');
-  const isMedical = isMedicalRecordType(recordTypeCode);
 
   const handleCardClick = () => {
     router.push(`/care-records/${record.id}`);
@@ -49,11 +83,11 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
     rawRecord.medicalDetails?.[snakeField] ??
     rawRecord.medical_details?.[camelField];
 
-  const medDays = Number(getField('medicationDays', 'medication_days') || 0);
-  const medStart = getField('medicationStartDate', 'medication_start_date');
+  const medDays = medInfo ? medInfo.medDays : Number(getField('medicationDays', 'medication_days') || 0);
+  const medStart = medInfo ? medInfo.medStart : getField('medicationStartDate', 'medication_start_date');
   const isMedCompletedRaw = getField('isMedicationCompleted', 'is_medication_completed');
   
-  let medStatus = record.medicationStatus || (isMedCompletedRaw === true ? 'COMPLETED' : (isMedCompletedRaw === false ? 'ACTIVE' : undefined));
+  let medStatus = medInfo ? medInfo.medStatus : (record.medicationStatus || (isMedCompletedRaw === true ? 'COMPLETED' : (isMedCompletedRaw === false ? 'ACTIVE' : undefined)));
   let medEndDateStr = '';
 
   if (medStart && medDays > 0) {
@@ -76,11 +110,18 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
     medStatus = 'ACTIVE';
   }
 
-  const hasMedication = !!(medStart || medDays > 0 || (medStatus && medStatus !== 'NONE'));
+  const hasMedication = !loadingMed && !!((medStart || medDays > 0) && medStatus && medStatus !== 'NONE');
 
   // 카테고리 표시 이름 결정 (ID 기반 조회 사용)
   const categoryId = record.categoryTypeId || rawRecord.category_type_id || rawRecord.categoryId || rawRecord.category_id;
   const categoryName = categoryId ? getCodeNameById(Number(categoryId)) : (record.categoryCode || '지출');
+
+  // usePetStore에서 일치하는 반려견의 프로필 이미지(photo)를 조회
+  const matchedDog = pets.find(p => String(p.id) === String(record.dogId || record.petId));
+  const dogProfileUrl = matchedDog?.photo || record.dogProfileImageUrl;
+
+  // 카드의 하단부분 변경을 위한 앵커 표시용 라인 매칭
+  const testVal = 0;
 
   return (
     <div className="group flex gap-4 md:gap-8 lg:gap-10 items-stretch relative">
@@ -149,8 +190,8 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
           <div className="flex flex-wrap items-center gap-3 md:gap-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-surface-green border border-border shrink-0 flex items-center justify-center">
-                {record.dogProfileImageUrl ? (
-                  <img src={record.dogProfileImageUrl} alt={record.dogName} className="w-full h-full object-cover" />
+                {dogProfileUrl ? (
+                  <img src={getImagePath(dogProfileUrl, 'profiles')} alt={record.dogName} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-[8px] grayscale opacity-40">🐕</span>
                 )}
