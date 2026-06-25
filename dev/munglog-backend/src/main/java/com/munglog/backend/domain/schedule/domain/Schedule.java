@@ -1,6 +1,7 @@
 package com.munglog.backend.domain.schedule.domain;
 
 import com.munglog.backend.common.domain.BaseTimeEntity;
+import com.munglog.backend.domain.inventory.domain.InventoryItem;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.pet.domain.Pet;
 import jakarta.persistence.*;
@@ -51,14 +52,19 @@ public class Schedule extends BaseTimeEntity {
     @Column(name = "location")
     private String location;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_item_id")
+    private InventoryItem linkedInventoryItem;
+
     public void update(Pet pet, ScheduleType scheduleType, LocalDateTime scheduleDate,
-                       String title, String memo, String location) {
+                       String title, String memo, String location, InventoryItem linkedInventoryItem) {
         this.pet = pet;
         this.scheduleType = scheduleType;
         this.scheduleDate = scheduleDate;
         this.title = title;
         this.memo = memo;
         this.location = location;
+        this.linkedInventoryItem = linkedInventoryItem;
     }
 
     public void toggleCompletion() {

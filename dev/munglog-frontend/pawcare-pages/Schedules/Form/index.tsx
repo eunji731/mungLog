@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
@@ -26,14 +26,33 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
     formData,
     setFormData,
     dogs,
+    inventoryItems,
     fileUploader,
     handleSave,
     isLoading,
-    isFetching
+    isFetching,
+    titleSuggestions
   } = useScheduleForm(id, { prefillDate });
 
   // DB에서 일정 유형(SCHEDULE_TYPE) 코드 목록 실시간 호출
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
+
+  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
+  const titleFieldRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (titleFieldRef.current && !titleFieldRef.current.contains(event.target as Node)) {
+        setShowTitleSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredTitleSuggestions = titleSuggestions.filter((t) =>
+    t.toLowerCase().includes(formData.title.trim().toLowerCase())
+  );
 
   if (isFetching) {
     return (
@@ -97,12 +116,36 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
           <Section title="상세 일정" description="언제, 어디서, 어떤 활동을 계획하시나요?">
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="일정 제목"
-                  placeholder="예: 튼튼동물병원 정기검진"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
+                <div className="relative" ref={titleFieldRef}>
+                  <Input
+                    label="일정 제목"
+                    placeholder="예: 하트가드, 사료 구매, 정기검진"
+                    helperText="반복되는 일정은 매번 같은 제목을 써야 스트릭으로 추적돼요."
+                    value={formData.title}
+                    onFocus={() => setShowTitleSuggestions(true)}
+                    onChange={(e) => {
+                      setFormData({ ...formData, title: e.target.value });
+                      setShowTitleSuggestions(true);
+                    }}
+                  />
+                  {showTitleSuggestions && filteredTitleSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border shadow-2xl rounded-2xl py-2 z-20 max-h-56 overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1">
+                      {filteredTitleSuggestions.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, title: t });
+                            setShowTitleSuggestions(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm font-bold text-foreground hover:bg-surface-green transition-colors"
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <Input
                   label="장소 (선택)"
                   placeholder="예: 강남구 테헤란로 123"
@@ -123,6 +166,20 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
                   value={formData.scheduleTime}
                   onChange={(e) => setFormData({ ...formData, scheduleTime: e.target.value })}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Select
+                  label="재고 연동 (선택)"
+                  value={formData.inventoryItemId}
+                  onChange={(e) => setFormData({ ...formData, inventoryItemId: e.target.value })}
+                  options={[
+                    { label: '연동 안 함', value: '' },
+                    ...inventoryItems.map(i => ({ label: `${i.name} (재고 ${i.stock}개)`, value: i.id.toString() }))
+                  ]}
+                />
+                <p className="text-[11px] text-text-sub ml-1 font-medium">
+                  하트가드, 사료처럼 소모되는 아이템을 연동하면 완료 처리할 때마다 재고가 줄고, 소진 시기를 미리 알려드려요.
+                </p>
               </div>
             </div>
           </Section>

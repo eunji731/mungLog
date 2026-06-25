@@ -67,8 +67,8 @@ public class AiDiaryController {
     @PostMapping(value = "/analyze-product", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<AnalyzeProductResult>> analyzeProduct(
             @AuthenticationPrincipal User user,
-            @RequestPart("files") List<MultipartFile> files) {
-        return ResponseEntity.ok(ApiResponse.success(aiInventoryService.analyzeProduct(uuid(user), files)));
+            @RequestPart("images") List<MultipartFile> images) {
+        return ResponseEntity.ok(ApiResponse.success(aiInventoryService.analyzeProduct(uuid(user), images)));
     }
 
     private UUID uuid(User user) {

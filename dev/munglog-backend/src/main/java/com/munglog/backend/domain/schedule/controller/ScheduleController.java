@@ -3,6 +3,7 @@ package com.munglog.backend.domain.schedule.controller;
 import com.munglog.backend.common.dto.ApiResponse;
 import com.munglog.backend.domain.schedule.dto.ScheduleRequest;
 import com.munglog.backend.domain.schedule.dto.ScheduleResponse;
+import com.munglog.backend.domain.schedule.dto.ScheduleStreakResponse;
 import com.munglog.backend.domain.schedule.service.ScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +30,14 @@ public class ScheduleController {
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) UUID petId) {
         return ResponseEntity.ok(ApiResponse.success(scheduleService.getSchedules(uuid(user), petId)));
+    }
+
+    @Operation(summary = "반복 일정 스트릭 조회")
+    @GetMapping("/streaks")
+    public ResponseEntity<ApiResponse<List<ScheduleStreakResponse>>> getScheduleStreaks(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false) UUID petId) {
+        return ResponseEntity.ok(ApiResponse.success(scheduleService.getScheduleStreaks(uuid(user), petId)));
     }
 
     @Operation(summary = "일정 상세 조회")

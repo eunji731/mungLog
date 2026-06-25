@@ -42,6 +42,7 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
       refetch();
     } catch (err) {
       console.error('Toggle complete failed:', err);
+      showToast('완료 처리에 실패했습니다.', 'error');
     }
   };
 

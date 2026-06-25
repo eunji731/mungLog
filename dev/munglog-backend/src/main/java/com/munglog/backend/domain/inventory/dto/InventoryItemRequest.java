@@ -3,6 +3,9 @@ package com.munglog.backend.domain.inventory.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.UUID;
+
 @Getter
 @NoArgsConstructor
 public class InventoryItemRequest {
@@ -10,13 +13,17 @@ public class InventoryItemRequest {
     private String category;
     private String brand;
     private String flavor;
-    private String purchaseDate;
-    private String expiryDate;
-    private String ingredients;
+    private String productionDate;
+    private String expiryDateText;
+    private String expiryDateSpecific;
+    private String openedAt;
+    private List<String> ingredients;
     private String material;
     private String size;
     private String storageMethod;
+    private String suggestedUsage;
     private Integer rating;
     private Integer stock;
     private String price;
+    private List<UUID> deletedFileIds;
 }

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,10 +16,16 @@ public class AnalyzeProductResult {
     private AiField<String> name;
     private AiField<String> brand;
     private AiField<String> flavor;
-    private AiField<String> ingredients;
+    private AiField<List<String>> ingredients;
     private AiField<String> material;
     private AiField<String> size;
     private AiField<String> storageMethod;
+    private AiField<String> productionDate;
+    private AiField<String> expiryDateSpecific;
+    private AiField<String> expiryDateText;
+    private AiField<String> suggestedUsage;
+    private List<String> reviewFields;
+    private List<String> warnings;
 
     @Getter
     @NoArgsConstructor
@@ -25,5 +33,6 @@ public class AnalyzeProductResult {
     public static class AiField<T> {
         private T value;
         private Double confidence;
+        private List<T> candidates;
     }
 }

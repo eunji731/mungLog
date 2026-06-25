@@ -18,23 +18,27 @@ public record InventoryItemResponse(
         ItemCategory category,
         String brand,
         String flavor,
-        LocalDate purchaseDate,
-        LocalDate expiryDate,
-        String ingredients,
+        LocalDate productionDate,
+        String expiryDateText,
+        LocalDate expiryDateSpecific,
+        LocalDate openedAt,
+        List<String> ingredients,
         String material,
         String size,
         StorageMethod storageMethod,
+        String suggestedUsage,
         Integer rating,
         Integer stock,
         BigDecimal price,
         Boolean isFeeding,
         LocalDate addedAt,
+        String photo,
         List<PhotoInfo> photos
 ) {
     @Builder
     public record PhotoInfo(UUID id, String url) {}
 
-    public static InventoryItemResponse from(InventoryItem item, List<FileResponse> files) {
+    public static InventoryItemResponse from(InventoryItem item, List<FileResponse> files, List<String> ingredients) {
         List<PhotoInfo> photos = files.stream()
                 .map(f -> PhotoInfo.builder().id(f.getId()).url(f.getFileUrl()).build())
                 .toList();
@@ -45,17 +49,21 @@ public record InventoryItemResponse(
                 .category(item.getCategory())
                 .brand(item.getBrand())
                 .flavor(item.getFlavor())
-                .purchaseDate(item.getPurchaseDate())
-                .expiryDate(item.getExpiryDate())
-                .ingredients(item.getIngredients())
+                .productionDate(item.getProductionDate())
+                .expiryDateText(item.getExpiryDateText())
+                .expiryDateSpecific(item.getExpiryDateSpecific())
+                .openedAt(item.getOpenedAt())
+                .ingredients(ingredients)
                 .material(item.getMaterial())
                 .size(item.getSize())
                 .storageMethod(item.getStorageMethod())
+                .suggestedUsage(item.getSuggestedUsage())
                 .rating(item.getRating())
                 .stock(item.getStock())
                 .price(item.getPrice())
                 .isFeeding(item.getIsFeeding())
                 .addedAt(item.getAddedAt())
+                .photo(photos.isEmpty() ? null : photos.get(0).url())
                 .photos(photos)
                 .build();
     }

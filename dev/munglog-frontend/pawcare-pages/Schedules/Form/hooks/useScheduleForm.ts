@@ -5,6 +5,7 @@ import { fileApi } from '@/api/fileApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/context/ToastContext';
 import { usePet } from '@/app/common/hooks/usePet';
+import { useInventory } from '@/app/common/hooks/useInventory';
 
 export const useScheduleForm = (id?: string, options?: { prefillDate?: string }) => {
   const router = useRouter();
@@ -12,6 +13,7 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(!!id);
   const { pets: dogs, selectedPetId } = usePet();
+  const { items: inventoryItems, fetchItems: fetchInventoryItems } = useInventory();
 
   const [formData, setFormData] = useState({
     dogId: selectedPetId && selectedPetId !== 'ALL' ? selectedPetId.toString() : '',
@@ -21,11 +23,30 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
     scheduleTime: '10:00',
     scheduleTypeId: 0 as number,
     memo: '',
-    symptomTags: [] as string[]
+    symptomTags: [] as string[],
+    inventoryItemId: ''
   });
+
+  useEffect(() => {
+    fetchInventoryItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fileUploader = useFileUpload('SCHEDULE');
   const fileLoadedRef = useRef(false);
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
+
+  // 선택된 아이의 기존 일정 제목 + 인벤토리 제품명을 모아 자동완성 제안 (같은 제목을 반복 입력해야 스트릭으로 추적됨)
+  useEffect(() => {
+    const petId = formData.dogId || undefined;
+    const inventoryNames = inventoryItems.map(i => i.name?.trim()).filter(Boolean) as string[];
+    scheduleApi.getSchedules({ petId })
+      .then((list) => {
+        const scheduleTitles = list.map(s => s.title?.trim()).filter(Boolean) as string[];
+        setTitleSuggestions(Array.from(new Set([...inventoryNames, ...scheduleTitles])));
+      })
+      .catch((err) => console.error('Failed to fetch title suggestions:', err));
+  }, [formData.dogId, inventoryItems]);
 
   // 1. 상세 데이터 본문 로드
   useEffect(() => {
@@ -49,7 +70,8 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
           scheduleTime: time.substring(0, 5),
           scheduleTypeId: data.scheduleTypeId || 0,
           memo: data.memo || '',
-          symptomTags: data.symptomTags || []
+          symptomTags: data.symptomTags || [],
+          inventoryItemId: data.inventoryItemId || ''
         });
 
         if (!fileLoadedRef.current) {
@@ -85,6 +107,7 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
         scheduleTypeId: Number(formData.scheduleTypeId),
         memo: formData.memo.trim() || undefined,
         symptomTags: formData.symptomTags,
+        inventoryItemId: formData.inventoryItemId || undefined,
       };
 
       const saved = id
@@ -114,9 +137,11 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
     formData,
     setFormData,
     dogs,
+    inventoryItems,
     fileUploader,
     handleSave,
     isLoading,
-    isFetching
+    isFetching,
+    titleSuggestions
   };
 };

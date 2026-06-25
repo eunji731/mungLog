@@ -1,5 +1,7 @@
 package com.munglog.backend.domain.inventory.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.munglog.backend.common.file.domain.ParentDomainType;
 import com.munglog.backend.common.file.dto.FileResponse;
 import com.munglog.backend.common.file.service.AttachedFileService;
@@ -12,15 +14,18 @@ import com.munglog.backend.domain.inventory.repository.InventoryItemRepository;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InventoryItemService {
@@ -28,6 +33,7 @@ public class InventoryItemService {
     private final InventoryItemRepository inventoryItemRepository;
     private final MemberRepository memberRepository;
     private final AttachedFileService attachedFileService;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public InventoryItemResponse createItem(UUID userId, InventoryItemRequest request, List<MultipartFile> images) {
@@ -40,15 +46,18 @@ public class InventoryItemService {
                 .category(parseEnum(ItemCategory.class, request.getCategory()))
                 .brand(request.getBrand())
                 .flavor(request.getFlavor())
-                .purchaseDate(parseDate(request.getPurchaseDate()))
-                .expiryDate(parseDate(request.getExpiryDate()))
-                .ingredients(request.getIngredients())
+                .productionDate(parseDate(request.getProductionDate()))
+                .expiryDateText(request.getExpiryDateText())
+                .expiryDateSpecific(parseDate(request.getExpiryDateSpecific()))
+                .openedAt(parseDate(request.getOpenedAt()))
+                .ingredients(toIngredientsJson(request.getIngredients()))
                 .material(request.getMaterial())
                 .size(request.getSize())
                 .storageMethod(parseEnum(StorageMethod.class, request.getStorageMethod()))
+                .suggestedUsage(request.getSuggestedUsage())
                 .rating(request.getRating())
                 .stock(request.getStock())
-                .price(request.getPrice() != null ? new BigDecimal(request.getPrice()) : null)
+                .price(parsePrice(request.getPrice()))
                 .addedAt(LocalDate.now())
                 .build();
 
@@ -59,14 +68,15 @@ public class InventoryItemService {
         }
 
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId());
-        return InventoryItemResponse.from(item, files);
+        return InventoryItemResponse.from(item, files, fromIngredientsJson(item.getIngredients()));
     }
 
     @Transactional(readOnly = true)
     public List<InventoryItemResponse> getItems(UUID userId) {
         return inventoryItemRepository.findAllByUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(item -> InventoryItemResponse.from(item,
-                        attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId())))
+                        attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId()),
+                        fromIngredientsJson(item.getIngredients())))
                 .toList();
     }
 
@@ -74,7 +84,7 @@ public class InventoryItemService {
     public InventoryItemResponse getItem(UUID itemId, UUID userId) {
         InventoryItem item = findByIdAndUserId(itemId, userId);
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId());
-        return InventoryItemResponse.from(item, files);
+        return InventoryItemResponse.from(item, files, fromIngredientsJson(item.getIngredients()));
     }
 
     @Transactional
@@ -84,20 +94,18 @@ public class InventoryItemService {
         item.update(request.getName(),
                 parseEnum(ItemCategory.class, request.getCategory()),
                 request.getBrand(), request.getFlavor(),
-                parseDate(request.getPurchaseDate()), parseDate(request.getExpiryDate()),
-                request.getIngredients(), request.getMaterial(), request.getSize(),
-                parseEnum(StorageMethod.class, request.getStorageMethod()),
-                request.getRating(), request.getStock(),
-                request.getPrice() != null ? new BigDecimal(request.getPrice()) : null);
+                parseDate(request.getProductionDate()), request.getExpiryDateText(),
+                parseDate(request.getExpiryDateSpecific()), parseDate(request.getOpenedAt()),
+                toIngredientsJson(request.getIngredients()), request.getMaterial(), request.getSize(),
+                parseEnum(StorageMethod.class, request.getStorageMethod()), request.getSuggestedUsage(),
+                request.getRating(), request.getStock(), parsePrice(request.getPrice()));
 
         inventoryItemRepository.save(item);
 
-        if (images != null && !images.isEmpty()) {
-            attachedFileService.saveAll(ParentDomainType.INVENTORY, itemId, images);
-        }
+        List<FileResponse> files = attachedFileService.syncFiles(
+                ParentDomainType.INVENTORY, itemId, request.getDeletedFileIds(), images);
 
-        List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId());
-        return InventoryItemResponse.from(item, files);
+        return InventoryItemResponse.from(item, files, fromIngredientsJson(item.getIngredients()));
     }
 
     @Transactional
@@ -113,7 +121,7 @@ public class InventoryItemService {
         item.toggleFeeding();
         inventoryItemRepository.save(item);
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId());
-        return InventoryItemResponse.from(item, files);
+        return InventoryItemResponse.from(item, files, fromIngredientsJson(item.getIngredients()));
     }
 
     private InventoryItem findByIdAndUserId(UUID itemId, UUID userId) {
@@ -129,5 +137,30 @@ public class InventoryItemService {
     private LocalDate parseDate(String value) {
         if (value == null || value.isBlank()) return null;
         try { return LocalDate.parse(value); } catch (Exception e) { return null; }
+    }
+
+    private BigDecimal parsePrice(String value) {
+        if (value == null || value.isBlank()) return null;
+        try { return new BigDecimal(value); } catch (NumberFormatException e) { return null; }
+    }
+
+    private String toIngredientsJson(List<String> ingredients) {
+        if (ingredients == null || ingredients.isEmpty()) return null;
+        try {
+            return objectMapper.writeValueAsString(ingredients);
+        } catch (Exception e) {
+            log.warn("성분 목록 직렬화 실패", e);
+            return null;
+        }
+    }
+
+    private List<String> fromIngredientsJson(String json) {
+        if (json == null || json.isBlank()) return Collections.emptyList();
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            log.warn("성분 목록 역직렬화 실패", e);
+            return Collections.emptyList();
+        }
     }
 }

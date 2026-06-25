@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   Stethoscope,
+  Package,
   Settings,
   ChevronDown,
   X,
@@ -32,6 +33,7 @@ const navItems = [
   { name: '지도', href: '/map', icon: MapPin },
   { name: '케어기록', href: '/care-records', icon: Stethoscope },
   { name: '일정/예약', href: '/schedules', icon: ClipboardList },
+  { name: '인벤토리', href: '/inventory', icon: Package },
   { name: '설정', href: '/settings', icon: Settings },
 ];
 

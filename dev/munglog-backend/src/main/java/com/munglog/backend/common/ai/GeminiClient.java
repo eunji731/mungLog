@@ -67,16 +67,24 @@ public class GeminiClient {
                 추출할 텍스트:
                 """ + ocrText + """
 
+                각 필드는 {"value": ..., "confidence": 0~1 사이 숫자, "candidates": [다른 가능성 있는 값들](선택)} 형태로 응답하세요.
+                값을 알 수 없으면 value를 null로, confidence를 0으로 설정하세요.
                 반드시 아래 JSON 형식으로만 응답 (다른 텍스트 금지):
                 {
                   "category": {"value": "FOOD|SNACK|TOY|HEALTH|CLOTHES|ETC", "confidence": 0.9},
-                  "name": {"value": "제품명", "confidence": 0.9},
-                  "brand": {"value": "브랜드명", "confidence": 0.9},
-                  "flavor": {"value": "맛/향", "confidence": 0.7},
+                  "name": {"value": "제품명", "confidence": 0.9, "candidates": []},
+                  "brand": {"value": "브랜드명", "confidence": 0.9, "candidates": []},
+                  "flavor": {"value": "맛/향", "confidence": 0.7, "candidates": []},
                   "ingredients": {"value": ["성분1", "성분2"], "confidence": 0.8},
+                  "material": {"value": "재질 (장난감/의류류일 때)", "confidence": 0.5},
+                  "size": {"value": "용량/크기", "confidence": 0.7, "candidates": []},
                   "storageMethod": {"value": "ROOM_TEMP|REFRIGERATED|FROZEN", "confidence": 0.8},
-                  "suggestedUsage": {"value": "급여 방법", "confidence": 0.7},
-                  "expiryDateText": {"value": "유통기한 텍스트", "confidence": 0.8}
+                  "productionDate": {"value": "YYYY-MM-DD 형식 제조일", "confidence": 0.6},
+                  "expiryDateSpecific": {"value": "YYYY-MM-DD 형식 유통기한", "confidence": 0.6},
+                  "expiryDateText": {"value": "유통기한 텍스트", "confidence": 0.8, "candidates": []},
+                  "suggestedUsage": {"value": "급여/사용 방법", "confidence": 0.7, "candidates": []},
+                  "reviewFields": ["확인이 필요한 필드명들"],
+                  "warnings": ["분석 중 발견한 주의사항"]
                 }
                 """;
         try {

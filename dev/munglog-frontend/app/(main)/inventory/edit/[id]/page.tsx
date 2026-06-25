@@ -45,6 +45,8 @@ export default function InventoryEditPage() {
   const [suggestedUsage, setSuggestedUsage] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState(1);
+  const [packCount, setPackCount] = useState(1);
+  const [unitsPerPack, setUnitsPerPack] = useState(1);
   const [rating, setRating] = useState(5);
   const [isFeeding, setIsFeeding] = useState(false);
   const [openedAt, setOpenedAt] = useState('');
@@ -69,7 +71,7 @@ export default function InventoryEditPage() {
     setOpenedAt(item.openedAt || '');
     
     if (item.photos && item.photos.length > 0) {
-      setPhotos(item.photos.map(p => p.url));
+      setPhotos(item.photos.map(p => getImagePath(p.url)));
       setPhotoIds(item.photos.map(p => p.id));
     } else if (item.photo) {
       setPhotos([getImagePath(item.photo)]);
@@ -226,7 +228,7 @@ export default function InventoryEditPage() {
         stock, rating, isFeeding,
         deletedFileIds: deletedPhotoIds,
       };
-      formData.append('data', JSON.stringify(data));
+      formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
 
       const res = await apiClient.patch(`/inventory/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -469,11 +471,38 @@ export default function InventoryEditPage() {
                 </div>
               </div>
               <div className="space-y-3">
-                <label className="text-sm font-black text-text-sub flex items-center gap-2 px-1">보유 수량</label>
+                <label className="text-sm font-black text-text-sub flex items-center gap-2 px-1">보유 수량 (낱개 기준)</label>
                 <div className="flex items-center justify-between px-8 py-5 bg-surface-green/50 rounded-[24px] border-2 border-transparent">
                   <button type="button" onClick={() => setStock(Math.max(0, stock - 1))} className="w-12 h-12 rounded-full bg-background shadow-md flex items-center justify-center hover:bg-red-50 transition-all active:scale-90"><Minus className="w-6 h-6 text-text-main" /></button>
                   <span className="text-3xl font-black text-text-main">{stock}</span>
                   <button type="button" onClick={() => setStock(stock + 1)} className="w-12 h-12 rounded-full bg-background shadow-md flex items-center justify-center hover:bg-green-50 transition-all active:scale-90"><Plus className="w-6 h-6 text-text-main" /></button>
+                </div>
+                <p className="text-[11px] text-text-sub font-bold px-1">하트가드처럼 1팩에 여러 개가 들어있다면, 팩 수가 아니라 낱개 총량을 입력해야 일정 완료 시 정확히 차감돼요.</p>
+
+                <div className="flex items-center gap-2 px-5 py-3 bg-surface-green/30 rounded-2xl border border-dashed border-border">
+                  <input
+                    type="number"
+                    min={0}
+                    value={packCount}
+                    onChange={(e) => setPackCount(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-16 px-2 py-2 bg-background border border-border rounded-xl font-black text-center text-sm outline-none focus:border-main-yellow"
+                  />
+                  <span className="text-xs font-black text-text-sub shrink-0">팩 ×</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={unitsPerPack}
+                    onChange={(e) => setUnitsPerPack(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-16 px-2 py-2 bg-background border border-border rounded-xl font-black text-center text-sm outline-none focus:border-main-yellow"
+                  />
+                  <span className="text-xs font-black text-text-sub shrink-0">개입 =</span>
+                  <button
+                    type="button"
+                    onClick={() => setStock(packCount * unitsPerPack)}
+                    className="flex-1 py-2 bg-main-yellow text-white text-xs font-black rounded-xl shadow-sm active:scale-95 transition-all"
+                  >
+                    {packCount * unitsPerPack}개로 적용
+                  </button>
                 </div>
               </div>
 

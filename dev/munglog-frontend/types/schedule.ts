@@ -17,6 +17,9 @@ export interface Schedule {
   memo?: string;
   symptomTags: string[];
   dDay: number;
+  inventoryItemId?: string;
+  inventoryItemName?: string;
+  inventoryItemStock?: number;
 }
 
 export interface ScheduleFilters {
@@ -26,6 +29,29 @@ export interface ScheduleFilters {
   keyword?: string;
   startDate?: string;
   endDate?: string;
+}
+
+export interface ScheduleStreakOccurrence {
+  scheduleDate: string;
+  completed: boolean;
+}
+
+export interface ScheduleStreak {
+  petId: string;
+  petName: string;
+  title: string;
+  scheduleType: string;
+  totalCount: number;
+  streakCount: number;
+  lastScheduleDate: string;
+  lastCompleted: boolean;
+  nextSuggestedDate: string | null;
+  recentOccurrences: ScheduleStreakOccurrence[];
+  inventoryItemId?: string;
+  inventoryItemName?: string;
+  inventoryItemStock?: number;
+  stockDepletionDate?: string;
+  lowStockWarning: boolean;
 }
 
 export interface ScheduleCreateRequest {
@@ -39,4 +65,5 @@ export interface ScheduleCreateRequest {
   memo?: string;
   symptomTags?: string[];
   fileIds?: Array<string | number>;
+  inventoryItemId?: string;
 }

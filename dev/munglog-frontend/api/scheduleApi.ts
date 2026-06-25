@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/apiClient';
 import { SCHEDULE_TYPE_CODES } from '@/lib/codeGroups';
-import type { Schedule, ScheduleFilters, ScheduleCreateRequest } from '@/types/schedule';
+import type { Schedule, ScheduleFilters, ScheduleCreateRequest, ScheduleStreak } from '@/types/schedule';
 
 interface BackendScheduleResponse {
   id: string;
@@ -15,6 +15,9 @@ interface BackendScheduleResponse {
   dDay: number;
   attachmentCount: number;
   symptomTags: string[];
+  inventoryItemId?: string;
+  inventoryItemName?: string;
+  inventoryItemStock?: number;
 }
 
 const scheduleTypeIdOf = (code?: string) => SCHEDULE_TYPE_CODES.find(c => c.code === code)?.id;
@@ -39,6 +42,9 @@ function mapSchedule(raw: BackendScheduleResponse): Schedule {
     memo: raw.memo,
     symptomTags: raw.symptomTags || [],
     dDay: raw.dDay,
+    inventoryItemId: raw.inventoryItemId,
+    inventoryItemName: raw.inventoryItemName,
+    inventoryItemStock: raw.inventoryItemStock,
   };
 }
 
@@ -94,6 +100,12 @@ export const scheduleApi = {
   convertToCareRecord: async (id: string | number): Promise<string> => {
     const response = await apiClient.post(`/schedules/${id}/convert`);
     return response.data;
+  },
+
+  // 같은 제목으로 2회 이상 등록된 반복 일정의 완료 스트릭 조회
+  getStreaks: async (petId?: string): Promise<ScheduleStreak[]> => {
+    const response = await apiClient.get('/schedules/streaks', { params: petId ? { petId } : undefined });
+    return response.data || [];
   }
 };
 
@@ -106,5 +118,6 @@ function toSchedulePayload(payload: ScheduleCreateRequest) {
     memo: payload.memo,
     location: payload.location,
     symptomTags: payload.symptomTags,
+    inventoryItemId: payload.inventoryItemId,
   };
 }

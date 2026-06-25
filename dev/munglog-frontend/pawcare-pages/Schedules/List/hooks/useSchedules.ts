@@ -1,28 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import { scheduleApi } from '@/api/scheduleApi';
+import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import type { Schedule, ScheduleFilters } from '@/types/schedule';
 
 export const useSchedules = () => {
+  const { selectedPetId } = usePet();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<ScheduleFilters>({
-    type: 'ALL',
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-    endDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
+    type: 'ALL'
   });
 
   const fetchSchedules = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await scheduleApi.getSchedules(filters);
+      const petId = selectedPetId && selectedPetId !== ALL_PETS_ID ? selectedPetId : undefined;
+      const data = await scheduleApi.getSchedules({ ...filters, petId });
       setSchedules(data);
     } catch (err: unknown) {
       console.error('Failed to fetch schedules:', err);
       setSchedules([]); // 에러 시 빈 배열로 초기화
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, selectedPetId]);
 
   useEffect(() => {
     fetchSchedules();

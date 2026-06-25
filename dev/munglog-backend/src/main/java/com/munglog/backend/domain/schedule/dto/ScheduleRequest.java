@@ -18,4 +18,5 @@ public class ScheduleRequest {
     private String location;
     private List<String> symptomTags;
     private List<UUID> fileIds;
+    private UUID inventoryItemId;
 }

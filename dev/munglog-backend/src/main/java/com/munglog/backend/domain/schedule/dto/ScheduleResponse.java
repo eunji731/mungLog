@@ -24,12 +24,16 @@ public record ScheduleResponse(
         Long dDay,
         int attachmentCount,
         List<FileResponse> attachments,
-        List<String> symptomTags
+        List<String> symptomTags,
+        UUID inventoryItemId,
+        String inventoryItemName,
+        Integer inventoryItemStock
 ) {
     public static ScheduleResponse of(Schedule schedule, List<FileResponse> attachments, List<String> symptomTags) {
         long dDay = schedule.getScheduleDate() != null
                 ? ChronoUnit.DAYS.between(LocalDateTime.now(), schedule.getScheduleDate())
                 : 0;
+        var linkedItem = schedule.getLinkedInventoryItem();
         return ScheduleResponse.builder()
                 .id(schedule.getId())
                 .petId(schedule.getPet().getId())
@@ -44,6 +48,9 @@ public record ScheduleResponse(
                 .attachmentCount(attachments.size())
                 .attachments(attachments)
                 .symptomTags(symptomTags)
+                .inventoryItemId(linkedItem != null ? linkedItem.getId() : null)
+                .inventoryItemName(linkedItem != null ? linkedItem.getName() : null)
+                .inventoryItemStock(linkedItem != null ? linkedItem.getStock() : null)
                 .build();
     }
 }

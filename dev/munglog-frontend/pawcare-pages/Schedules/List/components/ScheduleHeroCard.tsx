@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, Circle } from 'lucide-react';
 import type { Schedule } from '@/types/schedule';
 import { Badge } from '@/components/common/Badge';
 import { calculateDDay } from '@/utils/dateUtils';
@@ -7,9 +8,10 @@ import { useCommonCodes } from '@/hooks/useCommonCodes';
 
 interface ScheduleHeroCardProps {
   schedule: Schedule;
+  onToggleComplete: (id: string) => void;
 }
 
-export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) => {
+export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, onToggleComplete }) => {
   const router = useRouter();
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
 
@@ -44,9 +46,9 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) 
         {/* Top: D-Day & Icon */}
         <div className="flex items-center justify-between">
           <span className={`px-4 py-2 rounded-full text-white text-[13px] font-black tracking-widest uppercase shadow-lg
-            ${isPast ? 'bg-stone-500 shadow-stone-500/20' : 'bg-red-500 shadow-red-500/30 animate-pulse'}
+            ${schedule.isCompleted ? 'bg-emerald-500 shadow-emerald-500/30' : isPast ? 'bg-stone-500 shadow-stone-500/20' : 'bg-red-500 shadow-red-500/30 animate-pulse'}
           `}>
-            🚨 D{dDayLabel}
+            {schedule.isCompleted ? '✅ DONE' : `🚨 D${dDayLabel}`}
           </span>
           <span className="text-4xl drop-shadow-lg">{typeIcon[typeCode] || '📅'}</span>
         </div>
@@ -100,11 +102,25 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule }) 
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-6">
-          <button className="px-6 h-[52px] rounded-xl text-stone-400 font-bold text-[14px] hover:text-white transition-all">
+          <button
+            onClick={(e) => { e.stopPropagation(); router.push(`/schedules/edit/${schedule.id}`); }}
+            className="px-6 h-[52px] rounded-xl text-stone-400 font-bold text-[14px] hover:text-white transition-all"
+          >
             ✏️ 수정
           </button>
-          <button className="px-8 h-[52px] bg-main-green text-white rounded-xl font-black text-[15px] shadow-xl shadow-main-green/20 hover:shadow-main-green/40 active:scale-95 transition-all">
-            ✅ 케어기록으로 전환
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleComplete(schedule.id); }}
+            className={`flex items-center gap-2 px-8 h-[52px] rounded-xl font-black text-[15px] shadow-xl transition-all active:scale-95 ${
+              schedule.isCompleted
+                ? 'bg-white/10 text-white shadow-none hover:bg-white/15'
+                : 'bg-main-green text-white shadow-main-green/20 hover:shadow-main-green/40'
+            }`}
+          >
+            {schedule.isCompleted ? (
+              <><CheckCircle2 className="w-5 h-5" /> 완료됨 (취소하기)</>
+            ) : (
+              <><Circle className="w-5 h-5" /> 완료 처리하기</>
+            )}
           </button>
         </div>
       </div>
