@@ -7,6 +7,9 @@ import type { CareRecord } from '@/types/care';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { Button } from '@/components/common/Button';
+import { usePet } from '@/app/common/hooks/usePet';
+import { getImagePath } from '@/app/common/lib/clientApi';
+
 
 interface CalendarCarePanelProps {
   date: Date;
@@ -19,6 +22,7 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
   const router = useRouter();
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
   const { getCodeNameById } = useCommonCodes('EXPENSE_CATEGORY');
+  const { pets } = usePet();
 
   const formattedDate = React.useMemo(() => {
     const offset = date.getTimezoneOffset();
@@ -117,6 +121,8 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
         <div className="max-w-4xl mx-auto space-y-4">
           {filteredRecords.map((record) => {
             const isMed = isMedicalRecordType(record.recordType);
+            const matchedDog = pets.find(p => String(p.id) === String(record.dogId || record.petId));
+            const dogProfileUrl = matchedDog?.photo || record.dogProfileImageUrl;
 
             return (
               <div 
@@ -144,8 +150,8 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
                 <div className="flex items-center gap-3 pt-3 border-t border-border mt-1">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full overflow-hidden bg-surface-green border border-border shrink-0 flex items-center justify-center">
-                      {record.dogProfileImageUrl ? (
-                        <img src={record.dogProfileImageUrl} alt={record.dogName} className="w-full h-full object-cover" />
+                      {dogProfileUrl ? (
+                        <img src={getImagePath(dogProfileUrl, 'profiles')} alt={record.dogName} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-[8px] grayscale opacity-40">🐕</span>
                       )}
