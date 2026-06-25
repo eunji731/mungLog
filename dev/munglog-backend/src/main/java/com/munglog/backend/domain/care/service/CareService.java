@@ -51,7 +51,15 @@ public class CareService {
         CareRecord record = findByIdAndUserId(recordId, userId);
         List<String> symptomTags = symptomService.getSymptomTagsByCareRecord(recordId);
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.CARE, recordId);
-        return CareRecordDetailResponse.from(record, symptomTags, files);
+
+        CareRecord relatedMedicalRecord = null;
+        if (record.getExpenseDetail() != null && record.getExpenseDetail().getRelatedMedicalRecordId() != null) {
+            relatedMedicalRecord = careRecordRepository
+                    .findByIdAndUser_Id(record.getExpenseDetail().getRelatedMedicalRecordId(), userId)
+                    .orElse(null);
+        }
+
+        return CareRecordDetailResponse.from(record, symptomTags, files, relatedMedicalRecord);
     }
 
     @Transactional(readOnly = true)

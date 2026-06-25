@@ -41,11 +41,25 @@ public record CareRecordDetailResponse(
             String category,
             BigDecimal amount,
             String memo,
-            UUID relatedMedicalRecordId
+            UUID relatedMedicalRecordId,
+            RelatedMedicalRecordDto relatedMedicalRecord
+    ) {}
+
+    @Builder
+    public record RelatedMedicalRecordDto(
+            UUID id,
+            String title,
+            LocalDate recordDate,
+            String clinicName
     ) {}
 
     public static CareRecordDetailResponse from(CareRecord record, List<String> symptomTags,
                                                  List<FileResponse> attachments) {
+        return from(record, symptomTags, attachments, null);
+    }
+
+    public static CareRecordDetailResponse from(CareRecord record, List<String> symptomTags,
+                                                 List<FileResponse> attachments, CareRecord relatedMedicalRecord) {
         MedicalDetailDto medDto = null;
         if (record.getMedicalDetail() != null) {
             var med = record.getMedicalDetail();
@@ -61,9 +75,19 @@ public record CareRecordDetailResponse(
         ExpenseDetailDto expDto = null;
         if (record.getExpenseDetail() != null) {
             var exp = record.getExpenseDetail();
+            RelatedMedicalRecordDto relatedDto = null;
+            if (relatedMedicalRecord != null) {
+                String clinicName = relatedMedicalRecord.getMedicalDetail() != null
+                        ? relatedMedicalRecord.getMedicalDetail().getClinicName() : null;
+                relatedDto = RelatedMedicalRecordDto.builder()
+                        .id(relatedMedicalRecord.getId()).title(relatedMedicalRecord.getTitle())
+                        .recordDate(relatedMedicalRecord.getRecordDate()).clinicName(clinicName)
+                        .build();
+            }
             expDto = ExpenseDetailDto.builder()
                     .category(exp.getCategory()).amount(exp.getAmount())
                     .memo(exp.getMemo()).relatedMedicalRecordId(exp.getRelatedMedicalRecordId())
+                    .relatedMedicalRecord(relatedDto)
                     .build();
         }
 

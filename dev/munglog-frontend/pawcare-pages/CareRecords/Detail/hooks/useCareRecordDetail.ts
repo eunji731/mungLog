@@ -18,9 +18,29 @@ export const useCareRecordDetail = (id: string | undefined) => {
 
     try {
       const recordData = await careApi.getRecordDetail(id);
+      console.log('[DEBUG] Loaded Care Record Detail:', recordData);
+      
+      // Fallback: If relatedMedicalRecordId is present but relatedMedicalRecord is null/undefined, fetch it.
+      if (recordData.relatedMedicalRecordId && !recordData.relatedMedicalRecord) {
+        console.log('[DEBUG] Fallback fetching related medical record for ID:', recordData.relatedMedicalRecordId);
+        try {
+          const relatedData = await careApi.getRecordDetail(recordData.relatedMedicalRecordId);
+          console.log('[DEBUG] Fallback fetched related medical record data:', relatedData);
+          recordData.relatedMedicalRecord = {
+            id: relatedData.id,
+            title: relatedData.title,
+            recordDate: relatedData.recordDate,
+            clinicName: relatedData.clinicName
+          };
+        } catch (relatedErr) {
+          console.error('[DEBUG] Failed to fetch related medical record:', relatedErr);
+        }
+      }
+
       setRecord(recordData);
 
       const filesData = await fileApi.getFiles('CARE_RECORD', id);
+      console.log('[DEBUG] Loaded Attachments:', filesData);
       setFiles(filesData);
     } catch (err) {
       console.error('Failed to fetch care record detail:', err);

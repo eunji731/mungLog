@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { isImageFile, getFileExtension, getFileIcon, getFileNameFromUrl } from '@/utils/fileUtils';
+import { getImagePath } from '@/app/common/lib/clientApi';
 
 interface FileInfo {
   url: string;
@@ -66,7 +67,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     return (
       <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-stone-100 shadow-sm bg-white group">
         {isImage ? (
-          <img src={file.url} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt="attachment" />
+          <img src={getImagePath(file.url)} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt="attachment" />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-2 bg-stone-50 text-center">
             <span className="text-3xl mb-1">{getFileIcon(extension)}</span>
@@ -99,7 +100,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         {file ? (
           <>
             {isImage ? (
-              <img src={file.url} alt="Preview" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+              <img src={getImagePath(file.url)} alt="Preview" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-white p-10 text-center">
                 <span className="text-7xl mb-4">{getFileIcon(extension)}</span>
@@ -150,7 +151,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <div className="relative group">
           <div className="w-44 h-44 rounded-3xl overflow-hidden border-4 border-background shadow-2xl bg-surface-green flex items-center justify-center relative">
             {file ? (
-              isImageFile(file.url, file.name) ? <img src={file.url} alt="Preview" className="w-full h-full object-cover" /> : <span className="text-5xl">{getFileIcon(getFileExtension(file.url, file.name))}</span>
+              isImageFile(file.url, file.name) ? <img src={getImagePath(file.url)} alt="Preview" className="w-full h-full object-cover" /> : <span className="text-5xl">{getFileIcon(getFileExtension(file.url, file.name))}</span>
             ) : <span className="text-5xl opacity-10">🐶</span>}
             {loading && <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center"><div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /></div>}
           </div>

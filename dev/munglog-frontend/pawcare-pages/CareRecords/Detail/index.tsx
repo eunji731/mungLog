@@ -9,6 +9,7 @@ import { CareRecordInfoSections } from './components/CareRecordInfoSections';
 import { CareRecordAttachmentGallery } from './components/CareRecordAttachmentGallery';
 import { careApi } from '@/api/careApi';
 import { isMedicalRecordType } from '@/lib/codeGroups';
+import { FileText, Edit3, Trash2, ArrowLeft } from 'lucide-react';
 
 interface CareRecordDetailPageProps {
   id?: string;
@@ -39,24 +40,24 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-stone-200 border-t-[#FF6B00] rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error || !record) {
     return (
-      <div className="min-h-screen bg-[#F5F6F8] flex flex-col items-center justify-center p-6">
-        <div className="text-center max-w-sm w-full p-12 bg-white rounded-3xl border border-stone-100 shadow-sm">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <div className="text-center max-w-sm w-full p-12 bg-white dark:bg-zinc-900 rounded-3xl border border-border shadow-sm">
           <span className="text-5xl mb-6 block grayscale opacity-20">📄</span>
-          <h2 className="text-[22px] font-black text-[#2D2D2D] mb-3 tracking-tight">기록을 찾을 수 없습니다.</h2>
-          <p className="text-stone-500 font-medium mb-10 leading-relaxed text-sm px-4 break-keep">
+          <h2 className="text-[22px] font-black text-text-main mb-3 tracking-tight">기록을 찾을 수 없습니다.</h2>
+          <p className="text-text-sub font-medium mb-10 leading-relaxed text-sm px-4 break-keep">
             삭제된 기록이거나 <br /> 잘못된 접근입니다.
           </p>
           <button
             onClick={() => router.push('/care-records')}
-            className="w-full h-[56px] bg-[#FF6B00] text-white rounded-[16px] font-black text-[15px] shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+            className="w-full h-[56px] bg-main-green text-white rounded-[16px] font-black text-[15px] shadow-lg shadow-main-green/20 active:scale-95 transition-all hover:bg-main-green/90"
           >
             목록으로 돌아가기
           </button>
@@ -66,129 +67,151 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F8F9]">
-      <PageLayout title="" maxWidth="max-w-[760px]" noPaddingTop>
-        <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 pt-2 pb-16 space-y-8 lg:space-y-10">
+    <div className="min-h-screen bg-background">
+      <PageLayout title="" maxWidth="max-w-6xl" noPaddingTop>
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 pt-2 pb-16 space-y-6 lg:space-y-8">
 
           <CareRecordDetailHeader
             record={record}
             onDelete={() => setIsDeleteModalOpen(true)}
           />
 
-          <section>
-            <CareRecordInfoSections record={record} />
-          </section>
-
-          <section className="bg-white rounded-[28px] lg:rounded-[36px] p-8 lg:p-10 shadow-sm border border-stone-200/60 min-h-[220px]">
-            <div className="flex items-center gap-3 border-b border-stone-100 pb-5 mb-8">
-              <span className="text-[20px]">📝</span>
-              <h3 className="text-[16px] font-black text-[#2D2D2D] tracking-widest uppercase">
-                {isMedicalRecordType(record.recordType) ? 'Clinical ' : 'Diary '}<span className="text-[#FF6B00]">Notes.</span>
-              </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            {/* Left side: Info Cards sidebar */}
+            <div className="lg:col-span-4 space-y-4">
+              <CareRecordInfoSections record={record} />
             </div>
 
-            <div className="flex flex-col gap-10">
-              {record.symptomTags && record.symptomTags.length > 0 && (
-                <div className="flex flex-wrap gap-2 -mt-4">
-                  {record.symptomTags.map((tag: string) => (
-                    <span 
-                      key={tag} 
-                      className="px-3 py-1.5 rounded-xl bg-[#FF6B00] text-white text-[12px] font-black shadow-lg shadow-orange-500/20 flex items-center gap-1.5 animate-in zoom-in-95 duration-300"
-                    >
-                      <span className="opacity-70 text-[10px]">#</span>
-                      {tag}
-                    </span>
-                  ))}
+            {/* Right side: Detailed Notes, Gallery and Action Buttons */}
+            <div className="lg:col-span-8 space-y-6 lg:space-y-8">
+              <section className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border min-h-[220px] space-y-8">
+                {/* Section Header */}
+                <div className="flex items-center gap-3 border-b border-border pb-5">
+                  <div className="w-10 h-10 rounded-2xl bg-main-green/10 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5 text-main-green" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-text-sub uppercase tracking-widest">Medical / Care Journal</span>
+                    <h3 className="text-[16px] font-black text-text-main tracking-widest uppercase mt-0.5">
+                      {isMedicalRecordType(record.recordType) ? 'Clinical ' : 'Diary '}<span className="text-main-green">Notes.</span>
+                    </h3>
+                  </div>
                 </div>
+
+                <div className="flex flex-col gap-6">
+                  {/* Symptom Tags */}
+                  {record.symptomTags && record.symptomTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {record.symptomTags.map((tag: string) => (
+                        <span 
+                          key={tag} 
+                          className="px-3.5 py-1.5 rounded-full bg-red-500/10 dark:bg-red-500/20 text-red-500 text-[11px] font-black border border-red-200/30 flex items-center gap-1.5 animate-in zoom-in-95 duration-300 shadow-xs"
+                        >
+                          <span className="opacity-70 text-[9px]">#</span>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Symptoms Content Block */}
+                  {(() => {
+                    const raw = record as any;
+                    const symptoms = raw.symptoms || raw.medicalDetails?.symptoms || raw.medical_details?.symptoms;
+                    if (!symptoms || symptoms.trim() === '') return null;
+                    
+                    return (
+                      <div className="bg-red-500/5 dark:bg-red-950/15 border border-red-500/10 p-5 rounded-2xl space-y-2.5 transition-all duration-300">
+                        <h4 className="flex items-center gap-2 text-[11px] font-black text-red-500 uppercase tracking-widest">
+                          <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> 발현 증상 (Symptoms)
+                        </h4>
+                        <div className="text-[14px] md:text-[15px] leading-[1.8] text-text-main font-bold whitespace-pre-wrap pl-0.5">
+                          {symptoms}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Treatment Content Block */}
+                  {(() => {
+                    const raw = record as any;
+                    const treatment = raw.treatment || raw.medicalDetails?.treatment || raw.medical_details?.treatment;
+                    if (!treatment || treatment.trim() === '') return null;
+                    return (
+                      <div className="bg-blue-500/5 dark:bg-blue-950/15 border border-blue-500/10 p-5 rounded-2xl space-y-2.5 transition-all duration-300">
+                        <h4 className="flex items-center gap-2 text-[11px] font-black text-blue-500 uppercase tracking-widest">
+                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> 처방 및 소견 (Treatment)
+                        </h4>
+                        <div className="text-[14px] md:text-[15px] leading-[1.8] text-text-main font-bold whitespace-pre-wrap pl-0.5">
+                          {treatment}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Diary Note Content Block */}
+                  {record.note && record.note.trim() !== '' && (
+                    <div className="bg-surface-green/50 dark:bg-zinc-900/50 border border-border p-5 rounded-2xl space-y-2.5 transition-all duration-300">
+                      <h4 className="flex items-center gap-2 text-[11px] font-black text-text-sub uppercase tracking-widest">
+                        <span className="w-1.5 h-1.5 bg-text-sub rounded-full" /> 보호자 작성 노트 (Diary Note)
+                      </h4>
+                      <div className="text-[14px] md:text-[15px] leading-[1.8] text-text-main/80 font-bold whitespace-pre-wrap pl-0.5">
+                        {record.note}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {(() => {
+                    const raw = record as any;
+                    const symptoms = raw.symptoms || raw.medicalDetails?.symptoms || raw.medical_details?.symptoms;
+                    const treatment = raw.treatment || raw.medicalDetails?.treatment || raw.medical_details?.treatment;
+                    if ((!symptoms || symptoms.trim() === '') &&
+                      (!treatment || treatment.trim() === '') &&
+                      (!record.note || record.note.trim() === '')) {
+                      return (
+                        <div className="py-12 text-center text-text-sub italic font-light tracking-tight bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-border">
+                          작성된 기록 내용이나 메모가 없습니다.
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              </section>
+
+              {/* Attachments Section */}
+              {files && files.length > 0 && (
+                <section className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border">
+                  <CareRecordAttachmentGallery files={files} />
+                </section>
               )}
 
-              {(() => {
-                const raw = record as any;
-                const symptoms = raw.symptoms || raw.medicalDetails?.symptoms || raw.medical_details?.symptoms;
-                if (!symptoms || symptoms.trim() === '') return null;
+              {/* Action Buttons */}
+              <div className="pt-6 flex items-center justify-between gap-3 border-t border-border flex-wrap">
+                <button 
+                  onClick={() => router.push('/care-records')}
+                  className="px-6 h-[48px] rounded-full border border-border text-text-sub font-black text-[13px] hover:border-text-sub hover:text-text-main hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> 목록으로
+                </button>
                 
-                return (
-                  <div className="space-y-3">
-                    <h4 className="flex items-center gap-2 text-[12px] font-black text-red-500 uppercase tracking-widest">
-                      <span className="w-1 h-3 bg-red-100 rounded-full" /> 발현 증상
-                    </h4>
-                    <div className="text-[15px] md:text-[16px] leading-[1.9] text-[#2D2D2D] font-medium whitespace-pre-wrap pl-3 border-l-2 border-red-50">
-                      {symptoms}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {(() => {
-                const raw = record as any;
-                const treatment = raw.treatment || raw.medicalDetails?.treatment || raw.medical_details?.treatment;
-                if (!treatment || treatment.trim() === '') return null;
-                return (
-                  <div className="space-y-3">
-                    <h4 className="flex items-center gap-2 text-[12px] font-black text-blue-500 uppercase tracking-widest">
-                      <span className="w-1 h-3 bg-blue-100 rounded-full" /> 처방 및 수의사 소견
-                    </h4>
-                    <div className="text-[15px] md:text-[16px] leading-[1.9] text-[#2D2D2D] font-medium whitespace-pre-wrap pl-3 border-l-2 border-blue-50">
-                      {treatment}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {record.note && record.note.trim() !== '' && (
-                <div className="space-y-3">
-                  <h4 className="flex items-center gap-2 text-[12px] font-black text-stone-400 uppercase tracking-widest">
-                    <span className="w-1 h-3 bg-stone-200 rounded-full" /> 보호자 메모 (Diary Note)
-                  </h4>
-                  <div className="text-[15px] md:text-[16px] leading-[1.9] text-stone-600 font-medium whitespace-pre-wrap pl-3 border-l-2 border-stone-100">
-                    {record.note}
-                  </div>
+                <div className="flex items-center gap-2.5">
+                  <button 
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="px-5 h-[48px] rounded-full border border-border text-text-sub hover:text-red-500 hover:border-red-200/50 hover:bg-red-500/5 transition-all font-black text-[13px] active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> 삭제
+                  </button>
+                  <button 
+                    onClick={() => router.push(`/care-records/edit/${record.id}`)}
+                    className="px-8 h-[48px] bg-main-green text-white rounded-full font-black text-[13px] shadow-md shadow-main-green/10 hover:shadow-lg hover:shadow-main-green/20 hover:bg-main-green/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" /> 기록 수정하기
+                  </button>
                 </div>
-              )}
-
-              {(() => {
-                const raw = record as any;
-                const symptoms = raw.symptoms || raw.medicalDetails?.symptoms || raw.medical_details?.symptoms;
-                const treatment = raw.treatment || raw.medicalDetails?.treatment || raw.medical_details?.treatment;
-                if ((!symptoms || symptoms.trim() === '') &&
-                  (!treatment || treatment.trim() === '') &&
-                  (!record.note || record.note.trim() === '')) {
-                  return (
-                    <div className="py-2 text-stone-400 italic font-light tracking-tight">
-                      작성된 기록 내용이나 메모가 없습니다.
-                    </div>
-                  );
-                }
-                return null;
-              })()}
+              </div>
             </div>
-          </section>
-
-          {files && files.length > 0 && (
-            <section className="bg-white rounded-[28px] lg:rounded-[36px] p-8 lg:p-10 shadow-sm border border-stone-200/60">
-              <CareRecordAttachmentGallery files={files} />
-            </section>
-          )}
-
-          <div className="pt-10 flex items-center justify-end gap-3 border-t border-stone-100">
-            <button 
-              onClick={() => router.push('/care-records')}
-              className="px-6 h-[52px] rounded-xl border border-stone-200 text-stone-600 font-bold text-[14px] hover:border-stone-400 transition-all active:scale-95"
-            >
-              목록
-            </button>
-            <button 
-              onClick={() => setIsDeleteModalOpen(true)}
-              className="px-6 h-[52px] rounded-xl border border-stone-200 text-stone-400 font-bold text-[14px] hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all active:scale-95"
-            >
-              삭제
-            </button>
-            <button 
-              onClick={() => router.push(`/care-records/edit/${record.id}`)}
-              className="px-10 h-[52px] bg-[#FF6B00] text-white rounded-xl font-black text-[14px] shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-            >
-              기록 수정하기
-            </button>
           </div>
 
         </div>

@@ -33,6 +33,7 @@ interface BackendCareDetail extends Omit<BackendCareListItem, 'attachmentCount' 
     amount?: number | null;
     memo?: string;
     relatedMedicalRecordId?: string | null;
+    relatedMedicalRecord?: { id: string; title: string; recordDate: string; clinicName?: string } | null;
   } | null;
   attachments?: unknown[];
 }
@@ -92,6 +93,7 @@ function mapDetail(raw: BackendCareDetail): CareRecord {
     categoryTypeId: categoryIdOf(exp?.category),
     amount: med?.amount ?? exp?.amount ?? null,
     relatedMedicalRecordId: exp?.relatedMedicalRecordId ?? null,
+    relatedMedicalRecord: exp?.relatedMedicalRecord || (exp as any)?.related_medical_record || (raw as any).relatedMedicalRecord || (raw as any).related_medical_record || null,
     attachmentCount: raw.attachments?.length || 0,
   };
 }
