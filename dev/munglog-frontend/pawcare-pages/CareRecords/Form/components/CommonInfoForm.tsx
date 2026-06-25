@@ -40,6 +40,7 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
       title="기본 정보" 
       description="어떤 아이의 어떤 날 기록인가요?"
       variant={isEmbedded ? 'flat' : 'default'}
+      overflowVisible={true}
     >
       <div className={`grid grid-cols-1 md:grid-cols-2 ${isEmbedded ? 'gap-3 mb-3' : 'gap-6 mb-6'}`}>
         

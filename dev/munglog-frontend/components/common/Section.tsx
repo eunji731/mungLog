@@ -7,6 +7,7 @@ interface SectionProps {
   rightElement?: React.ReactNode;
   className?: string;
   variant?: 'default' | 'flat';
+  overflowVisible?: boolean;
 }
 
 export const Section: React.FC<SectionProps> = ({ 
@@ -15,7 +16,8 @@ export const Section: React.FC<SectionProps> = ({
   children, 
   rightElement, 
   className = '',
-  variant = 'default'
+  variant = 'default',
+  overflowVisible = false
 }) => {
   if (variant === 'flat') {
     return (
@@ -37,7 +39,9 @@ export const Section: React.FC<SectionProps> = ({
   }
 
   return (
-    <section className={`bg-white rounded-[24px] border border-[#F0F0F0] shadow-[0_10px_40px_rgba(0,0,0,0.03)] overflow-hidden ${className}`}>
+    <section className={`bg-white rounded-[24px] border border-[#F0F0F0] shadow-[0_10px_40px_rgba(0,0,0,0.03)] ${
+      overflowVisible ? 'overflow-visible' : 'overflow-hidden'
+    } ${className}`}>
       {(title || rightElement) && (
         <div className="px-6 py-4.5 border-b border-[#F5F5F5] flex items-center justify-between bg-white">
           <div>

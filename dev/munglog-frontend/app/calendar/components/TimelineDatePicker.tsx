@@ -9,11 +9,12 @@ interface TimelineDatePickerProps {
   onChange: (date: string) => void;
   label: string;
   variant?: 'button' | 'form';
+  align?: 'top' | 'bottom';
 }
 
 type PickerMode = 'day' | 'yearMonth';
 
-export default function TimelineDatePicker({ value, onChange, label, variant = 'button' }: TimelineDatePickerProps) {
+export default function TimelineDatePicker({ value, onChange, label, variant = 'button', align = 'bottom' }: TimelineDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setPickerMode] = useState<PickerMode>('day');
   const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
@@ -263,8 +264,10 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
           )}
 
           {/* DESKTOP VERSION: Remains inline with button */}
-          <div className={`hidden lg:block absolute top-full mt-2 z-[100] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200 ${
-            variant === 'form' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
+          <div className={`hidden lg:block absolute z-[200] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200 ${
+            align === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'
+          } ${
+            variant === 'form' ? 'right-0 lg:left-auto' : 'left-0'
           }`}>
             {renderPickerMain(false)}
           </div>

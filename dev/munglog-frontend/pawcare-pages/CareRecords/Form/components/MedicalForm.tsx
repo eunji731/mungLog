@@ -4,6 +4,7 @@ import { Input } from '@/components/common/Input';
 import { Textarea } from '@/components/common/Textarea';
 import { TagInput } from '@/components/common/TagInput';
 import { careApi } from '@/api/careApi';
+import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
 
 interface MedicalFormProps {
   data: {
@@ -47,7 +48,7 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
 
   return (
     <div className="space-y-6">
-      <Section title="진료 정보" description="병원에서 어떤 증상이 있었나요?">
+      <Section title="진료 정보" description="병원에서 어떤 증상이 있었나요?" overflowVisible={true}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <Input 
             label="방문 병원 *" 
@@ -102,7 +103,7 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
         />
       </Section>
 
-      <Section title="복약 관리" description="가정에서의 약 복용 계획이 있나요?">
+      <Section title="복약 관리" description="가정에서의 약 복용 계획이 있나요?" overflowVisible={true}>
         <div className="space-y-5 bg-surface-green p-5 rounded-[20px] border border-border">
           <div className="flex items-center gap-4">
             <input 
@@ -117,11 +118,11 @@ export const MedicalForm: React.FC<MedicalFormProps> = ({ data, onChange }) => {
 
           {data.hasMedication && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in slide-in-from-top-2 duration-300">
-              <Input 
+              <TimelineDatePicker 
                 label="복약 시작일" 
-                type="date" 
+                variant="form"
                 value={data.medicationStartDate} 
-                onChange={(e) => onChange({ ...data, medicationStartDate: e.target.value })} 
+                onChange={(date) => onChange({ ...data, medicationStartDate: date })} 
               />
               <div className="relative">
                 <Input 
