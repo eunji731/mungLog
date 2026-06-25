@@ -20,6 +20,7 @@ export interface Schedule {
   inventoryItemId?: string;
   inventoryItemName?: string;
   inventoryItemStock?: number;
+  convertedCareRecordId?: string | null;
 }
 
 export interface ScheduleFilters {

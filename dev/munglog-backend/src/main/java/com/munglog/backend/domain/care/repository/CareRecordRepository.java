@@ -21,6 +21,8 @@ public interface CareRecordRepository extends JpaRepository<CareRecord, UUID> {
 
     Optional<CareRecord> findByIdAndUser_Id(UUID id, UUID userId);
 
+    Optional<CareRecord> findBySourceScheduleId(UUID sourceScheduleId);
+
     @Query("SELECT c FROM CareRecord c WHERE c.user.id = :userId AND c.pet.id = :petId AND c.recordType = :recordType AND c.recordDate >= :from ORDER BY c.recordDate DESC")
     List<CareRecord> findMedicalCandidates(@Param("userId") UUID userId, @Param("petId") UUID petId,
                                             @Param("recordType") CareRecordType recordType,

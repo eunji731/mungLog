@@ -83,6 +83,7 @@ public class CareService {
                 .recordType(CareRecordType.valueOf(request.getRecordType()))
                 .recordDate(request.getRecordDate())
                 .title(request.getTitle()).note(request.getNote())
+                .sourceScheduleId(request.getSourceScheduleId())
                 .build());
 
         saveMedicalDetail(record, request);

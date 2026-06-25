@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { calculateDDay } from '@/utils/dateUtils';
 import type { Schedule } from '@/types/schedule';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
@@ -35,6 +36,14 @@ export const ScheduleDetailHeader: React.FC<ScheduleDetailHeaderProps> = ({ sche
           <span className="text-[13px] font-black text-text-sub tabular-nums ml-1 tracking-widest">
             {new Date(schedule.scheduleDate).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' }).replace(/\. /g, '.').replace(/\.$/, '')}
           </span>
+          {schedule.convertedCareRecordId && (
+            <Link
+              href={`/care-records/${schedule.convertedCareRecordId}`}
+              className="text-[10px] font-black tracking-widest px-3 py-1.5 rounded-lg uppercase border border-emerald-500/30 text-emerald-600 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors"
+            >
+              ✅ 케어기록 전환됨
+            </Link>
+          )}
         </div>
         
         <h1 className="text-[36px] md:text-[44px] font-black text-foreground leading-[1.2] lg:leading-[1.1] tracking-tight word-break-keep-all pr-4">

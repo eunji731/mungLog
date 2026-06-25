@@ -18,6 +18,7 @@ interface BackendScheduleResponse {
   inventoryItemId?: string;
   inventoryItemName?: string;
   inventoryItemStock?: number;
+  convertedCareRecordId?: string | null;
 }
 
 const scheduleTypeIdOf = (code?: string) => SCHEDULE_TYPE_CODES.find(c => c.code === code)?.id;
@@ -45,6 +46,7 @@ function mapSchedule(raw: BackendScheduleResponse): Schedule {
     inventoryItemId: raw.inventoryItemId,
     inventoryItemName: raw.inventoryItemName,
     inventoryItemStock: raw.inventoryItemStock,
+    convertedCareRecordId: raw.convertedCareRecordId,
   };
 }
 

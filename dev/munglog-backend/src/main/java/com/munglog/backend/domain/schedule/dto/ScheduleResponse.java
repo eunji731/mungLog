@@ -27,9 +27,11 @@ public record ScheduleResponse(
         List<String> symptomTags,
         UUID inventoryItemId,
         String inventoryItemName,
-        Integer inventoryItemStock
+        Integer inventoryItemStock,
+        UUID convertedCareRecordId
 ) {
-    public static ScheduleResponse of(Schedule schedule, List<FileResponse> attachments, List<String> symptomTags) {
+    public static ScheduleResponse of(Schedule schedule, List<FileResponse> attachments, List<String> symptomTags,
+                                       UUID convertedCareRecordId) {
         long dDay = schedule.getScheduleDate() != null
                 ? ChronoUnit.DAYS.between(LocalDateTime.now(), schedule.getScheduleDate())
                 : 0;
@@ -51,6 +53,7 @@ public record ScheduleResponse(
                 .inventoryItemId(linkedItem != null ? linkedItem.getId() : null)
                 .inventoryItemName(linkedItem != null ? linkedItem.getName() : null)
                 .inventoryItemStock(linkedItem != null ? linkedItem.getStock() : null)
+                .convertedCareRecordId(convertedCareRecordId)
                 .build();
     }
 }

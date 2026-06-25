@@ -126,6 +126,9 @@ public class ScheduleService {
     @Transactional
     public UUID convertToCareRecord(UUID scheduleId, UUID userId) {
         Schedule schedule = findByIdAndUserId(scheduleId, userId);
+        careRecordRepository.findBySourceScheduleId(scheduleId).ifPresent(existing -> {
+            throw new IllegalArgumentException("이미 케어기록으로 전환된 일정입니다.");
+        });
         if (!Boolean.TRUE.equals(schedule.getIsCompleted())) {
             schedule.toggleCompletion();
         }
@@ -136,6 +139,7 @@ public class ScheduleService {
                 .recordDate(schedule.getScheduleDate() != null
                         ? schedule.getScheduleDate().toLocalDate() : null)
                 .title(schedule.getTitle()).note(schedule.getMemo())
+                .sourceScheduleId(schedule.getId())
                 .build());
 
         medicalDetailRepository.save(MedicalDetail.builder()
@@ -234,7 +238,10 @@ public class ScheduleService {
     private ScheduleResponse toResponse(Schedule schedule) {
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.SCHEDULE, schedule.getId());
         List<String> tags = symptomService.getSymptomTagsBySchedule(schedule.getId());
-        return ScheduleResponse.of(schedule, files, tags);
+        UUID convertedCareRecordId = careRecordRepository.findBySourceScheduleId(schedule.getId())
+                .map(CareRecord::getId)
+                .orElse(null);
+        return ScheduleResponse.of(schedule, files, tags, convertedCareRecordId);
     }
 
     private InventoryItem resolveInventoryItem(UUID inventoryItemId, UUID userId) {

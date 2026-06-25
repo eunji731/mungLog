@@ -44,6 +44,9 @@ public class CareRecord extends BaseTimeEntity {
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "source_schedule_id", columnDefinition = "uuid")
+    private UUID sourceScheduleId;
+
     @OneToOne(mappedBy = "careRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private MedicalDetail medicalDetail;
 

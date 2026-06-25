@@ -56,9 +56,9 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
       const newRecordId = await scheduleApi.convertToCareRecord(id);
       showToast('케어기록으로 전환되었습니다! ✨', 'success');
       router.push(`/care-records/edit/${newRecordId}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Convert to care record failed:', err);
-      showToast('케어기록 전환에 실패했습니다.', 'error');
+      showToast(err?.response?.data?.message || '케어기록 전환에 실패했습니다.', 'error');
     } finally {
       setIsConverting(false);
     }
@@ -183,13 +183,22 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
             >
               수정하기
             </button>
-            <button
-              onClick={handleConvertToCareRecord}
-              disabled={isConverting}
-              className="w-full sm:w-auto px-8 h-[48px] bg-main-green text-white rounded-xl font-black text-[13px] shadow-lg shadow-main-green/20 hover:shadow-main-green/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {isConverting ? '전환 중...' : '✅ 케어기록으로 전환'}
-            </button>
+            {schedule.convertedCareRecordId ? (
+              <button
+                onClick={() => router.push(`/care-records/${schedule.convertedCareRecordId}`)}
+                className="w-full sm:w-auto px-8 h-[48px] bg-emerald-500/10 text-emerald-600 border-2 border-emerald-500/20 rounded-xl font-black text-[13px] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                ✅ 전환된 케어기록 보기
+              </button>
+            ) : (
+              <button
+                onClick={handleConvertToCareRecord}
+                disabled={isConverting}
+                className="w-full sm:w-auto px-8 h-[48px] bg-main-green text-white rounded-xl font-black text-[13px] shadow-lg shadow-main-green/20 hover:shadow-main-green/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {isConverting ? '전환 중...' : '✅ 케어기록으로 전환'}
+              </button>
+            )}
           </div>
 
         </div>
@@ -199,7 +208,11 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
       <ConfirmModal
         open={isDeleteModalOpen}
         title="일정 삭제"
-        description="이 예약을 목록에서 영구히 삭제하시겠습니까?"
+        description={
+          schedule.convertedCareRecordId
+            ? '이미 케어기록으로 전환된 일정입니다. 삭제해도 전환된 케어기록은 그대로 남아있어요. 이 예약을 목록에서 영구히 삭제하시겠습니까?'
+            : '이 예약을 목록에서 영구히 삭제하시겠습니까?'
+        }
         confirmText="삭제합니다"
         variant="danger"
         loading={isDeleting}
