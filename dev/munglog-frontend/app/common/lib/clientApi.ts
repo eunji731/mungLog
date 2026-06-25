@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
 
 /**
@@ -25,24 +23,3 @@ export const getImagePath = (path?: string, subfolder: 'daily' | 'profiles' = 'd
  */
 export const toFileUrl = (storedPath: string): string =>
   `${BACKEND_URL}/files/${storedPath}`;
-
-const clientApi = axios.create({
-  baseURL: BACKEND_URL,
-  withCredentials: true,
-  timeout: 60000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-clientApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default clientApi;

@@ -1,10 +1,11 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import type { Dog } from '@/types/dog';
+import type { PetProfile } from '@/app/common/hooks/usePet';
+import { getImagePath } from '@/app/common/lib/clientApi';
 import { Card } from '@/components/common/Card';
 
 interface DogCardProps {
-  dog: Dog;
+  dog: PetProfile;
   onDelete?: (id: string, name: string) => void;
 }
 
@@ -38,10 +39,10 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
     >
       {/* 1. BACKGROUND IMAGE AREA */}
       <div className="absolute inset-0 bg-surface-green">
-        {dog.profileImageUrl ? (
-          <img 
-            src={dog.profileImageUrl} 
-            alt={dog.name} 
+        {dog.photo ? (
+          <img
+            src={getImagePath(dog.photo, 'profiles')}
+            alt={dog.name}
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
           />
         ) : (
@@ -89,7 +90,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
           
           <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 mb-1">
             <span className="text-[14px] font-black text-white tabular-nums">
-              {dog.weightKg ?? dog.weight ? Number(dog.weightKg ?? dog.weight).toFixed(1) : '0.0'}
+              {dog.weightKg ? Number(dog.weightKg).toFixed(1) : '0.0'}
               <span className="text-[10px] ml-1 opacity-60 font-bold uppercase">kg</span>
             </span>
           </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import clientApi from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 
 export interface MapMarker {
@@ -31,11 +31,6 @@ export interface MapMemoryDetail {
     dateKey: string;
     aiTitle?: string;
   };
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
 }
 
 export interface BBox {
@@ -70,8 +65,8 @@ export function useMapMarkers() {
         if (selectedPetId && selectedPetId !== ALL_PETS_ID) {
           params.petId = selectedPetId;
         }
-        const res = await clientApi.get<ApiResponse<MapMarker[]>>('/api/map/markers', { params });
-        setMarkers(res.data.data ?? []);
+        const res = await apiClient.get<MapMarker[]>('/map/markers', { params });
+        setMarkers(res.data ?? []);
       } catch {
         // 네트워크 오류 시 기존 마커 유지
       } finally {
@@ -89,8 +84,8 @@ export function useMapMarkers() {
       }
       
       // 1. 검색 결과 리스트 (상세 정보 포함) 가져오기
-      const res = await clientApi.get<ApiResponse<MapMemoryDetail[]>>('/api/map/search', { params });
-      const results = res.data.data ?? [];
+      const res = await apiClient.get<MapMemoryDetail[]>('/map/search', { params });
+      const results = res.data ?? [];
       
       // 2. 검색 결과에 맞춰 지도 마커 업데이트
       const searchMarkers: MapMarker[] = results.map(r => ({
@@ -115,8 +110,8 @@ export function useMapMarkers() {
     try {
       const params: Record<string, string> = {};
       if (q) params.q = q;
-      const res = await clientApi.get<ApiResponse<string[]>>('/api/map/search/suggestions', { params });
-      return res.data.data ?? [];
+      const res = await apiClient.get<string[]>('/map/search/suggestions', { params });
+      return res.data ?? [];
     } catch {
       return [];
     }
@@ -125,8 +120,8 @@ export function useMapMarkers() {
   const fetchDetail = useCallback(async (memoryId: string): Promise<MapMemoryDetail | null> => {
     setDetailLoading(true);
     try {
-      const res = await clientApi.get<ApiResponse<MapMemoryDetail>>(`/api/map/memories/${memoryId}`);
-      return res.data.data;
+      const res = await apiClient.get<MapMemoryDetail>(`/map/memories/${memoryId}`);
+      return res.data;
     } catch {
       return null;
     } finally {

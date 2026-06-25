@@ -1,9 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
-import { MyPage } from '@/pages/MyPage';
 import DogListPage from '@/pages/Dogs/List';
 import DogFormPage from '@/pages/Dogs/Form';
 import CareRecordListPage from '@/pages/CareRecords/List';
@@ -18,8 +16,6 @@ function PawCareRoute() {
   const segments = pathname.split('/').filter(Boolean);
   const section = segments[0];
   const action = segments[1];
-
-  if (section === 'mypage') return <MyPage />;
 
   if (section === 'dogs') {
     if (action === 'new') return <DogFormPage />;
@@ -47,11 +43,9 @@ function PawCareRoute() {
 export default function PawCareApp() {
   return (
     <ToastProvider>
-      <AuthProvider>
-        <div className="pawcare-integrated min-h-full">
-          <PawCareRoute />
-        </div>
-      </AuthProvider>
+      <div className="pawcare-integrated min-h-full">
+        <PawCareRoute />
+      </div>
     </ToastProvider>
   );
 }

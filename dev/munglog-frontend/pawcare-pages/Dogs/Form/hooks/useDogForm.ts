@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { dogApi } from '@/api/dogApi';
+import { usePetStore } from '@/app/common/hooks/usePet';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/context/ToastContext';
-import type { DogCreateRequest } from '@/types/dog';
 
 export const useDogForm = (id?: string) => {
   const router = useRouter();
   const { showToast } = useToast();
+  const { pets, fetchPets, addPet, updatePet, removePet } = usePetStore();
   const isEdit = !!id;
 
   const [formData, setFormData] = useState({
@@ -15,6 +15,11 @@ export const useDogForm = (id?: string) => {
     breed: '',
     birthDate: '',
     weight: '',
+  });
+  // PetProfile의 필수 필드 중 이 폼이 직접 다루지 않는 값들(수정 시 기존 값을 보존하기 위함)
+  const [hiddenFields, setHiddenFields] = useState<{ gender: 'MALE' | 'FEMALE'; traits: string }>({
+    gender: 'MALE',
+    traits: '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -30,21 +35,31 @@ export const useDogForm = (id?: string) => {
       const initData = async () => {
         try {
           setIsFetching(true);
-          const dogData = await dogApi.getDogById(id);
+          let pet = pets.find(p => p.id === id);
+          if (!pet) {
+            await fetchPets();
+            pet = usePetStore.getState().pets.find(p => p.id === id);
+          }
+          if (!pet) throw new Error('반려견 정보를 찾을 수 없습니다.');
+
           setFormData({
-            name: dogData.name || '',
-            breed: dogData.breed || '',
-            birthDate: dogData.birthDate || '',
-            weight: dogData.weight?.toString() || '',
+            name: pet.name || '',
+            breed: pet.breed || '',
+            birthDate: pet.birthDate || '',
+            weight: pet.weightKg?.toString() || '',
+          });
+          setHiddenFields({
+            gender: pet.gender,
+            traits: pet.traits || '',
           });
 
-          if (dogData.profileImageUrl) {
-            const urlParts = dogData.profileImageUrl.split('/');
+          if (pet.photo) {
+            const urlParts = pet.photo.split('/');
             const fileName = urlParts[urlParts.length - 1] || 'profile.jpg';
 
             photoUploader.setInitialFiles([{
               id: 0,
-              fileUrl: dogData.profileImageUrl,
+              fileUrl: pet.photo,
               originalFileName: fileName,
               storedFileName: fileName,
               fileSize: 0,
@@ -76,20 +91,21 @@ export const useDogForm = (id?: string) => {
     try {
       setIsLoading(true);
 
-      const dogPayload: DogCreateRequest = {
+      const payload = {
         name: formData.name.trim(),
-        breed: formData.breed.trim() || null,
-        birthDate: formData.birthDate || null,
-        weight: formData.weight ? parseFloat(formData.weight) : null,
-        profileImageUrl: null,
+        breed: formData.breed.trim(),
+        birthDate: formData.birthDate,
+        weightKg: formData.weight ? parseFloat(formData.weight) : undefined,
+        gender: hiddenFields.gender,
+        traits: hiddenFields.traits,
       };
 
       const newPhoto = photoUploader.localFiles[0] || null;
 
-      if (isEdit) {
-        await dogApi.updateDog(id, dogPayload, newPhoto);
+      if (isEdit && id) {
+        await updatePet(id, payload, newPhoto);
       } else {
-        await dogApi.createDog(dogPayload, newPhoto);
+        await addPet(payload, newPhoto);
       }
 
       showToast('성공적으로 저장되었습니다! ✨', 'success');
@@ -106,7 +122,7 @@ export const useDogForm = (id?: string) => {
     if (!id || !isEdit) return;
     try {
       setIsLoading(true);
-      await dogApi.deleteDog(id);
+      await removePet(id);
       showToast('삭제되었습니다.', 'success');
       router.push('/dogs');
     } catch (err: any) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import clientApi from '../lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 export interface InventoryItem {
   id: string | number;
@@ -52,8 +52,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   fetchItems: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await clientApi.get('/api/inventory');
-      set({ items: res.data?.data ?? [], loading: false });
+      const res = await apiClient.get('/inventory');
+      set({ items: res.data ?? [], loading: false });
     } catch (err: any) {
       console.error('인벤토리 조회 실패', err);
       set({ error: err.message, loading: false });
@@ -72,7 +72,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   removeItem: async (id) => {
     try {
-      await clientApi.delete(`/api/inventory/${id}`);
+      await apiClient.delete(`/inventory/${id}`);
       set((state) => ({ items: state.items.filter((i) => String(i.id) !== String(id)) }));
     } catch (err) {
       console.error('아이템 삭제 실패', err);
@@ -82,8 +82,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   toggleFeeding: async (id) => {
     try {
-      const res = await clientApi.patch(`/api/inventory/${id}/feeding`);
-      const updated: InventoryItem = res.data?.data;
+      const res = await apiClient.patch(`/inventory/${id}/feeding`);
+      const updated: InventoryItem = res.data;
       set((state) => ({
         items: state.items.map((i) => (String(i.id) === String(id) ? { ...i, isFeeding: updated.isFeeding } : i)),
       }));

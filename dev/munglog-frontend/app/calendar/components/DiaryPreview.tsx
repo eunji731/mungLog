@@ -4,7 +4,8 @@ import React from 'react';
 import { X, Calendar, MapPin, Sparkles, TrendingUp, Zap, Clock, ChevronRight, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useDiary, DailyLog } from '@/app/common/hooks/useDiary';
-import clientApi, { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 import { useConfirm } from '@/app/common/hooks/useConfirm';
 import { useToast } from '@/app/common/hooks/useToast';
 import MomentImageSlider from './MomentImageSlider';
@@ -33,7 +34,7 @@ export default function DiaryPreview({
     if (!isConfirmed) return;
 
     try {
-      await clientApi.delete(`/api/memories/${logId}`);
+      await apiClient.delete(`/memories/${logId}`);
       removeDailyLog(logId, dateKey);
       success('기록이 삭제되었습니다.');
       if (logs.length <= 1) {

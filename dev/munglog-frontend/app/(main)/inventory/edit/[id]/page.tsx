@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import { useInventory, InventoryItem } from '@/app/common/hooks/useInventory';
 import { useToast } from '@/app/common/hooks/useToast';
-import clientApi, { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 export default function InventoryEditPage() {
   const router = useRouter();
@@ -101,9 +102,9 @@ export default function InventoryEditPage() {
       // If not in store and list loading is done, try individual API fallback
       if (!listLoading) {
         try {
-          const res = await clientApi.get(`/api/inventory/${id}`);
-          if (res.data?.data) {
-            applyItemData(res.data.data);
+          const res = await apiClient.get(`/inventory/${id}`);
+          if (res.data) {
+            applyItemData(res.data);
             setIsLoading(false);
           } else {
             throw new Error('Not found');
@@ -165,12 +166,12 @@ export default function InventoryEditPage() {
       const formData = new FormData();
       photoFiles.forEach(file => formData.append('images', file));
 
-      const response = await clientApi.post('/api/ai/analyze-product', formData, {
+      const response = await apiClient.post('/ai/analyze-product', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 60000,
       });
 
-      const r = response.data?.data;
+      const r = response.data;
       if (r) {
         const pick = <T,>(field: { value: T | null; confidence: number } | null | undefined, threshold: number, fallback: T): T => {
           if (!field) return fallback;
@@ -227,12 +228,12 @@ export default function InventoryEditPage() {
       };
       formData.append('data', JSON.stringify(data));
 
-      const res = await clientApi.patch(`/api/inventory/${id}`, formData, {
+      const res = await apiClient.patch(`/inventory/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      if (res.data?.data) {
-        updateItem(res.data.data);
+      if (res.data) {
+        updateItem(res.data);
       }
 
       success('수정이 완료되었습니다! ✨');

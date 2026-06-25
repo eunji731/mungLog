@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useInventory, InventoryItem } from '@/app/common/hooks/useInventory';
 import { useToast } from '@/app/common/hooks/useToast';
-import clientApi from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 export default function InventoryRegisterPage() {
   const router = useRouter();
@@ -92,12 +92,12 @@ export default function InventoryRegisterPage() {
       const formData = new FormData();
       photoFiles.forEach(file => formData.append('images', file));
 
-      const response = await clientApi.post('/api/ai/analyze-product', formData, {
+      const response = await apiClient.post('/ai/analyze-product', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 60000,
       });
 
-      const r = response.data?.data;
+      const r = response.data;
       if (r) {
         setCategory(pick(r.category, 0.7, 'ETC'));
         setName(pick(r.name, 0.75, ''));
@@ -169,12 +169,12 @@ export default function InventoryRegisterPage() {
       };
       formData.append('data', JSON.stringify(data));
 
-      const res = await clientApi.post('/api/inventory', formData, {
+      const res = await apiClient.post('/inventory', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       // Update local Zustand store for immediate UI feedback
-      const createdItem = res.data?.data;
+      const createdItem = res.data;
       if (createdItem) {
         addItem(createdItem);
       } else {

@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { usePetStore, ALL_PETS_ID } from './usePet';
-import clientApi from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 // 모멘트에 포함된 사진 정보
 export interface Photo {
@@ -129,14 +129,14 @@ export const useDiary = () => {
         ? `?${new URLSearchParams(Object.entries(params).filter(([_, v]) => !!v) as string[][]).toString()}`
         : '';
 
-      const listRes = await clientApi.get(`/api/memories${queryString}`);
-      const memoryList: MemoryListItem[] = listRes.data?.data ?? [];
+      const listRes = await apiClient.get(`/memories${queryString}`);
+      const memoryList: MemoryListItem[] = listRes.data ?? [];
 
       const details = await Promise.all(
         memoryList.map(async (item) => {
           try {
-            const res = await clientApi.get(`/api/memories/${item.id}`);
-            return res.data?.data as MemoryDetailItem;
+            const res = await apiClient.get(`/memories/${item.id}`);
+            return res.data as MemoryDetailItem;
           } catch {
             return null;
           }

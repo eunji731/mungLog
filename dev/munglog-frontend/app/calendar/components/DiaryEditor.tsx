@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
 import { DailyLog } from '@/app/common/hooks/useDiary';
-import clientApi, { toFileUrl, getImagePath } from '@/app/common/lib/clientApi';
+import { toFileUrl, getImagePath } from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 import MomentImageSlider from './MomentImageSlider';
 
 // 백엔드 AnalyzeDiaryResult 에 맞는 타입
@@ -93,8 +94,8 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
 
   const fetchUsage = useCallback(async () => {
     try {
-      const res = await clientApi.get(`/api/ai/usage?targetDate=${targetDateStr}`);
-      setUsageInfo(res.data?.data ?? null);
+      const res = await apiClient.get(`/ai/usage?targetDate=${targetDateStr}`);
+      setUsageInfo(res.data ?? null);
     } catch {
       // 조회 실패는 무시 (버튼 활성화 유지)
     }
@@ -217,12 +218,11 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
       const petInfos = selectedPets.map(p => ({ id: p.id, name: p.name }));
       formData.append('petInfos', new Blob([JSON.stringify(petInfos)], { type: 'application/json' }));
 
-      const response = await clientApi.post('/api/ai/analyze', formData, {
+      const response = await apiClient.post('/ai/analyze', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // 응답 구조: ApiResponse<AnalyzeDiaryResult>
-      const analyzeResult = response.data?.data;
+      const analyzeResult = response.data;
       if (!analyzeResult?.aiResult?.moments) {
         throw new Error('AI 응답 데이터 구조가 올바르지 않습니다.');
       }
@@ -344,10 +344,10 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
     try {
       const metaForm = new FormData();
       photoFiles.forEach(file => metaForm.append('files', file));
-      const metaRes = await clientApi.post('/api/ai/check-metadata', metaForm, {
+      const metaRes = await apiClient.post('/ai/check-metadata', metaForm, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      const metaList: { originalName: string; hasDate: boolean; hasGps: boolean }[] = metaRes.data?.data ?? [];
+      const metaList: { originalName: string; hasDate: boolean; hasGps: boolean }[] = metaRes.data ?? [];
       const hasMissingDate = metaList.some(m => !m.hasDate);
       const hasMissingGps = metaList.some(m => !m.hasGps);
       if (hasMissingDate || hasMissingGps) {
@@ -372,13 +372,13 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
 
     setIsSaving(true);
     try {
-      const saveResponse = await clientApi.post('/api/ai/save', {
+      const saveResponse = await apiClient.post('/ai/save', {
         targetDate: targetDateStr,
         aiResult: rawAiResult,
         storedFiles,
         petIds: selectedDogIds,
       });
-      const memoryId: string = saveResponse.data?.data;
+      const memoryId: string = saveResponse.data;
       onSave(memoryId ? { ...data, id: memoryId } : data);
     } catch (err: unknown) {
       console.error('Save Error:', err);

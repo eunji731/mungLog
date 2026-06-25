@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bot, Save, Sun, Moon, Monitor, UserX } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import clientApi from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/app/common/hooks/useToast';
 import { useConfirm } from '@/app/common/hooks/useConfirm';
 
@@ -20,8 +20,8 @@ export default function SettingsPage() {
   useEffect(() => {
     setMounted(true);
 
-    clientApi.get('/api/members/me')
-      .then(res => setAiContext(res.data?.data?.aiContext ?? ''))
+    apiClient.get('/members/me')
+      .then(res => setAiContext(res.data?.aiContext ?? ''))
       .catch(() => error('설정을 불러오지 못했습니다.'))
       .finally(() => setLoading(false));
   }, [error]);
@@ -38,7 +38,7 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await clientApi.put('/api/members/me/ai-context', { aiContext });
+      await apiClient.put('/members/me/ai-context', { aiContext });
       success('저장되었습니다.');
     } catch {
       error('저장에 실패했습니다.');
@@ -51,7 +51,7 @@ export default function SettingsPage() {
     const confirmed = await confirm('정말로 탈퇴하시겠습니까?\n탈퇴 시 모든 데이터는 즉시 파기되며 복구할 수 없습니다.');
     if (confirmed) {
       try {
-        await clientApi.delete('/api/members/me');
+        await apiClient.delete('/members/me');
         success('그동안 이용해주셔서 감사합니다.');
         window.location.href = '/login';
       } catch {

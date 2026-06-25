@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import clientApi, { getImagePath } from '../lib/clientApi';
+import { getImagePath } from '../lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 // ─── 타입 ──────────────────────────────────────────────────────────
 
@@ -47,8 +48,8 @@ export function useAttachedFiles(options: UseAttachedFilesOptions = {}) {
   useEffect(() => {
     if (!parentType || !parentId) return;
     setIsLoading(true);
-    clientApi.get<{ data: AttachedFileResponse[] }>(`/api/files/${parentType}/${parentId}`)
-      .then(res => setExistingFiles(res.data.data ?? []))
+    apiClient.get<AttachedFileResponse[]>(`/files/${parentType}/${parentId}`)
+      .then(res => setExistingFiles(res.data ?? []))
       .catch(() => {})
       .finally(() => setIsLoading(false));
   }, [parentType, parentId]);
@@ -100,13 +101,13 @@ export function useAttachedFiles(options: UseAttachedFilesOptions = {}) {
     );
     pendingFiles.forEach(f => formData.append('files', f));
 
-    const res = await clientApi.put<{ data: AttachedFileResponse[] }>(
-      `/api/files/${syncParentType}/${syncParentId}/sync`,
+    const res = await apiClient.put<AttachedFileResponse[]>(
+      `/files/${syncParentType}/${syncParentId}/sync`,
       formData,
       { headers: { 'Content-Type': 'multipart/form-data' } },
     );
 
-    const updated: AttachedFileResponse[] = res.data.data ?? [];
+    const updated: AttachedFileResponse[] = res.data ?? [];
 
     // 로컬 상태 리셋
     pendingPreviews.forEach(url => URL.revokeObjectURL(url));

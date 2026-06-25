@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import clientApi from '../lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 import { usePetStore, ALL_PETS_ID } from './usePet';
 
 export interface DashboardPetInfo {
@@ -144,8 +144,8 @@ export function useDashboard() {
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
     try {
-      const res = await clientApi.get(`/api/dashboard/summary${query}`);
-      setSummary(res.data.data);
+      const res = await apiClient.get(`/dashboard/summary${query}`);
+      setSummary(res.data);
     } catch (e) {
       console.error('대시보드 요약 로드 실패:', e);
     } finally {
@@ -156,8 +156,8 @@ export function useDashboard() {
   const fetchAiReport = useCallback(async () => {
     setAiLoading(true);
     try {
-      const res = await clientApi.get(`/api/dashboard/ai-report${query}`);
-      setAiReport(res.data.data);
+      const res = await apiClient.get(`/dashboard/ai-report${query}`);
+      setAiReport(res.data);
     } catch (e) {
       console.error('AI 리포트 로드 실패:', e);
     } finally {
@@ -168,8 +168,8 @@ export function useDashboard() {
   const refreshAiReport = async (): Promise<'ok' | 'limit'> => {
     setAiRefreshing(true);
     try {
-      const res = await clientApi.post(`/api/dashboard/ai-report/refresh${query}`);
-      setAiReport(res.data.data);
+      const res = await apiClient.post(`/dashboard/ai-report/refresh${query}`);
+      setAiReport(res.data);
       return 'ok';
     } catch (e: any) {
       if (e?.response?.data?.errorCode === 'AI_DASHBOARD_REFRESH_LIMIT_EXCEEDED') {

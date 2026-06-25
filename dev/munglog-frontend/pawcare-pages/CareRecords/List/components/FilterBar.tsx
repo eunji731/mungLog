@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
-import { dogApi } from '@/api/dogApi';
-import type { Dog } from '@/types/dog';
+import { usePet } from '@/app/common/hooks/usePet';
 import type { CareRecordsFilter } from '@/types/care';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { DatePicker } from '@/components/common/DatePicker';
@@ -14,16 +13,12 @@ interface FilterBarProps {
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({ filters, onChange }) => {
-  const [dogs, setDogs] = useState<Dog[]>([]);
+  const { pets: dogs } = usePet();
   const [localKeyword, setLocalKeyword] = useState(filters.keyword ?? '');
   const router = useRouter();
-  
+
   const { codes: allRecordTypes } = useCommonCodes('RECORD_TYPE');
   const recordTypes = allRecordTypes.filter(t => t.code !== 'MEMO');
-
-  useEffect(() => {
-    dogApi.getDogs().then(setDogs).catch(() => setDogs([]));
-  }, []);
 
   useEffect(() => {
     setLocalKeyword(filters.keyword ?? '');

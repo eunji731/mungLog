@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { CareRecord } from '@/types/care';
-
-import { dogApi } from '@/api/dogApi';
-import type { Dog } from '@/types/dog';
+import { usePet } from '@/app/common/hooks/usePet';
 
 interface RelatedMedicalRecordModalProps {
   isOpen: boolean;
@@ -26,12 +24,11 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
   onSelect
 }) => {
   const [inputValue, setInputValue] = useState('');
-  const [dogs, setDogs] = useState<Dog[]>([]);
+  const { pets: dogs } = usePet();
 
   useEffect(() => {
     if (isOpen) {
       onSearch(inputValue);
-      dogApi.getDogs().then(setDogs).catch(() => setDogs([]));
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';

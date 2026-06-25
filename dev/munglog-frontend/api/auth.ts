@@ -9,15 +9,8 @@ export interface User {
 }
 
 export const authApi = {
-  login: async (credentials: any) => {
-    return apiClient.post('/auth/login', credentials);
-  },
   logout: async () => {
     return apiClient.post('/auth/logout');
-  },
-  refreshCsrfToken: async () => {
-    // 안전한 GET 호출을 통해 최신 XSRF-TOKEN 쿠키를 브라우저에 세팅함
-    return apiClient.get('/csrf');
   },
   getMe: async (): Promise<User> => {
     try {

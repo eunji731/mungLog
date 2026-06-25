@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Section } from '@/components/common/Section';
 import { Input } from '@/components/common/Input';
 import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
 import { Textarea } from '@/components/common/Textarea';
-import { dogApi } from '@/api/dogApi';
-import type { Dog } from '@/types/dog';
+import { usePet } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 
 interface CommonInfoFormProps {
@@ -19,13 +18,9 @@ interface CommonInfoFormProps {
 }
 
 export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, isEmbedded = false }) => {
-  const [dogs, setDogs] = useState<Dog[]>([]);
+  const { pets: dogs } = usePet();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    dogApi.getDogs().then(setDogs).catch(() => setDogs([]));
-  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -67,8 +62,8 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
               {selectedDog ? (
                 <>
                   <div className="w-7 h-7 rounded-full overflow-hidden bg-surface-green border border-border flex items-center justify-center shrink-0 shadow-sm">
-                    {selectedDog.profileImageUrl ? (
-                      <img src={getImagePath(selectedDog.profileImageUrl, 'profiles')} alt={selectedDog.name} className="w-full h-full object-cover" />
+                    {selectedDog.photo ? (
+                      <img src={getImagePath(selectedDog.photo, 'profiles')} alt={selectedDog.name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[13px]">🐶</span>
                     )}
@@ -115,8 +110,8 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
                       <div className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 border ${
                         isCurrent ? 'border-white/30 bg-white/20' : 'border-border bg-surface-green'
                       }`}>
-                        {dog.profileImageUrl ? (
-                          <img src={getImagePath(dog.profileImageUrl, 'profiles')} alt={dog.name} className="w-full h-full object-cover" />
+                        {dog.photo ? (
+                          <img src={getImagePath(dog.photo, 'profiles')} alt={dog.name} className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-[14px]">🐶</span>
                         )}

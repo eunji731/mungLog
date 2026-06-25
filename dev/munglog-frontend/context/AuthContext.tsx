@@ -7,12 +7,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: any) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => Promise<string | undefined>;
   checkAuth: () => Promise<void>;
 }
 
-// 인증 정보를 담을 “상자” 
+// 인증 정보를 담을 “상자”
 // 처음엔 값이 없어서 undefined -> 나중에 useAuth()를 AuthProvider 밖에서 잘못 썼을 때 에러를 강제로 띄우기 위해서
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -45,31 +44,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // 로그인 함수
-  // -> 로그인 성공 = 서버 쿠키 저장
-  // -> checkAuth 성공 = 프론트 상태 갱신
-  const login = async (credentials: any) => {
-    // 아이디/비밀번호로 로그인 요청
-    await authApi.login(credentials);
-    // 로그인 직후 백엔드에서 갱신된 CSRF 토큰을 안전하게 가져오기 위해 호출
-    await authApi.refreshCsrfToken();
-
-    // 로그인 성공 후 유저 정보 갱신
-    // 왜 checkAuth()를 또??
-    // -> 로그인 API가 성공해도 프론트 상태의 user는 자동으로 바뀌지 않음
-    // -> checkAuth()를 호출해서 백엔드에서 실제 로그인된 유저 정보를 가져와야 함
-    await checkAuth();
-  };
-
   // 로그아웃 함수
+  // -> 백엔드가 카카오 로그아웃 URL을 내려주면 호출부에서 그쪽으로 리다이렉트할 수 있도록 반환
   const logout = async () => {
+    let kakaoLogoutUrl: string | undefined;
     try {
-      // 서버에 로그아웃 요청
-      await authApi.logout();
+      const res = await authApi.logout();
+      kakaoLogoutUrl = (res.data as { kakaoLogoutUrl?: string } | undefined)?.kakaoLogoutUrl;
     } finally {
       // 성공하든 실패하든 프론트에서는 일단 로그아웃 상태로 바꿈
       setUser(null);
     }
+    return kakaoLogoutUrl;
   };
 
   useEffect(() => {
@@ -98,7 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthenticated: !!user, // user를 boolean으로 바꾼 값 (user 있으면 true / null이면 false)
         isLoading,
-        login,
         logout,
         checkAuth,
       }}
@@ -123,13 +108,7 @@ export const useAuth = () => {
 // 1-3. checkAuth() 호출
 // 1-4. authApi.getMe() 요청
 // 1-5. 성공하면 user 저장 / 실패하면 null
-// 2. 로그인
-// 2-1. login(credentials) 호출
-// 2-2. authApi.login() 실행
-// 2-3. refreshCsrfToken() 실행
-// 2-4. checkAuth() 실행
-// 2-5. user 상태 갱신
-// 2-6. isAuthenticated가 true가 됨
+// 2. 로그인은 카카오 OAuth 리다이렉트(/login → 백엔드 → 콜백)로만 이루어짐
 // 3. 로그아웃
 // 3-1. logout() 호출
 // 3-2. authApi.logout() 실행

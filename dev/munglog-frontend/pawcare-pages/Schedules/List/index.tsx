@@ -1,15 +1,14 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar } from '@/components/common/Calendar';
 import type { CalendarMarkers } from '@/components/common/Calendar';
 import { ScheduleHeroCard } from './components/ScheduleHeroCard';
 import { ScheduleList } from './components/ScheduleList';
 import { useSchedules } from './hooks/useSchedules';
-import { dogApi } from '@/api/dogApi';
+import { usePet } from '@/app/common/hooks/usePet';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { DatePicker } from '@/components/common/DatePicker';
 import { parseISO, format } from 'date-fns';
-import type { Dog } from '@/types/dog';
 
 interface ScheduleListPageProps {
   showHeader?: boolean;
@@ -20,13 +19,9 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
   const { schedules, isLoading, filters, updateFilter } = useSchedules();
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null);
-  const [dogs, setDogs] = useState<Dog[]>([]);
+  const { pets: dogs } = usePet();
 
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
-
-  useEffect(() => {
-    dogApi.getDogs().then(setDogs).catch(() => setDogs([]));
-  }, []);
 
   const sortedSchedules = useMemo(() => {
     return [...schedules].sort((a, b) =>

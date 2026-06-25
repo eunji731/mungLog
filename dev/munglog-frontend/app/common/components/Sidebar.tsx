@@ -8,7 +8,6 @@ import {
   Image as ImageIcon,
   MapPin,
   LayoutDashboard,
-  FileText,
   ClipboardList,
   Stethoscope,
   Settings,
@@ -22,7 +21,8 @@ import Image from 'next/image';
 import { useToast } from '../hooks/useToast';
 import { useConfirm } from '../hooks/useConfirm';
 import { usePet, ALL_PETS_ID } from '../hooks/usePet';
-import clientApi, { getImagePath } from '../lib/clientApi';
+import { getImagePath } from '../lib/clientApi';
+import { useAuth } from '@/context/AuthContext';
 
 const navItems = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
@@ -32,7 +32,6 @@ const navItems = [
   { name: '지도', href: '/map', icon: MapPin },
   { name: '케어기록', href: '/care-records', icon: Stethoscope },
   { name: '일정/예약', href: '/schedules', icon: ClipboardList },
-  { name: '마이페이지', href: '/mypage', icon: FileText },
   { name: '설정', href: '/settings', icon: Settings },
 ];
 
@@ -196,20 +195,22 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   const router = useRouter();
   const { success } = useToast();
   const { confirm } = useConfirm();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     const isConfirmed = await confirm('로그아웃 하시겠습니까?');
     if (!isConfirmed) return;
 
+    let kakaoLogoutUrl: string | undefined;
     try {
-      const res = await clientApi.post('/api/auth/logout');
-      const kakaoLogoutUrl = res.data?.data?.kakaoLogoutUrl;
-      if (kakaoLogoutUrl) {
-        window.location.href = kakaoLogoutUrl;
-        return;
-      }
+      kakaoLogoutUrl = await logout();
     } catch (err) {
       console.error('Logout failed:', err);
+    }
+
+    if (kakaoLogoutUrl) {
+      window.location.href = kakaoLogoutUrl;
+      return;
     }
 
     success('안전하게 로그아웃되었습니다.');

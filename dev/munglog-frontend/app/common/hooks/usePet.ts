@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import clientApi from '../lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 export interface PetProfile {
   id: string;
@@ -23,11 +23,6 @@ export interface PetProfile {
 }
 
 export type PetFormData = Omit<PetProfile, 'id' | 'addedAt' | 'photo' | 'isActive'>;
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-}
 
 // 백엔드 PetResponse 응답 형태 (photo 대신 profileImageUrl로 내려옴)
 interface PetResponseDto extends Omit<PetProfile, 'photo' | 'isActive' | 'addedAt'> {
@@ -74,8 +69,8 @@ export const usePetStore = create<PetState>()(
       fetchPets: async () => {
         set({ loading: true, error: null });
         try {
-          const res = await clientApi.get<ApiResponse<PetResponseDto[]>>('/api/pets');
-          const pets = res.data.data.map(mapPetResponse);
+          const res = await apiClient.get<PetResponseDto[]>('/pets');
+          const pets = res.data.map(mapPetResponse);
           set({ pets, loading: false });
           
           // 만약 선택된 펫이 'ALL'이 아니고 목록에도 없으면 'ALL'로 전환
@@ -93,12 +88,12 @@ export const usePetStore = create<PetState>()(
       addPet: async (data, photo) => {
         set({ loading: true, error: null });
         try {
-          const res = await clientApi.post<ApiResponse<PetResponseDto>>(
-            '/api/pets',
+          const res = await apiClient.post<PetResponseDto>(
+            '/pets',
             toPetFormData(data, photo),
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
-          const pet = mapPetResponse(res.data.data);
+          const pet = mapPetResponse(res.data);
           set((state) => ({ pets: [...state.pets, pet], loading: false }));
           if (!get().selectedPetId) set({ selectedPetId: pet.id });
           return pet;
@@ -111,12 +106,12 @@ export const usePetStore = create<PetState>()(
       updatePet: async (id, data, photo) => {
         set({ loading: true, error: null });
         try {
-          const res = await clientApi.put<ApiResponse<PetResponseDto>>(
-            `/api/pets/${id}`,
+          const res = await apiClient.put<PetResponseDto>(
+            `/pets/${id}`,
             toPetFormData(data, photo),
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
-          const pet = mapPetResponse(res.data.data);
+          const pet = mapPetResponse(res.data);
           set((state) => ({
             pets: state.pets.map((p) => (p.id === id ? pet : p)),
             loading: false,
@@ -131,7 +126,7 @@ export const usePetStore = create<PetState>()(
       removePet: async (id) => {
         set({ loading: true, error: null });
         try {
-          await clientApi.delete(`/api/pets/${id}`);
+          await apiClient.delete(`/pets/${id}`);
           const newPets = get().pets.filter((p) => p.id !== id);
           set({ pets: newPets, loading: false });
           

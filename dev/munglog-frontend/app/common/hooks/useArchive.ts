@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePetStore, ALL_PETS_ID } from './usePet';
-import clientApi, { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 export interface ArchivePhoto {
   id: string;
@@ -51,8 +52,8 @@ export const useArchive = () => {
     setIsLoadingThemes(true);
     try {
       const petParam = petId ? `&petId=${petId}` : '';
-      const res = await clientApi.get(`/api/archive/themes?page=${pageNum}&size=${PAGE_SIZE}${petParam}`);
-      const data: any[] = res.data?.data || [];
+      const res = await apiClient.get(`/archive/themes?page=${pageNum}&size=${PAGE_SIZE}${petParam}`);
+      const data: any[] = res.data || [];
       const mapped: ArchiveTheme[] = data.map(item => ({
         categoryName: item.tag,
         representativePhoto: getImagePath(item.representativePhotoUrl),
@@ -100,8 +101,8 @@ export const useArchive = () => {
   const syncSearch = async (query: string) => {
     try {
       const petParam = validPetId ? `&petId=${validPetId}` : '';
-      const res = await clientApi.get(`/api/archive/search?q=${encodeURIComponent(query)}${petParam}`);
-      return (res.data?.data || []).map(mapPhoto);
+      const res = await apiClient.get(`/archive/search?q=${encodeURIComponent(query)}${petParam}`);
+      return (res.data || []).map(mapPhoto);
     } catch (e) {
       console.error('검색 실패:', e);
       return [];
@@ -111,8 +112,8 @@ export const useArchive = () => {
   const searchThemes = async (query: string): Promise<ArchiveTheme[]> => {
     try {
       const petParam = validPetId ? `&petId=${validPetId}` : '';
-      const res = await clientApi.get(`/api/archive/themes/search?q=${encodeURIComponent(query)}${petParam}`);
-      const data: any[] = res.data?.data || [];
+      const res = await apiClient.get(`/archive/themes/search?q=${encodeURIComponent(query)}${petParam}`);
+      const data: any[] = res.data || [];
       return data.map(item => ({
         categoryName: item.tag,
         representativePhoto: getImagePath(item.representativePhotoUrl),
@@ -129,8 +130,8 @@ export const useArchive = () => {
   const suggestTags = async (query: string) => {
     try {
       const petParam = validPetId ? `&petId=${validPetId}` : '';
-      const res = await clientApi.get(`/api/archive/tags/suggest?q=${encodeURIComponent(query)}${petParam}`);
-      return res.data?.data || [];
+      const res = await apiClient.get(`/archive/tags/suggest?q=${encodeURIComponent(query)}${petParam}`);
+      return res.data || [];
     } catch (e) {
       console.error('태그 추천 실패:', e);
       return [];
@@ -140,8 +141,8 @@ export const useArchive = () => {
   const getPhotosByTag = async (tag: string) => {
     try {
       const petParam = validPetId ? `&petId=${validPetId}` : '';
-      const res = await clientApi.get(`/api/archive/photos?tag=${encodeURIComponent(tag)}${petParam}`);
-      return (res.data?.data || []).map(mapPhoto);
+      const res = await apiClient.get(`/archive/photos?tag=${encodeURIComponent(tag)}${petParam}`);
+      return (res.data || []).map(mapPhoto);
     } catch (e) {
       console.error('태그 검색 실패:', e);
       return [];
@@ -151,8 +152,8 @@ export const useArchive = () => {
   const fetchThemeDetail = async (tag: string): Promise<ArchiveTheme | null> => {
     try {
       const petParam = validPetId ? `?petId=${validPetId}` : '';
-      const res = await clientApi.get(`/api/archive/themes/${encodeURIComponent(tag)}${petParam}`);
-      const item = res.data?.data;
+      const res = await apiClient.get(`/archive/themes/${encodeURIComponent(tag)}${petParam}`);
+      const item = res.data;
       if (!item) return null;
       
       return {

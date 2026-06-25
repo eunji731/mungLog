@@ -3,7 +3,7 @@
 import React, { Suspense, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import clientApi from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 
 function RejoinContent() {
   const searchParams = useSearchParams();
@@ -17,7 +17,7 @@ function RejoinContent() {
     if (!token) return;
     setLoading(true);
     try {
-      await clientApi.post('/api/members/rejoin', { token });
+      await apiClient.post('/members/rejoin', { token });
       router.replace('/');
     } catch {
       setApiError(true);

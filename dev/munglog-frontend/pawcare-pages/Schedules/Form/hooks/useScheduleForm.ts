@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { scheduleApi } from '@/api/scheduleApi';
-import { dogApi } from '@/api/dogApi';
 import { fileApi } from '@/api/fileApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/context/ToastContext';
-import type { Dog } from '@/types/dog';
+import { usePet } from '@/app/common/hooks/usePet';
 
 export const useScheduleForm = (id?: string, options?: { prefillDate?: string }) => {
   const router = useRouter();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(!!id);
-  const [dogs, setDogs] = useState<Dog[]>([]);
+  const { pets: dogs } = usePet();
 
   const [formData, setFormData] = useState({
     dogId: '',
@@ -27,10 +26,6 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
 
   const fileUploader = useFileUpload('SCHEDULE');
   const fileLoadedRef = useRef(false);
-
-  useEffect(() => {
-    dogApi.getDogs().then(setDogs).catch(() => setDogs([]));
-  }, []);
 
   // 1. 상세 데이터 본문 로드
   useEffect(() => {

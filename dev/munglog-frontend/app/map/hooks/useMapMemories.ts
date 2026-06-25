@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import clientApi from '@/app/common/lib/clientApi';
+import { apiClient } from '@/lib/apiClient';
 import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 
 export interface MapMemory {
@@ -24,11 +24,6 @@ export interface MapMemory {
   };
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-}
-
 export function useMapMemories() {
   const [memories, setMemories] = useState<MapMemory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,8 +39,8 @@ export function useMapMemories() {
         if (selectedPetId && selectedPetId !== ALL_PETS_ID) {
           params.petId = selectedPetId;
         }
-        const res = await clientApi.get<ApiResponse<MapMemory[]>>('/api/map/memories', { params });
-        setMemories(res.data.data ?? []);
+        const res = await apiClient.get<MapMemory[]>('/map/memories', { params });
+        setMemories(res.data ?? []);
       } catch (err: any) {
         setError(err.response?.data?.message || err.message);
       } finally {
