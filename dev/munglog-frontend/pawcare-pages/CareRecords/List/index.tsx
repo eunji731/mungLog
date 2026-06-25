@@ -8,6 +8,7 @@ import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { useCareRecords } from './hooks/useCareRecords';
 import { TimelineItem } from './components/TimelineItem';
+import SymptomSnapboard from './components/SymptomSnapboard';
 
 interface CareRecordListPageProps {
   showHeader?: boolean;
@@ -15,7 +16,7 @@ interface CareRecordListPageProps {
 
 const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
   const router = useRouter();
-  const { records, isLoading, filters, updateFilter } = useCareRecords();
+  const { records, isLoading, filters, updateFilter, refetch } = useCareRecords();
   const { pets, selectedPetId } = usePet();
   const { codes: allRecordTypes } = useCommonCodes('RECORD_TYPE');
   const recordTypes = allRecordTypes.filter(t => t.code !== 'MEMO');
@@ -171,32 +172,40 @@ const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
           </div>
         )}
 
-        <div className="w-full px-4 md:px-8 pt-8 pb-32">
-          <div className="max-w-3xl mx-auto">
-            {isLoading ? (
-              <div className="h-[300px] flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
-              </div>
-            ) : records.length > 0 ? (
-              <div className="flex flex-col gap-4 animate-in fade-in duration-500">
-                {records.map(record => (
-                  <TimelineItem key={record.id} record={record} />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-32 gap-6 animate-in fade-in zoom-in duration-700">
-                <div className="w-20 h-20 bg-surface-green/50 rounded-full flex items-center justify-center">
-                  <Stethoscope className="w-8 h-8 text-main-green/30" />
+        <div className="w-full px-4 md:px-8 pt-8 pb-32 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Column: Symptom Snapboard */}
+            <div className="lg:col-span-4 lg:sticky lg:top-24">
+              <SymptomSnapboard timelineRecords={records} onSnapLinked={refetch} />
+            </div>
+
+            {/* Right Column: Timeline list */}
+            <div className="lg:col-span-8">
+              {isLoading ? (
+                <div className="h-[300px] flex items-center justify-center">
+                  <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
                 </div>
-                <div className="text-center space-y-1">
-                  <h3 className="text-lg font-black text-text-main">기록된 케어가 없습니다</h3>
-                  <p className="text-xs font-bold text-text-sub">반려견의 건강 기록과 지출을 남겨보세요.</p>
+              ) : records.length > 0 ? (
+                <div className="flex flex-col gap-4 animate-in fade-in duration-500">
+                  {records.map(record => (
+                    <TimelineItem key={record.id} record={record} />
+                  ))}
                 </div>
-                <Button variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green" onClick={() => router.push('/care-records/new')}>
-                  기록 시작하기
-                </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-center justify-center py-32 gap-6 animate-in fade-in zoom-in duration-700">
+                  <div className="w-20 h-20 bg-surface-green/50 rounded-full flex items-center justify-center">
+                    <Stethoscope className="w-8 h-8 text-main-green/30" />
+                  </div>
+                  <div className="text-center space-y-1">
+                    <h3 className="text-lg font-black text-text-main">기록된 케어가 없습니다</h3>
+                    <p className="text-xs font-bold text-text-sub">반려견의 건강 기록과 지출을 남겨보세요.</p>
+                  </div>
+                  <Button variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green" onClick={() => router.push('/care-records/new')}>
+                    기록 시작하기
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

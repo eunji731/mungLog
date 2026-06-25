@@ -8,5 +8,6 @@ public enum ParentDomainType {
     MEMBER_PROFILE,
     INVENTORY,
     CARE,
-    SCHEDULE
+    SCHEDULE,
+    SYMPTOM_SNAP
 }

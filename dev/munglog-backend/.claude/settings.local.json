@@ -17,7 +17,11 @@
       "PowerShell(Get-ChildItem D:\\\\selfProject\\\\mungLog\\\\dev -Depth 2 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next|\\\\.gradle|build' } | Select-Object FullName)",
       "PowerShell(Get-ChildItem D:\\\\selfProject\\\\mungLog\\\\dev\\\\munglog-frontend -Depth 2 | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object FullName | Sort-Object FullName)",
       "PowerShell(Get-ChildItem D:\\\\selfProject\\\\petLifeLog\\\\dev\\\\front\\\\petlifelog -Recurse | Where-Object { !$_.PSIsContainer -and $_.FullName -notmatch 'node_modules|\\\\.next|tsconfig\\\\.tsbuildinfo|package-lock' } | Select-Object -ExpandProperty FullName | Sort-Object | Measure-Object | Select-Object Count)",
-      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\pawCareChart\\\\dev\\\\frontend\\\\src -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object | Measure-Object | Select-Object Count)"
+      "PowerShell(Get-ChildItem D:\\\\selfProject\\\\pawCareChart\\\\dev\\\\frontend\\\\src -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object | Measure-Object | Select-Object Count)",
+      "Bash(xargs cat)",
+      "Bash(xargs -I{} echo {})",
+      "Bash(./gradlew compileJava -q)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }

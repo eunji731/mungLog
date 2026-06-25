@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { parseISO, addDays, isBefore, startOfDay, format } from 'date-fns';
 import type { CareRecord } from '@/types/care';
@@ -8,6 +8,27 @@ import { isMedicalRecordType } from '@/lib/codeGroups';
 
 export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
   const router = useRouter();
+
+  const [linkedSnap, setLinkedSnap] = useState<any>(null);
+
+  const loadLinkedSnap = () => {
+    try {
+      const data = localStorage.getItem('munglog_symptom_snaps');
+      if (data) {
+        const snaps = JSON.parse(data);
+        const found = snaps.find((s: any) => s.resolvedRecordId === String(record.id));
+        setLinkedSnap(found || null);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    loadLinkedSnap();
+    window.addEventListener('symptom_snaps_updated', loadLinkedSnap);
+    return () => window.removeEventListener('symptom_snaps_updated', loadLinkedSnap);
+  }, [record.id]);
 
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
   const { getCodeNameById } = useCommonCodes('EXPENSE_CATEGORY');
@@ -99,6 +120,29 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
         <h4 className="text-[18px] md:text-[22px] font-black text-foreground tracking-tight leading-snug mb-5 pr-2 md:pr-0">
           {record.title}
         </h4>
+
+        {linkedSnap && (
+          <div className="mb-5 p-3.5 bg-amber-500/5 border border-amber-100 rounded-2xl flex gap-3 items-start animate-in fade-in duration-300">
+            {linkedSnap.photoUrl && (
+              <div className="w-12 h-12 rounded-lg overflow-hidden border border-amber-200/50 shrink-0 bg-stone-100 relative">
+                <img src={linkedSnap.photoUrl} alt="Symptom" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="text-[9px] font-black px-2 py-0.5 rounded bg-amber-100 text-amber-800 uppercase tracking-wider">
+                  연동된 증상: {(linkedSnap.symptomTags || [linkedSnap.symptomTag || '기타']).join(', ')}
+                </span>
+                <span className="text-[9px] font-bold text-text-sub">
+                  {linkedSnap.date} {linkedSnap.time} 관찰됨
+                </span>
+              </div>
+              <p className="text-[11px] font-bold text-text-main line-clamp-2 leading-relaxed">
+                {linkedSnap.memo}
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border">
           
