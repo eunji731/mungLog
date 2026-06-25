@@ -6,11 +6,13 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { useToast } from '@/context/ToastContext';
+import { usePet } from '@/app/common/hooks/usePet';
 import type { CareRecordCreateRequest } from '@/types/care';
 
 export const useCareRecordForm = (id?: string, options?: { prefillDate?: string; onSaveSuccess?: () => void }) => {
   const router = useRouter();
   const { showToast } = useToast();
+  const { selectedPetId } = usePet();
 
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
 
@@ -20,7 +22,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
   const [fromScheduleId, setFromScheduleId] = useState<string | null>(null);
 
   const [commonData, setCommonData] = useState({
-    dogId: '',
+    dogId: selectedPetId && selectedPetId !== 'ALL' ? selectedPetId.toString() : '',
     recordDate: options?.prefillDate || new Date().toISOString().split('T')[0],
     title: '',
     note: ''

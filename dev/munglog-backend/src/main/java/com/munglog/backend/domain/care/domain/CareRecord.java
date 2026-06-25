@@ -50,7 +50,8 @@ public class CareRecord extends BaseTimeEntity {
     @OneToOne(mappedBy = "careRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private ExpenseDetail expenseDetail;
 
-    public void update(CareRecordType recordType, LocalDate recordDate, String title, String note) {
+    public void update(Pet pet, CareRecordType recordType, LocalDate recordDate, String title, String note) {
+        this.pet = pet;
         this.recordType = recordType;
         this.recordDate = recordDate;
         this.title = title;

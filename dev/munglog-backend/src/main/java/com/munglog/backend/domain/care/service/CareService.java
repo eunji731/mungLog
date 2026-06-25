@@ -101,9 +101,10 @@ public class CareService {
     @Transactional
     public CareRecordDetailResponse updateRecord(UUID recordId, UUID userId, CareRecordCreateRequest request) {
         CareRecord record = findByIdAndUserId(recordId, userId);
-        Pet pet = record.getPet();
+        Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
+                .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
 
-        record.update(CareRecordType.valueOf(request.getRecordType()), request.getRecordDate(),
+        record.update(pet, CareRecordType.valueOf(request.getRecordType()), request.getRecordDate(),
                 request.getTitle(), request.getNote());
 
         saveMedicalDetail(record, request);

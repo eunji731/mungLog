@@ -8,6 +8,73 @@ import { useDiary } from '@/app/common/hooks/useDiary';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 
+// Helpers to get metadata for care and schedule items to style them beautifully
+const getRecordTypeMeta = (care: any) => {
+  const rawRecord = care as any;
+  let typeCode = String(rawRecord.recordType || '');
+  if (care.recordTypeId || rawRecord.record_type_id) {
+    const typeId = care.recordTypeId || rawRecord.record_type_id;
+    if (Number(typeId) === 1) typeCode = 'MEDICAL';
+  }
+  
+  switch (typeCode) {
+    case 'HOSPITAL':
+    case 'MEDICAL':
+      return { icon: '🏥', label: '병원', bg: 'bg-red-50 text-red-700 border-red-100 dark:bg-red-950/30 dark:text-red-300 dark:border-red-900/30' };
+    case 'MEDICINE':
+      return { icon: '💊', label: '투약', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/30' };
+    case 'GROOMING':
+      return { icon: '🧼', label: '미용', bg: 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-900/30' };
+    case 'VACCINATION':
+      return { icon: '💉', label: '접종', bg: 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/30' };
+    case 'CHECKUP':
+      return { icon: '🩺', label: '검진', bg: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-900/30' };
+    case 'EXPENSE':
+      return { icon: '🪙', label: '지출', bg: 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/30' };
+    case 'ETC':
+    default:
+      return { icon: '📝', label: '기타', bg: 'bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-800/40 dark:text-gray-300 dark:border-gray-700/30' };
+  }
+};
+
+const getScheduleTypeMeta = (sch: any) => {
+  const typeCode = String(sch.scheduleType || '');
+  const isCompleted = sch.isCompleted;
+  
+  let icon = '⏰';
+  if (isCompleted) {
+    icon = '✅';
+  } else {
+    switch (typeCode) {
+      case 'HOSPITAL':
+        icon = '🏥';
+        break;
+      case 'MEDICINE':
+        icon = '💊';
+        break;
+      case 'GROOMING':
+        icon = '🧼';
+        break;
+      case 'VACCINATION':
+        icon = '💉';
+        break;
+      case 'CHECKUP':
+        icon = '🩺';
+        break;
+      case 'ETC':
+      default:
+        icon = '⏰';
+        break;
+    }
+  }
+
+  const bg = isCompleted 
+    ? 'bg-gray-100 text-gray-400 border-gray-200 line-through opacity-70 dark:bg-gray-800/40 dark:text-gray-505 dark:border-gray-700/30'
+    : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/30';
+
+  return { icon, label: sch.title || '일정', bg };
+};
+
 export default function CalendarGrid({ 
   onDateSelect, 
   selectedDate,
@@ -121,7 +188,7 @@ export default function CalendarGrid({
               </div>
 
               {/* Log Indicator - Stacked Thumbnails or Markers based on Tab */}
-              <div className="mt-auto mb-1 lg:mb-2 flex flex-col items-center w-full min-h-[24px] lg:min-h-[40px]">
+              <div className="mt-auto mb-1 lg:mb-2 flex flex-col items-stretch w-full min-h-[24px] lg:min-h-[40px]">
                 {tab === 'petlog' && (
                   hasLogs ? (
                     <div className="flex flex-col items-center gap-1">
@@ -167,25 +234,51 @@ export default function CalendarGrid({
                   const dateStr = localDate.toISOString().split('T')[0];
                   const dayCares = careRecords.filter(r => r.recordDate === dateStr);
                   if (dayCares.length > 0) {
+                    const displayCount = 2;
                     return (
-                      <div className="flex flex-wrap justify-center gap-0.5 max-w-full px-0.5 py-0.5">
-                        {dayCares.slice(0, 4).map((care) => {
-                          const rawRecord = care as any;
-                          let typeCode = String(rawRecord.recordType || '');
-                          if (care.recordTypeId || rawRecord.record_type_id) {
-                            const typeId = care.recordTypeId || rawRecord.record_type_id;
-                            if (Number(typeId) === 1) typeCode = 'MEDICAL';
-                          }
-                          const isMed = typeCode === 'MEDICAL';
-                          return (
-                            <span key={care.id} className="text-[12px] lg:text-[15px]" title={care.title}>
-                              {isMed ? '🏥' : '💳'}
+                      <div className="flex flex-col gap-1 w-full px-1">
+                        {/* Desktop View: Styled Pills with Icons and Titles */}
+                        <div className="hidden lg:flex flex-col gap-1.5 w-full">
+                          {dayCares.slice(0, displayCount).map((care) => {
+                            const meta = getRecordTypeMeta(care);
+                            return (
+                              <div 
+                                key={care.id} 
+                                className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border truncate w-full transition-all hover:brightness-95 ${meta.bg}`}
+                                title={care.title}
+                              >
+                                <span className="shrink-0 text-[11px]">{meta.icon}</span>
+                                <span className="truncate">{care.title || meta.label}</span>
+                              </div>
+                            );
+                          })}
+                          {dayCares.length > displayCount && (
+                            <span className="text-[9px] font-black text-text-sub/80 pl-1.5">
+                              +{dayCares.length - displayCount}개 더보기
                             </span>
-                          );
-                        })}
-                        {dayCares.length > 4 && (
-                          <span className="text-[7px] font-black text-text-sub flex items-center">+{dayCares.length - 4}</span>
-                        )}
+                          )}
+                        </div>
+
+                        {/* Mobile View: Small colored circle badges with emoji */}
+                        <div className="flex lg:hidden flex-wrap justify-center gap-0.5 max-w-full">
+                          {dayCares.slice(0, 3).map((care) => {
+                            const meta = getRecordTypeMeta(care);
+                            return (
+                              <span 
+                                key={care.id} 
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border text-[11px] shrink-0 ${meta.bg}`} 
+                                title={care.title}
+                              >
+                                {meta.icon}
+                              </span>
+                            );
+                          })}
+                          {dayCares.length > 3 && (
+                            <span className="text-[8px] font-black text-text-sub flex items-center pl-0.5">
+                              +{dayCares.length - 3}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     );
                   }
@@ -198,18 +291,51 @@ export default function CalendarGrid({
                   const dateStr = localDate.toISOString().split('T')[0];
                   const daySchedules = schedules.filter(s => s.scheduleDate.startsWith(dateStr));
                   if (daySchedules.length > 0) {
+                    const displayCount = 2;
                     return (
-                      <div className="flex flex-wrap justify-center gap-0.5 max-w-full px-0.5 py-0.5">
-                        {daySchedules.slice(0, 4).map((sch) => {
-                          return (
-                            <span key={sch.id} className="text-[12px] lg:text-[15px]" title={sch.title}>
-                              {sch.isCompleted ? '✅' : '⏰'}
+                      <div className="flex flex-col gap-1 w-full px-1">
+                        {/* Desktop View: Styled Pills with Icons and Titles */}
+                        <div className="hidden lg:flex flex-col gap-1.5 w-full">
+                          {daySchedules.slice(0, displayCount).map((sch) => {
+                            const meta = getScheduleTypeMeta(sch);
+                            return (
+                              <div 
+                                key={sch.id} 
+                                className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border truncate w-full transition-all hover:brightness-95 ${meta.bg}`}
+                                title={sch.title}
+                              >
+                                <span className="shrink-0 text-[11px]">{meta.icon}</span>
+                                <span className="truncate">{sch.title || meta.label}</span>
+                              </div>
+                            );
+                          })}
+                          {daySchedules.length > displayCount && (
+                            <span className="text-[9px] font-black text-text-sub/80 pl-1.5">
+                              +{daySchedules.length - displayCount}개 더보기
                             </span>
-                          );
-                        })}
-                        {daySchedules.length > 4 && (
-                          <span className="text-[7px] font-black text-text-sub flex items-center">+{daySchedules.length - 4}</span>
-                        )}
+                          )}
+                        </div>
+
+                        {/* Mobile View: Small colored circle badges with emoji */}
+                        <div className="flex lg:hidden flex-wrap justify-center gap-0.5 max-w-full">
+                          {daySchedules.slice(0, 3).map((sch) => {
+                            const meta = getScheduleTypeMeta(sch);
+                            return (
+                              <span 
+                                key={sch.id} 
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border text-[11px] shrink-0 ${meta.bg}`} 
+                                title={sch.title}
+                              >
+                                {meta.icon}
+                              </span>
+                            );
+                          })}
+                          {daySchedules.length > 3 && (
+                            <span className="text-[8px] font-black text-text-sub flex items-center pl-0.5">
+                              +{daySchedules.length - 3}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     );
                   }

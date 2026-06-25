@@ -11,10 +11,10 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(!!id);
-  const { pets: dogs } = usePet();
+  const { pets: dogs, selectedPetId } = usePet();
 
   const [formData, setFormData] = useState({
-    dogId: '',
+    dogId: selectedPetId && selectedPetId !== 'ALL' ? selectedPetId.toString() : '',
     title: '',
     location: '',
     scheduleDate: options?.prefillDate || new Date().toISOString().split('T')[0],

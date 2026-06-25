@@ -51,8 +51,9 @@ public class Schedule extends BaseTimeEntity {
     @Column(name = "location")
     private String location;
 
-    public void update(ScheduleType scheduleType, LocalDateTime scheduleDate,
+    public void update(Pet pet, ScheduleType scheduleType, LocalDateTime scheduleDate,
                        String title, String memo, String location) {
+        this.pet = pet;
         this.scheduleType = scheduleType;
         this.scheduleDate = scheduleDate;
         this.title = title;

@@ -76,7 +76,10 @@ public class ScheduleService {
     @Transactional
     public ScheduleResponse updateSchedule(UUID scheduleId, UUID userId, ScheduleRequest request) {
         Schedule schedule = findByIdAndUserId(scheduleId, userId);
-        schedule.update(ScheduleType.valueOf(request.getScheduleType()), request.getScheduleDate(),
+        Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
+                .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
+
+        schedule.update(pet, ScheduleType.valueOf(request.getScheduleType()), request.getScheduleDate(),
                 request.getTitle(), request.getMemo(), request.getLocation());
 
         if (request.getSymptomTags() != null) {
