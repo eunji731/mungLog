@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Stethoscope, Search, X, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
-import { DatePicker } from '@/components/common/DatePicker';
+import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { useCareRecords } from './hooks/useCareRecords';
@@ -129,21 +129,35 @@ const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
                   </button>
 
                   {showDateFilter && (
-                    <div className="absolute top-full right-0 mt-2 w-72 bg-background border border-border shadow-2xl rounded-2xl p-4 z-[110] animate-in fade-in slide-in-from-top-1">
+                    <div className="absolute top-full right-0 mt-2 w-[340px] bg-background border border-border shadow-2xl rounded-[28px] p-4 z-[110] animate-in fade-in slide-in-from-top-1">
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
-                          <DatePicker
-                            selected={startDate}
-                            onChange={(date) => updateFilter({ startDate: date ? date.toISOString().split('T')[0] : undefined })}
-                            placeholderText="시작일"
+                          <TimelineDatePicker
+                            value={filters.startDate || ''}
+                            onChange={(date) => {
+                              if (date && filters.endDate && date > filters.endDate) {
+                                alert('시작일은 종료일보다 늦을 수 없습니다.');
+                                return;
+                              }
+                              updateFilter({ startDate: date || undefined });
+                            }}
+                            label="시작일"
+                            variant="button"
                           />
                         </div>
-                        <span className="text-text-sub font-light">~</span>
+                        <span className="text-text-sub font-light shrink-0">~</span>
                         <div className="flex-1">
-                          <DatePicker
-                            selected={endDate}
-                            onChange={(date) => updateFilter({ endDate: date ? date.toISOString().split('T')[0] : undefined })}
-                            placeholderText="종료일"
+                          <TimelineDatePicker
+                            value={filters.endDate || ''}
+                            onChange={(date) => {
+                              if (date && filters.startDate && date < filters.startDate) {
+                                alert('종료일은 시작일보다 빠를 수 없습니다.');
+                                return;
+                              }
+                              updateFilter({ endDate: date || undefined });
+                            }}
+                            label="종료일"
+                            variant="button"
                           />
                         </div>
                       </div>

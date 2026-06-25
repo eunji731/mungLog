@@ -7,7 +7,7 @@ import { format, subDays, parseISO, isWithinInterval, startOfDay, endOfDay } fro
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
-import { DatePicker } from '@/components/common/DatePicker';
+
 import { TagInput } from '@/components/common/TagInput';
 import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
 import TimelineTimePicker from './TimelineTimePicker';
@@ -104,10 +104,21 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   // 외부 클릭으로 팝업 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+
+      // 데이트피커 포탈 영역 클릭 시 닫히는 현상 방지
+      if (
+        target.closest('[class*="z-[1000]"]') ||
+        target.closest('[class*="z-[100]"]') ||
+        target.closest('#root-portal')
+      ) {
+        return;
+      }
+
+      if (datePickerRef.current && !datePickerRef.current.contains(target)) {
         setShowDatePicker(false);
       }
-      if (petDropdownRef.current && !petDropdownRef.current.contains(event.target as Node)) {
+      if (petDropdownRef.current && !petDropdownRef.current.contains(target)) {
         setPetDropdownOpen(false);
       }
     };
@@ -334,7 +345,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
       </div>
 
       {/* Date Filter Buttons */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 relative" ref={datePickerRef}>
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">조회 기간 설정</span>
           {hasDateFilter && (
@@ -370,8 +381,9 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
             );
           })}
 
-          <div className="relative" ref={datePickerRef}>
+          <div className="relative">
             <button
+              type="button"
               onClick={() => {
                 setPeriod('CUSTOM');
                 setShowDatePicker(prev => !prev);
@@ -382,38 +394,57 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                   : 'bg-surface-green/50 text-text-sub border-transparent hover:text-main-green'
               }`}
             >
-              📅 {customStartDate ? format(customStartDate, 'MM.dd') : '날짜 지정'}
+              📅 {customStartDate ? (
+                customEndDate && format(customStartDate, 'yyyy-MM-dd') !== format(customEndDate, 'yyyy-MM-dd')
+                  ? `${format(customStartDate, 'MM.dd')} ~ ${format(customEndDate, 'MM.dd')}`
+                  : format(customStartDate, 'MM.dd')
+              ) : '날짜 지정'}
             </button>
-
-            {showDatePicker && period === 'CUSTOM' && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-background border border-border shadow-2xl rounded-2xl p-3 z-50 animate-in fade-in slide-in-from-top-1">
-                <div className="flex items-center gap-1.5 mb-2">
-                  <div className="flex-1">
-                    <DatePicker
-                      selected={customStartDate}
-                      onChange={(date) => setCustomStartDate(date)}
-                      placeholderText="시작일"
-                    />
-                  </div>
-                  <span className="text-text-sub">~</span>
-                  <div className="flex-1">
-                    <DatePicker
-                      selected={customEndDate}
-                      onChange={(date) => setCustomEndDate(date)}
-                      placeholderText="종료일"
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowDatePicker(false)}
-                  className="w-full py-1 bg-main-green text-white text-[10px] font-bold rounded-lg"
-                >
-                  적용 완료
-                </button>
-              </div>
-            )}
           </div>
         </div>
+
+        {showDatePicker && period === 'CUSTOM' && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border shadow-2xl rounded-[28px] p-4 z-50 animate-in fade-in slide-in-from-top-1">
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <TimelineDatePicker
+                  value={customStartDate ? format(customStartDate, 'yyyy-MM-dd') : ''}
+                  onChange={(date) => {
+                    if (date && customEndDate && parseISO(date) > customEndDate) {
+                      alert('시작일은 종료일보다 늦을 수 없습니다.');
+                      return;
+                    }
+                    setCustomStartDate(date ? parseISO(date) : null);
+                  }}
+                  label="시작일"
+                  variant="button"
+                />
+              </div>
+              <span className="text-text-sub font-light shrink-0">~</span>
+              <div className="flex-1">
+                <TimelineDatePicker
+                  value={customEndDate ? format(customEndDate, 'yyyy-MM-dd') : ''}
+                  onChange={(date) => {
+                    if (date && customStartDate && parseISO(date) < customStartDate) {
+                      alert('종료일은 시작일보다 빠를 수 없습니다.');
+                      return;
+                    }
+                    setCustomEndDate(date ? parseISO(date) : null);
+                  }}
+                  label="종료일"
+                  variant="button"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowDatePicker(false)}
+              className="w-full mt-3 py-2 bg-main-green text-white text-[10px] font-bold rounded-xl shadow-md"
+            >
+              적용 완료
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Snap List */}

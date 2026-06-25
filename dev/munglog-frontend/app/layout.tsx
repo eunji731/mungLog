@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ToastContainer from "./common/components/ToastContainer";
 import ConfirmContainer from "./common/components/ConfirmContainer";
+import { ThemeProvider } from "./common/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "PetLifeLog",
   description: "햇살처럼 따뜻하게 기록하는 우리 아이와의 소중한 일상",
 };
-
-import { ThemeProvider } from "./common/components/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -32,6 +31,7 @@ export default function RootLayout({
           {children}
           <ToastContainer />
           <ConfirmContainer />
+          <div id="root-portal" />
         </ThemeProvider>
       </body>
     </html>
