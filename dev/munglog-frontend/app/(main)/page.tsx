@@ -134,103 +134,116 @@ function DashboardHeader() {
 
   if (summaryLoading) {
     return (
-      <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4 md:py-6 pb-2 animate-pulse">
         <div className="flex items-center gap-4">
-          <Skeleton className="w-14 h-14 rounded-full" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-3.5 w-32" />
+          <Skeleton className="w-16 h-16 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-32 rounded-lg" />
+            <Skeleton className="h-4 w-48 rounded-lg" />
           </div>
         </div>
-        <Skeleton className="h-16 rounded-2xl" />
-        <Skeleton className="h-16 rounded-2xl" />
+        <div className="flex items-stretch gap-3 flex-wrap md:flex-nowrap w-full md:w-auto">
+          <Skeleton className="h-[52px] flex-1 md:w-28 rounded-2xl" />
+          <Skeleton className="h-[52px] flex-1 md:w-48 rounded-2xl" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-      {/* 1. 펫 프로필 영역 (col-span-4) */}
-      <div className="md:col-span-4 flex items-center gap-4 pr-0 md:pr-6 border-r-0 md:border-r border-dashed border-border/80 h-full">
-        <div className="relative w-14 h-14 shrink-0">
-          <div className={`absolute inset-0 rounded-full shadow-sm ring-2 ${isBirthday ? 'ring-main-yellow' : 'ring-main-green/10'}`} />
-          <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-background bg-background">
+    <div className="flex flex-col md:flex-row md:items-stretch justify-between gap-6 py-4 md:py-6 pb-2">
+      {/* 1. 펫 프로필 & 웰컴 메시지 영역 */}
+      <div className="flex items-center gap-5">
+        <div className="relative w-16 h-16 shrink-0">
+          <div className={`absolute inset-0 rounded-full shadow-sm ring-2 ${isBirthday ? 'ring-main-yellow animate-bounce' : 'ring-main-green/20'}`} />
+          <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-background bg-background shadow-inner">
             {isAll ? (
               <div className="w-full h-full bg-gradient-to-br from-main-green to-deep-green flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white fill-white animate-pulse" />
+                <Heart className="w-6 h-6 text-white fill-white animate-pulse" />
               </div>
             ) : primaryPet ? (
-              <Image src={getImagePath(primaryPet.photo, 'profiles')} alt={primaryPet.name} fill className="object-cover" />
+              <Image src={getImagePath(primaryPet.photo, 'profiles')} alt={primaryPet.name} fill className="object-cover animate-in fade-in duration-300" />
             ) : (
               <div className="w-full h-full bg-surface-green flex items-center justify-center">
-                <Plus className="w-5 h-5 text-main-green opacity-40" />
+                <Plus className="w-6 h-6 text-main-green opacity-40" />
               </div>
             )}
           </div>
           {isBirthday && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-main-yellow rounded-full flex items-center justify-center shadow-sm z-20">
+            <div className="absolute -top-1 -right-1 w-5.5 h-5.5 bg-main-yellow rounded-full flex items-center justify-center shadow-md z-20">
               <PartyPopper className="w-3 text-white" />
             </div>
           )}
         </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-black text-text-main truncate leading-tight">
-            {isAll ? '모든 가족' : petInfo?.name ?? '반려동물'}
-          </h2>
-          <div className="flex items-center gap-1.5 mt-0.5">
+
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-black text-text-main tracking-tight">
+              {isAll ? '안녕하세요, 모든 가족!' : `반갑습니다, ${petInfo?.name ?? '반려동물'}!`}
+            </h1>
+            {isBirthday && (
+              <span className="bg-main-yellow/20 text-main-yellow dark:text-main-yellow text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse border border-main-yellow/30">
+                🎉 오늘 생일!
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap mt-1 text-xs font-bold text-text-sub">
             {isAll ? (
-              <span className="text-[10px] font-bold text-main-green bg-surface-green px-1.5 py-0.5 rounded-full">
-                총 {pets.length}마리
+              <span className="text-[11px] font-bold text-main-green bg-surface-green dark:bg-main-green/10 px-2 py-0.5 rounded-full">
+                총 {pets.length}마리 반려 중
               </span>
             ) : petInfo ? (
-              <p className="text-xs font-bold text-text-sub truncate">
-                {petInfo.breed} · {petInfo.ageLabel}
-              </p>
+              <>
+                <span>{petInfo.breed}</span>
+                <span className="text-border/80">•</span>
+                <span>{petInfo.ageLabel}</span>
+              </>
             ) : null}
-          </div>
-          <div className="mt-1 flex items-center gap-1">
-            <span className="text-[10px] font-bold text-text-sub">함께한 지</span>
-            <span className="text-xs font-black text-main-green">
-              {isAll ? '기록 시작!' : petInfo?.daysTogether != null ? `D+${petInfo.daysTogether}일` : '-'}
-            </span>
+            {!isAll && petInfo?.daysTogether != null && (
+              <>
+                <span className="text-border/80">•</span>
+                <span className="text-main-green font-black">함께한 지 D+{petInfo.daysTogether}일</span>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* 2. 퀵 액션 & 스트릭 영역 (col-span-4) */}
-      <div className="md:col-span-4 flex items-center justify-between px-0 md:px-6 border-r-0 md:border-r border-dashed border-border/80 h-full gap-4">
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold text-text-sub">오늘도 추억을 쌓아봐요</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <Flame className="w-4 h-4 text-main-yellow fill-main-yellow shrink-0" />
-            <span className="text-sm font-black text-text-main">{streak?.current ?? 0}일 연속 기록 중</span>
+      {/* 2. 우측 활동 정보 대시보드 영역 (스트릭 & 통계) */}
+      <div className="flex items-stretch gap-3 flex-wrap md:flex-nowrap w-full md:w-auto">
+        {/* 스트릭 위젯 */}
+        <div className="flex-1 md:flex-none flex items-center gap-2.5 bg-background dark:bg-surface-green/5 hover:bg-light-green/20 dark:hover:bg-main-green/5 border border-border px-4 py-2.5 rounded-2xl shadow-sm transition-all duration-200">
+          <div className="w-8 h-8 rounded-xl bg-main-yellow/10 flex items-center justify-center shrink-0">
+            <Flame className="w-4.5 h-4.5 text-main-yellow fill-main-yellow shrink-0" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-text-sub leading-none mb-1">연속 기록</p>
+            <p className="text-xs font-black text-text-main leading-none">{streak?.current ?? 0}일째</p>
           </div>
         </div>
-        <Link
-          href="/calendar"
-          className="group bg-main-green text-white hover:bg-deep-green px-4 py-2.5 rounded-2xl shadow-sm hover:shadow transition-all flex items-center gap-1.5 shrink-0 text-xs font-black"
-        >
-          기록하기 <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform" />
-        </Link>
-      </div>
 
-      {/* 3. 활동 통계 요약 영역 (col-span-4) */}
-      <div className="md:col-span-4 flex flex-col justify-center pl-0 md:pl-6 h-full">
-        <p className="text-[10px] font-black text-text-sub uppercase tracking-wider mb-2">{monthLabel}</p>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-blue-50 dark:bg-blue-900/10 px-2 py-1.5 rounded-xl text-center">
-            <p className="text-[9px] font-bold text-text-sub">기록</p>
-            <p className="text-xs font-black text-text-main mt-0.5">{stats?.recordedDays ?? 0}일</p>
-          </div>
-          <div className="bg-green-50 dark:bg-green-900/10 px-2 py-1.5 rounded-xl text-center">
-            <p className="text-[9px] font-bold text-text-sub">장소</p>
-            <p className="text-xs font-black text-text-main mt-0.5">{stats?.visitedPlaces ?? 0}곳</p>
-          </div>
-          <div className="bg-yellow-50 dark:bg-yellow-900/10 px-2 py-1.5 rounded-xl text-center">
-            <p className="text-[9px] font-bold text-text-sub">사진</p>
-            <p className="text-xs font-black text-text-main mt-0.5">{stats?.bestPhotosCount ?? 0}장</p>
+        {/* 활동 요약 위젯 */}
+        <div className="flex-1 md:flex-none flex flex-col justify-center bg-background dark:bg-surface-green/5 border border-border px-5 py-2.5 rounded-2xl shadow-sm">
+          <p className="text-[9px] font-black text-text-sub uppercase tracking-wider mb-1.5 text-center md:text-left">{monthLabel}</p>
+          <div className="flex items-center justify-around md:justify-start gap-5">
+            <div className="text-center min-w-[32px]">
+              <p className="text-[10px] font-bold text-text-sub">기록</p>
+              <p className="text-xs font-black text-text-main mt-0.5">{stats?.recordedDays ?? 0}일</p>
+            </div>
+            <div className="w-[1px] h-6 bg-border/80" />
+            <div className="text-center min-w-[32px]">
+              <p className="text-[10px] font-bold text-text-sub">장소</p>
+              <p className="text-xs font-black text-text-main mt-0.5">{stats?.visitedPlaces ?? 0}곳</p>
+            </div>
+            <div className="w-[1px] h-6 bg-border/80" />
+            <div className="text-center min-w-[32px]">
+              <p className="text-[10px] font-bold text-text-sub">사진</p>
+              <p className="text-xs font-black text-text-main mt-0.5">{stats?.bestPhotosCount ?? 0}장</p>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   );
@@ -1236,7 +1249,7 @@ export default function DashboardPage() {
         <DashboardHeader />
 
         {/* 탭 네비게이션 */}
-        <div className="flex flex-col gap-0 my-3 w-full select-none">
+        <div className="flex flex-col gap-0 mt-0 mb-3 w-full select-none">
           <div className="flex justify-between items-center px-1 border-b border-border/80 w-full">
             <div className="flex gap-8">
               <button
@@ -1281,12 +1294,15 @@ export default function DashboardPage() {
           </div>
 
           {!isAll && (
-            <div className="flex items-center gap-1.5 mt-2 px-1">
-              <Sparkles className="w-3.5 h-3.5 text-text-sub/50 shrink-0" />
-              <p className="text-[11px] font-bold text-text-sub/70">
-                <span className="font-black text-text-sub">AI 라이프 리포트</span>는 사이드바에서{' '}
-                <span className="font-black text-main-green">모든 가족</span>을 선택했을 때 볼 수 있어요
-              </p>
+            <div className="flex items-start gap-2.5 mt-3 p-3.5 bg-surface-green/40 dark:bg-main-green/5 border border-main-green/10 rounded-2xl animate-in fade-in slide-in-from-top-1 duration-200">
+              <Sparkles className="w-4.5 h-4.5 text-main-green shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-black text-text-main">AI 라이프 리포트 안내</p>
+                <p className="text-[11px] font-bold text-text-sub mt-0.5 leading-relaxed">
+                  AI 라이프 리포트는 등록된 <span className="text-main-green font-black">전체 일기를 기준</span>으로 종합 분석하여 작성됩니다.
+                  따라서 개별 반려동물을 선택했을 때는 리포트 탭이 노출되지 않으며, 오른쪽 사이드메뉴에서 <span className="text-main-green font-black">모든 가족</span>을 선택했을 때만 확인할 수 있습니다.
+                </p>
+              </div>
             </div>
           )}
         </div>
