@@ -244,13 +244,13 @@ function BestPhotosStrip() {
 
   if (summaryLoading) {
     return (
-      <div className="space-y-4 flex-1 flex flex-col">
+      <div className="space-y-4 w-full flex flex-col flex-1">
         <h2 className="text-lg font-black text-text-main flex items-center gap-2 px-1">
           <Trophy className="w-5 h-5 text-main-yellow fill-main-yellow" /> 베스트 포토
         </h2>
         <div className="grid grid-cols-2 gap-3 flex-1">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-2xl" />
+            <Skeleton key={i} className="aspect-square rounded-2xl w-full" />
           ))}
         </div>
       </div>
@@ -259,15 +259,15 @@ function BestPhotosStrip() {
 
   if (photos.length === 0) {
     return (
-      <div className="space-y-4 flex-1 flex flex-col h-full justify-between">
-        <h2 className="text-lg font-black text-text-main flex items-center gap-2 px-1 shrink-0">
+      <div className="space-y-4 w-full flex flex-col flex-1">
+        <h2 className="text-lg font-black text-text-main flex items-center gap-2 px-1">
           <Trophy className="w-5 h-5 text-main-yellow fill-main-yellow" /> 베스트 포토
         </h2>
-        <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-border rounded-2xl p-4 text-center bg-surface-green/20 my-2 gap-2">
+        <div className="flex flex-col items-center justify-center border border-dashed border-border rounded-2xl p-8 text-center bg-surface-green/20 gap-2 flex-1">
           <Camera className="w-8 h-8 text-text-sub/40" />
           <div>
             <p className="text-xs font-black text-text-main">베스트 사진이 없어요</p>
-            <p className="text-[10px] text-text-sub font-bold mt-1 leading-normal">반려견과의 하루 일기록에<br />멋진 사진을 올려주세요!</p>
+            <p className="text-[10px] text-text-sub font-bold mt-1 leading-normal">반려견과의 하루 일기록에 멋진 사진을 올려주세요!</p>
           </div>
         </div>
       </div>
@@ -275,7 +275,7 @@ function BestPhotosStrip() {
   }
 
   return (
-    <div className="space-y-4 flex-1 flex flex-col">
+    <div className="space-y-4 w-full flex flex-col flex-1">
       <h2 className="text-lg font-black text-text-main flex items-center gap-2 px-1">
         <Trophy className="w-5 h-5 text-main-yellow fill-main-yellow" /> 베스트 포토
       </h2>
@@ -284,7 +284,7 @@ function BestPhotosStrip() {
           <Link
             key={i}
             href={`/calendar?date=${photo.memoryDate}`}
-            className="relative aspect-square rounded-2xl overflow-hidden group shadow-sm hover:shadow-md transition-all border-2 border-background bg-background"
+            className="relative aspect-square rounded-2xl overflow-hidden group shadow-sm hover:shadow-md transition-all border border-border bg-background w-full"
           >
             <Image
               src={getImagePath(photo.photoPath)}
@@ -292,12 +292,12 @@ function BestPhotosStrip() {
               fill
               className="object-cover group-hover:scale-110 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/40 backdrop-blur-sm rounded-full text-[9px] font-black text-white">
-              {photo.vibeScore}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute top-2 right-2 px-2.5 py-0.5 bg-black/55 backdrop-blur-sm rounded-full text-[10px] font-black text-white z-10">
+              ★ {photo.vibeScore}
             </div>
             {photo.aiComment && (
-              <p className="absolute bottom-2 left-2 right-2 text-[9px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity line-clamp-2">
+              <p className="absolute bottom-2.5 left-2.5 right-2.5 text-[9px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity line-clamp-2 leading-relaxed z-10">
                 {photo.aiComment}
               </p>
             )}
@@ -315,7 +315,7 @@ function FavoritePlacesCard() {
   const places = summary?.favoritePlaces ?? [];
 
   return (
-    <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 space-y-4">
+    <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 space-y-4 w-full h-full flex flex-col">
       <div className="flex items-center justify-between">
         <h3 className="font-black text-text-main flex items-center gap-2">
           <MapPin className="w-5 h-5 text-main-green" /> 자주 가는 곳
@@ -435,7 +435,7 @@ function AiMonthlyReportCard({ onRefresh, refreshing }: { onRefresh: () => void;
   const next = aiReport.nextSuggestion;
 
   return (
-    <div className="bg-deep-green rounded-[40px] p-8 lg:p-10 text-white relative overflow-hidden min-h-[330px] lg:h-[330px] flex flex-col justify-between overflow-y-auto no-scrollbar">
+    <div className="bg-deep-green rounded-[40px] p-8 lg:p-10 text-white relative overflow-hidden flex flex-col justify-between w-full h-full min-h-[350px] shadow-md">
       <div className="relative z-10 space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
@@ -532,42 +532,44 @@ function AiActivityCard() {
   const hasComparison = a.recentAverage != null && a.previousAverage != null && a.trend !== 'UNKNOWN';
 
   return (
-    <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-black text-text-main flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-deep-green" /> 이달의 활동
-        </h3>
-        {a.level !== 'UNKNOWN' && (
-          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${levelColor[a.level as keyof typeof levelColor]}`}>
-            {levelLabel[a.level as keyof typeof levelLabel]}
-          </span>
+    <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 space-y-4 w-full h-full flex flex-col justify-between">
+      <div className="space-y-4 flex-1">
+        <div className="flex items-center justify-between">
+          <h3 className="font-black text-text-main flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-deep-green" /> 이달의 활동
+          </h3>
+          {a.level !== 'UNKNOWN' && (
+            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${levelColor[a.level as keyof typeof levelColor]}`}>
+              {levelLabel[a.level as keyof typeof levelLabel]}
+            </span>
+          )}
+        </div>
+
+        {/* 성향 뱃지 */}
+        {personality && (
+          <div className="flex items-center gap-2 p-3 bg-surface-green/50 rounded-2xl">
+            <span className="text-sm font-black text-main-green">{personality.label}</span>
+            <span className="text-xs text-text-sub font-bold opacity-80">· {personality.message}</span>
+          </div>
+        )}
+
+        {/* AI 메시지 */}
+        <p className="text-sm font-bold text-text-main leading-relaxed">{a.message}</p>
+
+        {/* 수치 비교 - 데이터 있을 때만 */}
+        {hasComparison && (
+          <div className={`flex items-center gap-3 p-3.5 rounded-2xl ${trendCfg.bg}`}>
+            <TrendIcon className={`w-4 h-4 shrink-0 ${trendCfg.color}`} />
+            <div>
+              <p className={`text-xs font-black ${trendCfg.color}`}>{trendCfg.label}</p>
+              <p className="text-[11px] text-text-sub font-bold mt-0.5">
+                최근 2주 {a.recentAverage!.toFixed(1)} → 이전 2주 {a.previousAverage!.toFixed(1)}
+                {a.confidence === 'LOW' && <span className="opacity-60"> (기록 적음, 참고용)</span>}
+              </p>
+            </div>
+          </div>
         )}
       </div>
-
-      {/* 성향 뱃지 */}
-      {personality && (
-        <div className="flex items-center gap-2 p-3 bg-surface-green/50 rounded-2xl">
-          <span className="text-sm font-black text-main-green">{personality.label}</span>
-          <span className="text-xs text-text-sub font-bold opacity-80">· {personality.message}</span>
-        </div>
-      )}
-
-      {/* AI 메시지 */}
-      <p className="text-sm font-bold text-text-main leading-relaxed">{a.message}</p>
-
-      {/* 수치 비교 - 데이터 있을 때만 */}
-      {hasComparison && (
-        <div className={`flex items-center gap-3 p-3.5 rounded-2xl ${trendCfg.bg}`}>
-          <TrendIcon className={`w-4 h-4 shrink-0 ${trendCfg.color}`} />
-          <div>
-            <p className={`text-xs font-black ${trendCfg.color}`}>{trendCfg.label}</p>
-            <p className="text-[11px] text-text-sub font-bold mt-0.5">
-              최근 2주 {a.recentAverage!.toFixed(1)} → 이전 2주 {a.previousAverage!.toFixed(1)}
-              {a.confidence === 'LOW' && <span className="opacity-60"> (기록 적음, 참고용)</span>}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* 에너지 기준 안내 */}
       <p className="text-[10px] text-text-sub font-bold opacity-60">
@@ -595,42 +597,44 @@ function AiLocationCard() {
   const verdict = verdictConfig[loc.verdict as keyof typeof verdictConfig] ?? verdictConfig.LOW_DATA;
 
   return (
-    <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 space-y-5 flex-1">
-      <h3 className="font-black text-text-main flex items-center gap-2">
-        <MapPin className="w-5 h-5 text-main-green" /> 이달의 장소 흐름
-      </h3>
+    <div className="bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 space-y-5 w-full h-full flex flex-col justify-between">
+      <div className="space-y-5 flex-1">
+        <h3 className="font-black text-text-main flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-main-green" /> 이달의 장소 흐름
+        </h3>
 
-      <div className={`flex items-center gap-3 p-4 rounded-2xl ${verdict.bg}`}>
-        <span className="text-2xl">{verdict.icon}</span>
-        <div>
-          <p className={`font-black text-sm ${verdict.text}`}>{verdict.label}</p>
-          <p className={`text-xs font-bold ${verdict.text} opacity-70 mt-0.5`}>{verdict.desc}</p>
+        <div className={`flex items-center gap-3 p-4 rounded-2xl ${verdict.bg}`}>
+          <span className="text-2xl">{verdict.icon}</span>
+          <div>
+            <p className={`font-black text-sm ${verdict.text}`}>{verdict.label}</p>
+            <p className={`text-xs font-bold ${verdict.text} opacity-70 mt-0.5`}>{verdict.desc}</p>
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-col lg:flex-row gap-4">
-        {loc.verdict !== 'LOW_DATA' && (
-          <div className="grid grid-cols-2 gap-3 flex-shrink-0">
-            <div className="p-3 bg-surface-green/50 rounded-xl text-center">
-              <p className="text-xl font-black text-main-green">{loc.uniquePlaceCount}곳</p>
-              <p className="text-[10px] font-black text-text-sub mt-0.5">방문 장소</p>
+        <div className="flex flex-col lg:flex-row gap-4">
+          {loc.verdict !== 'LOW_DATA' && (
+            <div className="grid grid-cols-2 gap-3 flex-shrink-0">
+              <div className="p-3 bg-surface-green/50 rounded-xl text-center">
+                <p className="text-xl font-black text-main-green">{loc.uniquePlaceCount}곳</p>
+                <p className="text-[10px] font-black text-text-sub mt-0.5">방문 장소</p>
+              </div>
+              <div className="p-3 bg-background border border-border rounded-xl text-center">
+                <p className="text-xl font-black text-text-main">{loc.placeRecordCount}일</p>
+                <p className="text-[10px] font-black text-text-sub mt-0.5">총 외출</p>
+              </div>
             </div>
-            <div className="p-3 bg-background border border-border rounded-xl text-center">
-              <p className="text-xl font-black text-text-main">{loc.placeRecordCount}일</p>
-              <p className="text-[10px] font-black text-text-sub mt-0.5">총 외출</p>
-            </div>
-          </div>
-        )}
+          )}
 
-        {loc.topPlace && (
-          <div className="flex-1 flex items-center gap-2 p-3 bg-surface-green rounded-xl">
-            <Zap className="w-4 h-4 text-main-green fill-main-green shrink-0" />
-            <div>
-              <p className="text-[10px] font-black text-main-green">가장 많이 간 곳</p>
-              <p className="text-sm font-black text-text-main truncate">{loc.topPlace}</p>
+          {loc.topPlace && (
+            <div className="flex-1 flex items-center gap-2 p-3 bg-surface-green rounded-xl">
+              <Zap className="w-4 h-4 text-main-green fill-main-green shrink-0" />
+              <div>
+                <p className="text-[10px] font-black text-main-green">가장 많이 간 곳</p>
+                <p className="text-sm font-black text-text-main truncate">{loc.topPlace}</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <p className="text-sm font-bold text-text-sub leading-relaxed">{loc.message}</p>
@@ -1233,37 +1237,46 @@ export default function DashboardPage() {
 
         {/* 탭 네비게이션 */}
         <div className="flex flex-col gap-0 my-3 w-full select-none">
-          <div className="flex justify-start px-1 border-b border-border/80 w-full gap-8">
-            <button
-              onClick={() => setActiveTab('care')}
-              className={`relative pb-3 text-[15.5px] font-black cursor-pointer transition-all duration-200 outline-none flex items-center gap-2 select-none ${
-                activeTab === 'care'
-                  ? 'text-main-green'
-                  : 'text-text-sub hover:text-text-main'
-              }`}
-            >
-              <Stethoscope className={`w-4.5 h-4.5 transition-transform ${activeTab === 'care' ? 'scale-105' : ''}`} />
-              <span>케어 및 관리</span>
-              {activeTab === 'care' && (
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-main-green rounded-t-full animate-in fade-in duration-200" />
-              )}
-            </button>
-
-            {isAll && (
+          <div className="flex justify-between items-center px-1 border-b border-border/80 w-full">
+            <div className="flex gap-8">
               <button
-                onClick={() => setActiveTab('ai')}
+                onClick={() => setActiveTab('care')}
                 className={`relative pb-3 text-[15.5px] font-black cursor-pointer transition-all duration-200 outline-none flex items-center gap-2 select-none ${
-                  activeTab === 'ai'
+                  activeTab === 'care'
                     ? 'text-main-green'
                     : 'text-text-sub hover:text-text-main'
                 }`}
               >
-                <Sparkles className={`w-4.5 h-4.5 transition-all ${activeTab === 'ai' ? 'text-main-yellow fill-main-yellow scale-105' : ''}`} />
-                <span>AI 라이프 리포트</span>
-                {activeTab === 'ai' && (
+                <Stethoscope className={`w-4.5 h-4.5 transition-transform ${activeTab === 'care' ? 'scale-105' : ''}`} />
+                <span>케어 및 관리</span>
+                {activeTab === 'care' && (
                   <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-main-green rounded-t-full animate-in fade-in duration-200" />
                 )}
               </button>
+
+              {isAll && (
+                <button
+                  onClick={() => setActiveTab('ai')}
+                  className={`relative pb-3 text-[15.5px] font-black cursor-pointer transition-all duration-200 outline-none flex items-center gap-2 select-none ${
+                    activeTab === 'ai'
+                      ? 'text-main-green'
+                      : 'text-text-sub hover:text-text-main'
+                  }`}
+                >
+                  <Sparkles className={`w-4.5 h-4.5 transition-all ${activeTab === 'ai' ? 'text-main-yellow fill-main-yellow scale-105' : ''}`} />
+                  <span>AI 라이프 리포트</span>
+                  {activeTab === 'ai' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-main-green rounded-t-full animate-in fade-in duration-200" />
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* AI 탭일 때만 월 네비게이터 노출 */}
+            {activeTab === 'ai' && (
+              <div className="pb-2">
+                <MonthNavigator />
+              </div>
             )}
           </div>
 
@@ -1307,36 +1320,56 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-6 animate-in fade-in duration-300">
-            {/* AI 분석 타이틀 + 월 네비게이터 */}
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-lg font-black text-text-main flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-main-yellow fill-main-yellow" /> AI 분석 리포트
-              </h2>
-              <MonthNavigator />
-            </div>
-
             {aiLoading ? (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-8 bg-deep-green rounded-[40px] p-8 space-y-4 min-h-[330px]">
-                  <Skeleton className="h-6 w-40 bg-white/20" />
-                  <Skeleton className="h-4 w-full bg-white/20" />
-                  <Skeleton className="h-4 w-5/6 bg-white/20" />
-                </div>
-                <div className="lg:col-span-4 bg-background rounded-[32px] border border-border p-6 space-y-4 min-h-[330px] flex flex-col justify-between">
-                  <Skeleton className="h-5 w-32" />
-                  <div className="grid grid-cols-2 gap-3 flex-1 mt-4">
-                    <Skeleton className="aspect-square rounded-2xl" />
-                    <Skeleton className="aspect-square rounded-2xl" />
+              <div className="flex flex-col gap-6">
+                {/* 첫째 줄 스켈레톤: 리포트 개요 (8열) + 베스트 포토 (4열) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  <div className="lg:col-span-8 bg-deep-green rounded-[40px] p-8 space-y-4 min-h-[350px] flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <Skeleton className="h-6 w-40 bg-white/20" />
+                      <Skeleton className="h-4 w-full bg-white/20" />
+                      <Skeleton className="h-4 w-5/6 bg-white/20" />
+                    </div>
+                  </div>
+                  <div className="lg:col-span-4 bg-background rounded-[32px] border border-border p-6 lg:p-8 space-y-4 min-h-[350px] flex flex-col justify-between">
+                    <Skeleton className="h-5 w-32" />
+                    <div className="grid grid-cols-2 gap-3 flex-1 mt-4">
+                      <Skeleton className="aspect-square rounded-2xl w-full" />
+                      <Skeleton className="aspect-square rounded-2xl w-full" />
+                      <Skeleton className="aspect-square rounded-2xl w-full" />
+                      <Skeleton className="aspect-square rounded-2xl w-full" />
+                    </div>
                   </div>
                 </div>
-                <div className="lg:col-span-4 bg-background rounded-[32px] border border-border p-6 space-y-4 h-48">
-                  <Skeleton className="h-5 w-32" /><Skeleton className="h-20 w-full" />
-                </div>
-                <div className="lg:col-span-4 bg-background rounded-[32px] border border-border p-6 space-y-4 h-48">
-                  <Skeleton className="h-5 w-32" /><Skeleton className="h-20 w-full" />
-                </div>
-                <div className="lg:col-span-4 bg-background rounded-[32px] border border-border p-6 space-y-4 h-48">
-                  <Skeleton className="h-5 w-32" /><Skeleton className="h-20 w-full" />
+
+                {/* 둘째 줄 스켈레톤: 좌측 2행 (활동 에너지, 장소 흐름) + 우측 (자주 가는 곳) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  {/* 좌측 스켈레톤: 활동 에너지와 장소 흐름을 세로 배치 (8열) */}
+                  <div className="lg:col-span-8 flex flex-col gap-6">
+                    <div className="bg-background rounded-[32px] border border-border p-6 space-y-4 h-52 flex flex-col justify-between">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                    <div className="bg-background rounded-[32px] border border-border p-6 space-y-4 h-52 flex flex-col justify-between">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  </div>
+                  {/* 우측 스켈레톤: 자주 가는 곳 (4열) */}
+                  <div className="lg:col-span-4 flex">
+                    <div className="bg-background rounded-[32px] border border-border p-6 lg:p-8 space-y-4 w-full h-full flex flex-col justify-between">
+                      <div>
+                        <Skeleton className="h-5 w-32" />
+                        <div className="space-y-3 mt-6">
+                          <Skeleton className="h-10 w-full" />
+                          <Skeleton className="h-10 w-full" />
+                          <Skeleton className="h-10 w-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : !aiReport?.hasData ? (
@@ -1353,33 +1386,29 @@ export default function DashboardPage() {
                 {/* 첫째 줄: 리포트 개요 (8열) + 베스트 포토 (4열) */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                   <div className="lg:col-span-8 flex">
-                    <div className="w-full flex flex-col">
-                      <AiMonthlyReportCard onRefresh={handleRefresh} refreshing={aiRefreshing} />
-                    </div>
+                    <AiMonthlyReportCard onRefresh={handleRefresh} refreshing={aiRefreshing} />
                   </div>
                   <div className="lg:col-span-4 flex">
-                    <div className="w-full bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 flex flex-col justify-between min-h-[330px] lg:h-[330px]">
+                    <div className="w-full bg-background rounded-[32px] border border-border shadow-sm p-6 lg:p-8 flex flex-col justify-between min-h-[350px]">
                       <BestPhotosStrip />
                     </div>
                   </div>
                 </div>
 
-                {/* 둘째 줄: 활동 에너지 (4열) + 장소 흐름 (4열) + 자주 가는 곳 (4열) */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                  <div className="flex">
-                    <div className="w-full flex flex-col">
+                {/* 둘째 줄: 좌측 2행 (활동 에너지, 장소 흐름) + 우측 (자주 가는 곳) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  {/* 좌측: 활동 에너지와 장소 흐름을 세로로 배치 (8열) */}
+                  <div className="lg:col-span-8 flex flex-col gap-6">
+                    <div className="flex-1 flex">
                       <AiActivityCard />
                     </div>
-                  </div>
-                  <div className="flex">
-                    <div className="w-full flex flex-col">
+                    <div className="flex-1 flex">
                       <AiLocationCard />
                     </div>
                   </div>
-                  <div className="flex">
-                    <div className="w-full flex flex-col">
-                      <FavoritePlacesCard />
-                    </div>
+                  {/* 우측: 자주 가는 곳을 세로 높이에 맞춰 배치 (4열) */}
+                  <div className="lg:col-span-4 flex">
+                    <FavoritePlacesCard />
                   </div>
                 </div>
               </div>
