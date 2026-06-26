@@ -18,12 +18,12 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
 
   // 카테고리명 변환을 위한 훅 (ID 기반 조회 헬퍼 포함)
   const { getCodeNameById } = useCommonCodes('EXPENSE_CATEGORY');
-  
+
   const rawRecord = record as any;
-  const getField = (camelField: string, snakeField: string) => 
-    rawRecord[camelField] ?? 
-    rawRecord[snakeField] ?? 
-    rawRecord.medicalDetails?.[camelField] ?? 
+  const getField = (camelField: string, snakeField: string) =>
+    rawRecord[camelField] ??
+    rawRecord[snakeField] ??
+    rawRecord.medicalDetails?.[camelField] ??
     rawRecord.medical_details?.[snakeField] ??
     rawRecord.medicalDetails?.[snakeField] ??
     rawRecord.medical_details?.[camelField] ??
@@ -32,7 +32,7 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
 
   const medDays = Number(getField('medicationDays', 'medication_days') || 0);
   const medStart = getField('medicationStartDate', 'medication_start_date');
-  
+
   const relatedMedical = record.relatedMedicalRecord || rawRecord.related_medical_record || rawRecord.expenseDetails?.relatedMedicalRecord || rawRecord.expense_details?.related_medical_record;
 
   let medStatus = record.medicationStatus;
@@ -45,7 +45,7 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
       medEndDateStr = format(medEndDate, 'yyyy-MM-dd');
       const completionDate = addDays(startDate, medDays);
       const today = startOfDay(new Date());
-      
+
       if (!isBefore(today, completionDate)) {
         medStatus = 'COMPLETED';
       } else {
@@ -54,7 +54,7 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
     } catch (e) {
       console.error('Date calculation error:', e);
     }
-  } 
+  }
 
   if (!medStatus || medStatus === 'NONE') {
     const isMedCompletedRaw = rawRecord.is_medication_completed ?? rawRecord.medicalDetails?.is_medication_completed ?? rawRecord.medical_details?.is_medication_completed;
@@ -71,9 +71,9 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
 
   return (
     <div className="flex flex-col gap-5">
-      
+
       <div className={`flex flex-col md:grid lg:flex lg:flex-col gap-4 ${isMedical ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
-        
+
         {record.amount !== undefined && record.amount !== null && (
           <div className="bg-gradient-to-br from-main-green to-deep-green text-white rounded-3xl p-6 shadow-lg shadow-main-green/20 relative overflow-hidden flex flex-col justify-between min-h-[135px] group hover:scale-[1.02] transition-transform duration-300">
             <div className="absolute right-[-10px] top-[-10px] w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
@@ -116,7 +116,7 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
       </div>
 
       {relatedMedical && (
-        <div 
+        <div
           onClick={() => router.push(`/care-records/${relatedMedical.id}`)}
           className="group bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-xs border border-border cursor-pointer hover:border-main-green/30 hover:shadow-md hover:shadow-main-green/5 transition-all duration-300"
         >
@@ -139,8 +139,8 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
 
       {isMedical && medStatus && medStatus !== 'NONE' && (medStart || medDays > 0) && (
         <div className={`rounded-3xl p-6 flex flex-col gap-4 border shadow-xs transition-all duration-300
-          ${medStatus === 'ACTIVE' 
-            ? 'bg-main-green/5 dark:bg-zinc-900/50 border-main-green/20' 
+          ${medStatus === 'ACTIVE'
+            ? 'bg-main-green/5 dark:bg-zinc-900/50 border-main-green/20'
             : 'bg-zinc-50 dark:bg-zinc-900 border-border'}
         `}>
           <div className="flex items-center justify-between">
@@ -151,7 +151,7 @@ export const CareRecordInfoSections: React.FC<CareRecordInfoSectionsProps> = ({ 
               {medStatus === 'ACTIVE' ? '복약 진행중' : '복약 완료'}
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-xs shrink-0 border
               ${medStatus === 'ACTIVE' ? 'bg-white dark:bg-zinc-800 text-main-green border-main-green/10' : 'bg-background dark:bg-zinc-900 text-text-sub border-border'}`}>

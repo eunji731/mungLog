@@ -19,7 +19,7 @@ export const useCareRecordDetail = (id: string | undefined) => {
     try {
       const recordData = await careApi.getRecordDetail(id);
       console.log('[DEBUG] Loaded Care Record Detail:', recordData);
-      
+
       // Fallback: If relatedMedicalRecordId is present but relatedMedicalRecord is null/undefined, fetch it.
       if (recordData.relatedMedicalRecordId && !recordData.relatedMedicalRecord) {
         console.log('[DEBUG] Fallback fetching related medical record for ID:', recordData.relatedMedicalRecordId);

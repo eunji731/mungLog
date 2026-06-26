@@ -10,7 +10,7 @@ interface CareRecordSummaryProps {
 export const CareRecordSummary: React.FC<CareRecordSummaryProps> = ({ record }) => {
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
   const { getCodeName: getCategoryName } = useCommonCodes('EXPENSE_CATEGORY');
-  
+
   let recordTypeCode = String((record as any).recordType || '');
   if (record.recordTypeId) {
     recordTypeCode = recordTypes.find(t => t.id === record.recordTypeId)?.code || recordTypeCode;
@@ -20,7 +20,7 @@ export const CareRecordSummary: React.FC<CareRecordSummaryProps> = ({ record }) 
   return (
     <Card className="p-8 lg:p-10 mb-10 overflow-hidden border-none ring-1 ring-[#F0F0F0] shadow-[0_20px_60px_rgba(0,0,0,0.02)]">
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-10">
-        
+
         {/* Dog Information */}
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 rounded-[28px] overflow-hidden bg-stone-50 border-2 border-white shadow-md ring-1 ring-stone-100 shrink-0 flex items-center justify-center">

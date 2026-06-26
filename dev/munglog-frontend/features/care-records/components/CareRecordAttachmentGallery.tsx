@@ -37,17 +37,17 @@ export const CareRecordAttachmentGallery: React.FC<CareRecordAttachmentGalleryPr
           const extension = getFileExtension(file.fileUrl);
 
           return (
-            <div 
+            <div
               key={file.id}
               onClick={() => handleFileClick(file)}
               className="flex flex-col gap-2 group cursor-pointer"
             >
               <div className="aspect-square rounded-[20px] overflow-hidden border border-border bg-surface-green/50 dark:bg-zinc-800 transition-all hover:border-main-green/30 hover:shadow-xl hover:shadow-main-green/5 focus:outline-none relative">
                 {isImage ? (
-                  <img 
-                    src={getImagePath(file.fileUrl)} 
-                    alt={file.originalFileName} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  <img
+                    src={getImagePath(file.fileUrl)}
+                    alt={file.originalFileName}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
@@ -58,8 +58,8 @@ export const CareRecordAttachmentGallery: React.FC<CareRecordAttachmentGalleryPr
                   </div>
                 )}
               </div>
-              <span 
-                className="text-[11px] font-bold text-text-sub text-center truncate px-1 group-hover:text-main-green transition-colors" 
+              <span
+                className="text-[11px] font-bold text-text-sub text-center truncate px-1 group-hover:text-main-green transition-colors"
                 title={file.originalFileName}
               >
                 {file.originalFileName}
@@ -71,27 +71,27 @@ export const CareRecordAttachmentGallery: React.FC<CareRecordAttachmentGalleryPr
 
       {/* Image Viewer Modal */}
       {selectedFile && (
-        <div 
+        <div
           className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-xl animate-in fade-in duration-300"
           onClick={() => setSelectedFile(null)}
         >
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
-            <button 
+            <button
               className="absolute -top-16 right-0 text-white/40 hover:text-white transition-colors text-3xl"
               onClick={() => setSelectedFile(null)}
             >
               ✕
             </button>
-            
-            <img 
-              src={getImagePath(selectedFile.fileUrl)} 
-              alt={selectedFile.originalFileName} 
+
+            <img
+              src={getImagePath(selectedFile.fileUrl)}
+              alt={selectedFile.originalFileName}
               className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl"
             />
-            
+
             <div className="mt-8 flex flex-col items-center gap-2">
               <p className="text-white/80 text-[14px] font-black tracking-tight">{selectedFile.originalFileName}</p>
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   downloadFile(getImagePath(selectedFile.fileUrl), selectedFile.originalFileName);
@@ -107,4 +107,3 @@ export const CareRecordAttachmentGallery: React.FC<CareRecordAttachmentGalleryPr
     </section>
   );
 };
-

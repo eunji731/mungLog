@@ -3,10 +3,10 @@ import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useToast } from '@/context/ToastContext';
-import { useCareRecordDetail } from './hooks/useCareRecordDetail';
-import { CareRecordDetailHeader } from './components/CareRecordDetailHeader';
-import { CareRecordInfoSections } from './components/CareRecordInfoSections';
-import { CareRecordAttachmentGallery } from './components/CareRecordAttachmentGallery';
+import { useCareRecordDetail } from '../hooks/useCareRecordDetail';
+import { CareRecordDetailHeader } from '../components/CareRecordDetailHeader';
+import { CareRecordInfoSections } from '../components/CareRecordInfoSections';
+import { CareRecordAttachmentGallery } from '../components/CareRecordAttachmentGallery';
 import { careApi } from '@/api/careApi';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { FileText, Edit3, Trash2, ArrowLeft } from 'lucide-react';
@@ -104,7 +104,7 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
                       const raw = record as any;
                       const symptoms = raw.symptoms || raw.medicalDetails?.symptoms || raw.medical_details?.symptoms || '';
                       const treatment = raw.treatment || raw.medicalDetails?.treatment || raw.medical_details?.treatment || '';
-                      
+
                       let docContent = `[멍로그 케어 기록]\n`;
                       docContent += `제목: ${record.title}\n`;
                       docContent += `날짜: ${record.recordDate}\n`;
@@ -113,7 +113,7 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
                       if (record.clinicName) docContent += `방문 병원: ${record.clinicName}\n`;
                       if (record.amount !== undefined && record.amount !== null) docContent += `지출 비용: ${record.amount.toLocaleString()}원\n`;
                       if (record.diagnosis) docContent += `진단명: ${record.diagnosis}\n`;
-                      
+
                       if (symptoms.trim()) {
                         docContent += `\n[발현 증상]\n${symptoms}\n`;
                       }
@@ -123,7 +123,7 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
                       if (record.note && record.note.trim()) {
                         docContent += `\n[보호자 작성 노트]\n${record.note}\n`;
                       }
-                      
+
                       const blob = new Blob([docContent], { type: 'text/plain;charset=utf-8' });
                       const blobUrl = URL.createObjectURL(blob);
                       const link = document.createElement('a');
@@ -147,8 +147,8 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
                   {record.symptomTags && record.symptomTags.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
                       {record.symptomTags.map((tag: string) => (
-                        <span 
-                          key={tag} 
+                        <span
+                          key={tag}
                           className="px-3.5 py-1.5 rounded-full bg-red-500/10 dark:bg-red-500/20 text-red-500 text-[11px] font-black border border-red-200/30 flex items-center gap-1.5 animate-in zoom-in-95 duration-300 shadow-xs"
                         >
                           <span className="opacity-70 text-[9px]">#</span>
@@ -163,7 +163,7 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
                     const raw = record as any;
                     const symptoms = raw.symptoms || raw.medicalDetails?.symptoms || raw.medical_details?.symptoms;
                     if (!symptoms || symptoms.trim() === '') return null;
-                    
+
                     return (
                       <div className="bg-red-500/5 dark:bg-red-950/15 border border-red-500/10 p-5 rounded-2xl space-y-2.5 transition-all duration-300">
                         <h4 className="flex items-center gap-2 text-[11px] font-black text-red-500 uppercase tracking-widest">
@@ -233,21 +233,21 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
 
               {/* Action Buttons */}
               <div className="pt-6 flex items-center justify-between gap-3 border-t border-border flex-wrap">
-                <button 
+                <button
                   onClick={() => router.push('/care-records')}
                   className="px-6 h-[48px] rounded-full border border-border text-text-sub font-black text-[13px] hover:border-text-sub hover:text-text-main hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> 목록으로
                 </button>
-                
+
                 <div className="flex items-center gap-2.5">
-                  <button 
+                  <button
                     onClick={() => setIsDeleteModalOpen(true)}
                     className="px-5 h-[48px] rounded-full border border-border text-text-sub hover:text-red-500 hover:border-red-200/50 hover:bg-red-500/5 transition-all font-black text-[13px] active:scale-95 flex items-center gap-1.5 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> 삭제
                   </button>
-                  <button 
+                  <button
                     onClick={() => router.push(`/care-records/edit/${record.id}`)}
                     className="px-8 h-[48px] bg-main-green text-white rounded-full font-black text-[13px] shadow-md shadow-main-green/10 hover:shadow-lg hover:shadow-main-green/20 hover:bg-main-green/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >

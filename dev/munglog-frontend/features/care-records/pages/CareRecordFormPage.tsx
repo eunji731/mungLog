@@ -2,11 +2,11 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { Section } from '@/components/common/Section';
-import { MedicalForm } from './components/MedicalForm';
-import { ExpenseForm } from './components/ExpenseForm';
-import { CommonInfoForm } from './components/CommonInfoForm';
+import { MedicalForm } from '../components/MedicalForm';
+import { ExpenseForm } from '../components/ExpenseForm';
+import { CommonInfoForm } from '../components/CommonInfoForm';
 import { FileUploader } from '@/components/common/FileUploader';
-import { useCareRecordForm } from './hooks/useCareRecordForm';
+import { useCareRecordForm } from '../hooks/useCareRecordForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 
@@ -81,12 +81,12 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
       {/* Main Content Area with inner scroll */}
       <div className={`flex-1 overflow-y-auto no-scrollbar bg-surface-green/10 ${isEmbedded ? 'p-4 pt-1.5 space-y-3' : 'p-6 lg:p-8 space-y-6'}`}>
         <div className={`max-w-4xl mx-auto ${isEmbedded ? 'space-y-3' : 'space-y-6'}`}>
-          
+
           {/* 기록 종류 선택 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 mb-2 w-full">
             {recordTypes.map((type) => {
               const isActive = recordTypeId === type.id;
-              
+
               const getEmoji = (code: string) => {
                 switch (code) {
                   case 'HOSPITAL': return '🏥';
@@ -125,11 +125,11 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
             {isMedicalSelected ? (
               <MedicalForm data={medicalData} onChange={setMedicalData} />
             ) : (
-              <ExpenseForm 
-                data={expenseData} 
+              <ExpenseForm
+                data={expenseData}
                 dogId={commonData.dogId}
                 onDogChange={(id) => setCommonData(prev => ({ ...prev, dogId: id }))}
-                onChange={setExpenseData} 
+                onChange={setExpenseData}
               />
             )}
           </div>
@@ -137,7 +137,7 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
           {/* 첨부 파일 */}
           <Section title="첨부 파일" description="사진이나 영수증을 첨부하세요.">
             <div className="pt-2">
-              <FileUploader 
+              <FileUploader
                 variant="grid"
                 mode="multiple"
                 maxCount={10}
@@ -150,9 +150,9 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
           </Section>
 
           <div className="pt-6 flex justify-center border-t border-border">
-            <Button 
-              size="md" 
-              onClick={handleSave} 
+            <Button
+              size="md"
+              onClick={handleSave}
               disabled={isLoading}
               className="w-full max-w-sm h-[48px] text-[14px] font-black rounded-2xl"
             >

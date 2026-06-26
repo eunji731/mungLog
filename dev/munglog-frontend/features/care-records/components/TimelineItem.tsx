@@ -82,10 +82,10 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
     router.push(`/care-records/${record.id}`);
   };
 
-  const getField = (camelField: string, snakeField: string) => 
-    rawRecord[camelField] ?? 
-    rawRecord[snakeField] ?? 
-    rawRecord.medicalDetails?.[camelField] ?? 
+  const getField = (camelField: string, snakeField: string) =>
+    rawRecord[camelField] ??
+    rawRecord[snakeField] ??
+    rawRecord.medicalDetails?.[camelField] ??
     rawRecord.medical_details?.[snakeField] ??
     rawRecord.medicalDetails?.[snakeField] ??
     rawRecord.medical_details?.[camelField];
@@ -93,7 +93,7 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
   const medDays = medInfo ? medInfo.medDays : Number(getField('medicationDays', 'medication_days') || 0);
   const medStart = medInfo ? medInfo.medStart : getField('medicationStartDate', 'medication_start_date');
   const isMedCompletedRaw = getField('isMedicationCompleted', 'is_medication_completed');
-  
+
   let medStatus = medInfo ? medInfo.medStatus : (record.medicationStatus || (isMedCompletedRaw === true ? 'COMPLETED' : (isMedCompletedRaw === false ? 'ACTIVE' : undefined)));
   let medEndDateStr = '';
 
@@ -104,7 +104,7 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
       medEndDateStr = format(medEndDate, 'yyyy-MM-dd');
       const completionDate = addDays(startDate, medDays);
       const today = startOfDay(new Date());
-      
+
       if (!isBefore(today, completionDate)) {
         medStatus = 'COMPLETED';
       } else {
@@ -127,20 +127,17 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
   const matchedDog = pets.find(p => String(p.id) === String(record.dogId || record.petId));
   const dogProfileUrl = matchedDog?.photo || record.dogProfileImageUrl;
 
-  // 카드의 하단부분 변경을 위한 앵커 표시용 라인 매칭
-  const testVal = 0;
-
   return (
     <div className="group flex gap-4 md:gap-8 lg:gap-10 items-stretch relative">
-      
+
       <div className="flex flex-col items-center flex-shrink-0 pt-6 relative z-10 w-4 md:w-6">
-        <div className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[3px] border-background shadow-md transition-all duration-500 group-hover:scale-125 
-          ${isMedical ? 'bg-main-green' : 'bg-main-yellow'}`} 
+        <div className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-[3px] border-background shadow-md transition-all duration-500 group-hover:scale-125
+          ${isMedical ? 'bg-main-green' : 'bg-main-yellow'}`}
         />
         <div className="w-px h-full min-h-[60px] bg-border mt-4 group-last:hidden opacity-60" />
       </div>
 
-      <Card 
+      <Card
         onClick={handleCardClick}
         className="flex-grow p-5 md:p-6 lg:p-7 mb-6 group-last:mb-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-main-green/5 border-border cursor-pointer overflow-hidden relative"
       >
@@ -158,7 +155,7 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
           {record.amount !== undefined && record.amount !== null && (
             <div className="text-right hidden sm:block">
               <span className="text-[18px] md:text-[22px] font-black text-foreground tabular-nums tracking-tighter">
-                {record.amount.toLocaleString()} 
+                {record.amount.toLocaleString()}
                 <span className="text-[13px] ml-0.5 text-text-sub font-bold tracking-normal">원</span>
               </span>
             </div>
@@ -172,7 +169,7 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
         {linkedSnap && (
           <div className="mb-5 p-3.5 bg-amber-500/5 border border-amber-100 rounded-2xl flex gap-3 items-start animate-in fade-in duration-300">
             {linkedSnap.photoUrl && (
-              <div 
+              <div
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsViewingPhoto(true);
@@ -200,7 +197,7 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
         )}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border">
-          
+
           <div className="flex flex-wrap items-center gap-3 md:gap-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-surface-green border border-border shrink-0 flex items-center justify-center">
@@ -224,10 +221,10 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
 
               {isMedical && hasMedication && (
                 <span className={`text-[11px] font-black border px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm
-                  ${medStatus === 'ACTIVE' 
-                    ? 'text-main-green bg-main-green/5 border-main-green/20' 
+                  ${medStatus === 'ACTIVE'
+                    ? 'text-main-green bg-main-green/5 border-main-green/20'
                     : 'text-emerald-600 bg-emerald-500/5 border-emerald-500/20'}`}>
-                  <span className="text-[12px]">💊</span> 
+                  <span className="text-[12px]">💊</span>
                   {medStatus === 'ACTIVE' ? '복약중' : '복약완료'}
                   {medEndDateStr && <span className="opacity-60 font-bold ml-0.5">~{medEndDateStr}</span>}
                 </span>
@@ -263,14 +260,14 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
       </Card>
 
       {isViewingPhoto && linkedSnap && typeof window !== 'undefined' && createPortal(
-        <div 
+        <div
           className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
           onClick={(e) => {
             e.stopPropagation();
             setIsViewingPhoto(false);
           }}
         >
-          <div 
+          <div
             className="bg-background w-full max-w-lg rounded-[32px] border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
@@ -290,15 +287,15 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
 
             <div className="p-6 space-y-6 overflow-y-auto flex-1 no-scrollbar pb-10">
               {/* Photo */}
-              <div 
+              <div
                 onClick={() => setFullscreenPhoto(linkedSnap.photoUrl)}
                 className="relative rounded-2xl overflow-hidden border border-border bg-stone-950/5 flex items-center justify-center max-h-[320px] min-h-[180px] w-full cursor-zoom-in hover:opacity-90 transition-opacity"
                 title="사진 클릭하여 확대"
               >
-                <img 
-                  src={linkedSnap.photoUrl} 
-                  alt="Symptom" 
-                  className="max-h-[320px] max-w-full w-auto h-auto object-contain" 
+                <img
+                  src={linkedSnap.photoUrl}
+                  alt="Symptom"
+                  className="max-h-[320px] max-w-full w-auto h-auto object-contain"
                 />
 
                 <button
@@ -340,26 +337,26 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
 
       {/* Fullscreen Photo Modal */}
       {fullscreenPhoto && typeof window !== 'undefined' && createPortal(
-        <div 
+        <div
           className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-xl animate-in fade-in duration-300"
           onClick={() => setFullscreenPhoto(null)}
         >
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
-            <button 
+            <button
               className="absolute -top-16 right-0 text-white/40 hover:text-white transition-colors text-3xl cursor-pointer"
               onClick={() => setFullscreenPhoto(null)}
             >
               ✕
             </button>
-            
-            <img 
-              src={fullscreenPhoto} 
-              alt="Enlarged view" 
+
+            <img
+              src={fullscreenPhoto}
+              alt="Enlarged view"
               className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl"
             />
-            
+
             <div className="mt-8">
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   downloadFile(fullscreenPhoto, 'linked_symptom_enlarged.png');
@@ -377,4 +374,3 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
     </div>
   );
 };
-

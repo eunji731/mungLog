@@ -5,7 +5,7 @@ import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useScheduleDetail } from './hooks/useScheduleDetail';
 import { ScheduleDetailHeader } from './components/ScheduleDetailHeader';
 import { ScheduleDetailInfo } from './components/ScheduleDetailInfo';
-import { CareRecordAttachmentGallery } from '@/pages/CareRecords/Detail/components/CareRecordAttachmentGallery';
+import { CareRecordAttachmentGallery } from '@/features/care-records/components/CareRecordAttachmentGallery';
 import { scheduleApi } from '@/api/scheduleApi';
 import { useToast } from '@/context/ToastContext';
 import { CheckCircle2, Circle } from 'lucide-react';

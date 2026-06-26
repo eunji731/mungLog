@@ -6,9 +6,9 @@ import { Button } from '@/components/common/Button';
 import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
-import { useCareRecords } from './hooks/useCareRecords';
-import { TimelineItem } from './components/TimelineItem';
-import SymptomSnapboard from './components/SymptomSnapboard';
+import { useCareRecords } from '../hooks/useCareRecords';
+import { TimelineItem } from '../components/TimelineItem';
+import SymptomSnapboard from '../components/SymptomSnapboard';
 
 interface CareRecordListPageProps {
   showHeader?: boolean;

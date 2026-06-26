@@ -36,26 +36,26 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
   const selectedDog = dogs.find(d => String(d.id) === String(data.dogId));
 
   return (
-    <Section 
-      title="기본 정보" 
+    <Section
+      title="기본 정보"
       description="어떤 아이의 어떤 날 기록인가요?"
       variant={isEmbedded ? 'flat' : 'default'}
       overflowVisible={true}
     >
       <div className={`grid grid-cols-1 md:grid-cols-2 ${isEmbedded ? 'gap-3 mb-3' : 'gap-6 mb-6'}`}>
-        
+
         {/* Custom Cute Dog Dropdown */}
         <div className="w-full space-y-2 text-left relative animate-in fade-in duration-300" ref={dropdownRef}>
           <label className="text-[13px] font-black text-text-sub uppercase tracking-wider ml-1">
             반려견 *
           </label>
-          
+
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
             className={`w-full px-4 py-3 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
-              isOpen 
-                ? 'border-main-green ring-4 ring-main-green/5' 
+              isOpen
+                ? 'border-main-green ring-4 ring-main-green/5'
                 : 'border-border hover:border-main-green/30'
             }`}
           >
@@ -103,8 +103,8 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
                         setIsOpen(false);
                       }}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all ${
-                        isCurrent 
-                          ? 'bg-main-green text-white font-black' 
+                        isCurrent
+                          ? 'bg-main-green text-white font-black'
                           : 'hover:bg-surface-green/45 text-text-main hover:text-main-green hover:translate-x-1'
                       }`}
                     >
@@ -136,25 +136,25 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
           )}
         </div>
 
-        <TimelineDatePicker 
-          label="기록일 *" 
+        <TimelineDatePicker
+          label="기록일 *"
           variant="form"
-          value={data.recordDate} 
-          onChange={(date) => onChange({ ...data, recordDate: date })} 
+          value={data.recordDate}
+          onChange={(date) => onChange({ ...data, recordDate: date })}
         />
       </div>
       <div className={isEmbedded ? 'space-y-3' : 'space-y-6'}>
-        <Input 
-          label="제목 *" 
-          placeholder="오늘의 주요 활동이나 병원 방문 목적" 
-          value={data.title} 
-          onChange={(e) => onChange({ ...data, title: e.target.value })} 
+        <Input
+          label="제목 *"
+          placeholder="오늘의 주요 활동이나 병원 방문 목적"
+          value={data.title}
+          onChange={(e) => onChange({ ...data, title: e.target.value })}
         />
-        <Textarea 
-          label="공통 메모" 
-          placeholder="추가적으로 남기고 싶은 내용을 자유롭게 적어주세요." 
-          value={data.note} 
-          onChange={(e) => onChange({ ...data, note: e.target.value })} 
+        <Textarea
+          label="공통 메모"
+          placeholder="추가적으로 남기고 싶은 내용을 자유롭게 적어주세요."
+          value={data.note}
+          onChange={(e) => onChange({ ...data, note: e.target.value })}
         />
       </div>
     </Section>

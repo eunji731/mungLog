@@ -39,11 +39,11 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-300"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-background w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300 border border-border"
         onClick={(e) => e.stopPropagation()}
       >
@@ -71,7 +71,7 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
             </div>
 
             <div className="relative group">
-              <input 
+              <input
                 type="text"
                 placeholder="병원/진단명 검색..."
                 value={inputValue}
@@ -87,7 +87,7 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
         <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar min-h-[300px]">
           {candidates.length > 0 ? (
             candidates.map((record) => (
-              <div 
+              <div
                 key={record.id}
                 onClick={() => {
                   onSelect(record);

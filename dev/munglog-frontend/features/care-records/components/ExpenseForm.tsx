@@ -26,7 +26,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ data, dogId, onDogChan
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRecordInfo, setSelectedRecordInfo] = useState<any>(null);
-  
+
   const { codes: categories } = useCommonCodes('EXPENSE_CATEGORY');
   const debounceTimerRef = useRef<number | null>(null);
 
@@ -65,7 +65,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ data, dogId, onDogChan
       // 1. 서버에서 받은 원본 객체 정보가 있다면 우선 사용
       if (data.relatedMedicalRecord) {
         setSelectedRecordInfo(data.relatedMedicalRecord);
-      } 
+      }
       // 2. 후보군 리스트에서 찾기 (새로 선택했을 때 대응)
       else if (medicalCandidates.length > 0) {
         const found = medicalCandidates.find(m => m.id.toString() === data.relatedMedicalRecordId?.toString());
@@ -78,20 +78,20 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ data, dogId, onDogChan
 
   const handleSelectRecord = (record: CareRecord) => {
     // 새로 선택 시 객체 정보와 ID를 동시에 업데이트
-    onChange({ 
-      ...data, 
+    onChange({
+      ...data,
       relatedMedicalRecordId: record.id,
-      relatedMedicalRecord: record 
+      relatedMedicalRecord: record
     });
     setSelectedRecordInfo(record);
   };
 
   const handleDogChangeInModal = (newDogId: string) => {
     if (onDogChange) onDogChange(newDogId);
-    onChange({ 
-      ...data, 
+    onChange({
+      ...data,
       relatedMedicalRecordId: null,
-      relatedMedicalRecord: null 
+      relatedMedicalRecord: null
     });
   };
 
@@ -99,28 +99,28 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ data, dogId, onDogChan
     <div className="space-y-6">
       <Section title="지출 정보" description="얼마를 어디에 사용하셨나요?">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <Select 
-            label="카테고리 *" 
-            options={categoryOptions} 
-            value={data.categoryCode?.toString()} 
-            onChange={(e) => onChange({ ...data, categoryCode: Number(e.target.value) })} 
+          <Select
+            label="카테고리 *"
+            options={categoryOptions}
+            value={data.categoryCode?.toString()}
+            onChange={(e) => onChange({ ...data, categoryCode: Number(e.target.value) })}
           />
           <div className="relative">
-            <Input 
-              label="금액 *" 
-              type="number" 
-              placeholder="0" 
-              value={data.amount} 
-              onChange={(e) => onChange({ ...data, amount: e.target.value })} 
+            <Input
+              label="금액 *"
+              type="number"
+              placeholder="0"
+              value={data.amount}
+              onChange={(e) => onChange({ ...data, amount: e.target.value })}
             />
             <span className="absolute right-5 bottom-4 text-[13px] font-black text-stone-300 uppercase">원</span>
           </div>
         </div>
-        <Textarea 
-          label="지출 메모" 
-          placeholder="지출과 관련된 세부 내용을 기록하세요." 
-          value={data.memo} 
-          onChange={(e) => onChange({ ...data, memo: e.target.value })} 
+        <Textarea
+          label="지출 메모"
+          placeholder="지출과 관련된 세부 내용을 기록하세요."
+          value={data.memo}
+          onChange={(e) => onChange({ ...data, memo: e.target.value })}
         />
       </Section>
 
@@ -153,7 +153,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ data, dogId, onDogChan
         </div>
       </Section>
 
-      <RelatedMedicalRecordModal 
+      <RelatedMedicalRecordModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         candidates={medicalCandidates}

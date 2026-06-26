@@ -142,8 +142,8 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
                     data-selected={isSelected}
                     onClick={() => handleTimeSelect(h, currentMinute)}
                     className={`w-full py-2 rounded-xl text-xs font-black transition-all flex justify-center shrink-0 ${
-                      isSelected 
-                        ? 'bg-main-yellow text-white shadow-md shadow-main-yellow/20' 
+                      isSelected
+                        ? 'bg-main-yellow text-white shadow-md shadow-main-yellow/20'
                         : 'text-text-main hover:bg-main-yellow/10'
                     }`}
                   >
@@ -175,8 +175,8 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
                     data-selected={isSelected}
                     onClick={() => handleTimeSelect(currentHour, m)}
                     className={`w-full py-2 rounded-xl text-xs font-black transition-all flex justify-center shrink-0 ${
-                      isSelected 
-                        ? 'bg-main-green text-white shadow-md shadow-main-green/20' 
+                      isSelected
+                        ? 'bg-main-green text-white shadow-md shadow-main-green/20'
                         : 'text-text-main hover:bg-main-green/10'
                     }`}
                   >
@@ -210,8 +210,8 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
               setIsOpen(!isOpen);
             }}
             className={`w-full px-5 py-3.5 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
-              isOpen 
-                ? 'border-main-green ring-4 ring-main-green/5' 
+              isOpen
+                ? 'border-main-green ring-4 ring-main-green/5'
                 : 'border-border hover:border-main-green/30'
             }`}
           >
@@ -300,7 +300,7 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
 
           {/* DESKTOP VERSION: Rendered via Portal to avoid overflow clipping */}
           {mounted && coords && createPortal(
-            <div 
+            <div
               ref={pickerRef}
               className="hidden lg:block fixed z-[1000] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[280px] animate-in zoom-in-95 duration-200"
               style={getDesktopStyle()}

@@ -40,7 +40,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   const { confirm } = useConfirm();
   const [snaps, setSnaps] = useState<SymptomSnap[]>([]);
   const [mounted, setMounted] = useState(false);
-  
+
   // 필터 관련 상태
   const [period, setPeriod] = useState<'ALL' | 'TODAY' | 'WEEK' | 'MONTH' | 'CUSTOM'>('ALL');
   const [customStartDate, setCustomStartDate] = useState<Date | null>(null);
@@ -301,7 +301,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   const todayStart = startOfDay(new Date());
   filteredSnaps = filteredSnaps.filter(s => {
     const snapDate = parseISO(s.date);
-    
+
     if (period === 'TODAY') {
       return s.date === format(new Date(), 'yyyy-MM-dd');
     }
@@ -379,8 +379,8 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={`px-3 py-1.5 text-[10px] font-black rounded-lg transition-all ${
-                  isActive 
-                    ? 'bg-main-green/10 text-main-green border border-main-green/20' 
+                  isActive
+                    ? 'bg-main-green/10 text-main-green border border-main-green/20'
                     : 'bg-surface-green/50 text-text-sub border border-transparent hover:text-main-green'
                 }`}
               >
@@ -513,7 +513,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                 {/* Memo & Photo */}
                 <div className="flex gap-3 mb-3">
                   {snap.photoUrl && (
-                    <div 
+                    <div
                       onClick={() => setViewingSnap(snap)}
                       className="w-14 h-14 rounded-lg overflow-hidden border border-border shrink-0 bg-stone-100 relative cursor-pointer hover:opacity-85 hover:border-main-green/30 transition-all animate-in zoom-in-95 duration-200"
                       title="사진 클릭하여 확인/다운로드"
@@ -521,7 +521,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                       <img src={snap.photoUrl} alt={(snap.symptomTags || []).join(', ')} className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <p 
+                  <p
                     onClick={() => setViewingSnap(snap)}
                     className="text-xs font-bold text-text-main leading-relaxed flex-1 break-all cursor-pointer hover:text-main-green transition-colors"
                     title="기록 클릭하여 확인"
@@ -630,13 +630,13 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                   <label className="text-[10px] font-black text-text-sub ml-1">
                     대상 아이
                   </label>
-                  
+
                   <button
                     type="button"
                     onClick={() => setPetDropdownOpen(!petDropdownOpen)}
                     className={`w-full px-4 py-2.5 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
-                      petDropdownOpen 
-                        ? 'border-main-green ring-4 ring-main-green/5' 
+                      petDropdownOpen
+                        ? 'border-main-green ring-4 ring-main-green/5'
                         : 'border-border hover:border-main-green/30'
                     }`}
                   >
@@ -684,8 +684,8 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                                 setPetDropdownOpen(false);
                               }}
                               className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-left transition-all ${
-                                isCurrent 
-                                  ? 'bg-main-green text-white font-black' 
+                                isCurrent
+                                  ? 'bg-main-green text-white font-black'
                                   : 'hover:bg-surface-green/45 text-text-main hover:text-main-green hover:translate-x-1'
                               }`}
                             >
@@ -816,11 +816,11 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
 
       {/* View Snap Detail Modal */}
       {viewingSnap && mounted && createPortal(
-        <div 
+        <div
           className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
           onClick={() => setViewingSnap(null)}
         >
-          <div 
+          <div
             className="bg-background w-full max-w-lg rounded-[32px] border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
@@ -855,8 +855,8 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                   </div>
                 </div>
                 <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
-                  viewingSnap.status === 'MONITORING' 
-                    ? 'bg-amber-100 text-amber-800' 
+                  viewingSnap.status === 'MONITORING'
+                    ? 'bg-amber-100 text-amber-800'
                     : 'bg-emerald-100 text-emerald-800'
                 }`}>
                   {viewingSnap.status === 'MONITORING' ? '● 관찰 중' : '✓ 진료 연동됨'}
@@ -876,14 +876,14 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
               {viewingSnap.photoUrl && (
                 <div className="space-y-2">
                   <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">첨부된 사진 (클릭 시 확대)</span>
-                  <div 
+                  <div
                     onClick={() => setFullscreenPhoto(viewingSnap.photoUrl || null)}
                     className="relative rounded-2xl overflow-hidden border border-border bg-stone-950/5 flex items-center justify-center max-h-[320px] min-h-[180px] w-full cursor-zoom-in hover:opacity-90 transition-opacity"
                   >
-                    <img 
-                      src={viewingSnap.photoUrl} 
-                      alt="Symptom Snap" 
-                      className="max-h-[320px] max-w-full w-auto h-auto object-contain" 
+                    <img
+                      src={viewingSnap.photoUrl}
+                      alt="Symptom Snap"
+                      className="max-h-[320px] max-w-full w-auto h-auto object-contain"
                     />
 
                     <button
@@ -943,26 +943,26 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
 
       {/* Fullscreen Photo Modal */}
       {fullscreenPhoto && mounted && createPortal(
-        <div 
+        <div
           className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-xl animate-in fade-in duration-300"
           onClick={() => setFullscreenPhoto(null)}
         >
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
-            <button 
+            <button
               className="absolute -top-16 right-0 text-white/40 hover:text-white transition-colors text-3xl cursor-pointer"
               onClick={() => setFullscreenPhoto(null)}
             >
               ✕
             </button>
-            
-            <img 
-              src={fullscreenPhoto} 
-              alt="Enlarged view" 
+
+            <img
+              src={fullscreenPhoto}
+              alt="Enlarged view"
               className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl"
             />
-            
+
             <div className="mt-8">
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   downloadFile(fullscreenPhoto, 'symptom_snap_enlarged.png');
@@ -979,4 +979,3 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     </div>
   );
 }
-
