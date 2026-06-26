@@ -18,14 +18,14 @@ public record DashboardSummaryResponse(
     public record PetInfo(UUID id, String name, String profileImageUrl) {}
 
     @Builder
-    public record MonthlyStats(int memoryCount, int visitedPlaceCount, double avgEnergyLevel) {}
+    public record MonthlyStats(int recordedDays, int visitedPlaces, int bestPhotosCount) {}
 
     @Builder
-    public record BestPhotoItem(UUID photoId, String photoUrl, String memoryDate) {}
+    public record BestPhotoItem(UUID photoId, String photoPath, String memoryDate, Integer vibeScore, String aiComment) {}
 
     @Builder
-    public record FavoritePlaceItem(String locationName, long visitCount) {}
+    public record FavoritePlaceItem(String locationName, long count) {}
 
     @Builder
-    public record StreakInfo(int currentStreak, int longestStreak) {}
+    public record StreakInfo(int current, int longest) {}
 }

@@ -47,8 +47,10 @@ public class DashboardService {
                 .limit(5)
                 .map(p -> DashboardSummaryResponse.BestPhotoItem.builder()
                         .photoId(p.getId())
-                        .photoUrl(resolveUrl(p.getPathThumb300() != null ? p.getPathThumb300() : p.getPathOrigin()))
+                        .photoPath(resolveUrl(p.getPathThumb300() != null ? p.getPathThumb300() : p.getPathOrigin()))
                         .memoryDate(p.getMemory().getMemoryDate() != null ? p.getMemory().getMemoryDate().toString() : null)
+                        .vibeScore(p.getVibeScore())
+                        .aiComment(p.getAiComment())
                         .build())
                 .toList();
 
@@ -57,7 +59,7 @@ public class DashboardService {
                 .limit(5)
                 .map(row -> DashboardSummaryResponse.FavoritePlaceItem.builder()
                         .locationName((String) row[0])
-                        .visitCount(((Number) row[1]).longValue())
+                        .count(((Number) row[1]).longValue())
                         .build())
                 .toList();
 
@@ -74,14 +76,14 @@ public class DashboardService {
         return DashboardSummaryResponse.builder()
                 .pet(petInfo)
                 .monthlyStats(DashboardSummaryResponse.MonthlyStats.builder()
-                        .memoryCount((int) memoryCount)
-                        .visitedPlaceCount((int) visitedPlaceCount)
-                        .avgEnergyLevel(avgEnergy != null ? avgEnergy : 0.0)
+                        .recordedDays((int) memoryCount)
+                        .visitedPlaces((int) visitedPlaceCount)
+                        .bestPhotosCount(bestPhotoItems.size())
                         .build())
                 .bestPhotos(bestPhotoItems)
                 .favoritePlaces(favoritePlaces)
                 .streak(DashboardSummaryResponse.StreakInfo.builder()
-                        .currentStreak(currentStreak).longestStreak(longestStreak).build())
+                        .current(currentStreak).longest(longestStreak).build())
                 .build();
     }
 

@@ -93,8 +93,7 @@ export interface AiReport {
 function buildQuery(petId: string | null, year: number, month: number): string {
   const params = new URLSearchParams();
   if (petId) params.set('petId', petId);
-  params.set('year', String(year));
-  params.set('month', String(month));
+  params.set('yearMonth', `${year}-${String(month).padStart(2, '0')}`);
   return `?${params.toString()}`;
 }
 
@@ -172,7 +171,7 @@ export function useDashboard() {
       setAiReport(res.data);
       return 'ok';
     } catch (e: any) {
-      if (e?.response?.data?.errorCode === 'AI_DASHBOARD_REFRESH_LIMIT_EXCEEDED') {
+      if (e?.response?.data?.error?.code === 'AI_RATE_LIMIT') {
         return 'limit';
       }
       console.error('AI 리포트 재생성 실패:', e);
