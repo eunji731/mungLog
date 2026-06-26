@@ -16,10 +16,27 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
   const [mounted, setMounted] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
   const hourListRef = useRef<HTMLDivElement>(null);
   const minuteListRef = useRef<HTMLDivElement>(null);
   const mobileHourListRef = useRef<HTMLDivElement>(null);
   const mobileMinuteListRef = useRef<HTMLDivElement>(null);
+
+  const [coords, setCoords] = useState<{ top: number; left: number; bottom: number; right: number; width: number; height: number } | null>(null);
+
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.top,
+        left: rect.left,
+        bottom: rect.bottom,
+        right: rect.right,
+        width: rect.width,
+        height: rect.height
+      });
+    }
+  };
 
   const currentHour = value ? parseInt(value.split(':')[0], 10) : 12;
   const currentMinute = value ? parseInt(value.split(':')[1], 10) : 0;
@@ -40,13 +57,32 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
   useEffect(() => {
     setMounted(true);
     const handleClickOutside = (event: MouseEvent) => {
-      if (window.innerWidth >= 1024 && containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      const target = event.target as Node;
+      if (window.innerWidth >= 1024) {
+        const insideTrigger = containerRef.current && containerRef.current.contains(target);
+        const insidePicker = pickerRef.current && pickerRef.current.contains(target);
+        if (!insideTrigger && !insidePicker) {
+          setIsOpen(false);
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('resize', updateCoords);
+      window.addEventListener('scroll', updateCoords, true);
+    } else {
+      setCoords(null);
+    }
+    return () => {
+      window.removeEventListener('resize', updateCoords);
+      window.removeEventListener('scroll', updateCoords, true);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -167,7 +203,12 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
           </label>
           <button
             type="button"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => {
+              if (!isOpen) {
+                updateCoords();
+              }
+              setIsOpen(!isOpen);
+            }}
             className={`w-full px-5 py-3.5 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
               isOpen 
                 ? 'border-main-green ring-4 ring-main-green/5' 
@@ -186,7 +227,12 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
     return (
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen) {
+            updateCoords();
+          }
+          setIsOpen(!isOpen);
+        }}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
           isOpen ? 'border-main-green bg-main-green/5 ring-4 ring-main-green/10' : 'border-border bg-background hover:border-main-green/30'
         }`}
@@ -197,6 +243,27 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
         </span>
       </button>
     );
+  };
+
+  const getDesktopStyle = (): React.CSSProperties => {
+    if (!coords) return { display: 'none' };
+    const style: React.CSSProperties = {
+      position: 'fixed',
+      width: '280px',
+    };
+
+    // Vertical positioning (opens downward by default)
+    style.top = `${coords.bottom + 8}px`;
+    style.transformOrigin = 'top';
+
+    // Horizontal positioning
+    if (variant === 'form') {
+      style.left = `${coords.right - 280}px`;
+    } else {
+      style.left = `${coords.left}px`;
+    }
+
+    return style;
   };
 
   return (
@@ -231,19 +298,24 @@ export default function TimelineTimePicker({ value, onChange, label, variant = '
             document.body
           )}
 
-          {/* DESKTOP VERSION: Inline absolute popover */}
-          <div className={`hidden lg:block absolute top-full mt-2 z-[100] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[280px] animate-in zoom-in-95 duration-200 ${
-            variant === 'form' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
-          }`}>
-            {renderPickerMain(false)}
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="w-full mt-4 py-2 bg-main-green hover:bg-main-green/90 text-white text-[11px] font-black rounded-xl transition-all"
+          {/* DESKTOP VERSION: Rendered via Portal to avoid overflow clipping */}
+          {mounted && coords && createPortal(
+            <div 
+              ref={pickerRef}
+              className="hidden lg:block fixed z-[1000] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[280px] animate-in zoom-in-95 duration-200"
+              style={getDesktopStyle()}
             >
-              확인
-            </button>
-          </div>
+              {renderPickerMain(false)}
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="w-full mt-4 py-2 bg-main-green hover:bg-main-green/90 text-white text-[11px] font-black rounded-xl transition-all"
+              >
+                확인
+              </button>
+            </div>,
+            document.body
+          )}
         </>
       )}
     </div>

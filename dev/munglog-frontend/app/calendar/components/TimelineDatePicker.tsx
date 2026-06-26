@@ -21,8 +21,25 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
   const [mounted, setMounted] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
   const yearListRef = useRef<HTMLDivElement>(null);
   const mobileYearListRef = useRef<HTMLDivElement>(null);
+
+  const [coords, setCoords] = useState<{ top: number; left: number; bottom: number; right: number; width: number; height: number } | null>(null);
+
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.top,
+        left: rect.left,
+        bottom: rect.bottom,
+        right: rect.right,
+        width: rect.width,
+        height: rect.height
+      });
+    }
+  };
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -44,14 +61,33 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
   useEffect(() => {
     setMounted(true);
     const handleClickOutside = (event: MouseEvent) => {
-      if (window.innerWidth >= 1024 && containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setPickerMode('day');
+      const target = event.target as Node;
+      if (window.innerWidth >= 1024) {
+        const insideTrigger = containerRef.current && containerRef.current.contains(target);
+        const insidePicker = pickerRef.current && pickerRef.current.contains(target);
+        if (!insideTrigger && !insidePicker) {
+          setIsOpen(false);
+          setPickerMode('day');
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('resize', updateCoords);
+      window.addEventListener('scroll', updateCoords, true);
+    } else {
+      setCoords(null);
+    }
+    return () => {
+      window.removeEventListener('resize', updateCoords);
+      window.removeEventListener('scroll', updateCoords, true);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (mode === 'yearMonth' && isOpen) {
@@ -206,7 +242,12 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
           </label>
           <button
             type="button"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => {
+              if (!isOpen) {
+                updateCoords();
+              }
+              setIsOpen(!isOpen);
+            }}
             className={`w-full px-5 py-3.5 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
               isOpen 
                 ? 'border-main-green ring-4 ring-main-green/5' 
@@ -225,7 +266,12 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
     return (
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen) {
+            updateCoords();
+          }
+          setIsOpen(!isOpen);
+        }}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
           isOpen ? 'border-main-green bg-main-green/5 ring-4 ring-main-green/10' : 'border-border bg-background hover:border-main-green/30'
         }`}
@@ -236,6 +282,32 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
         </span>
       </button>
     );
+  };
+
+  const getDesktopStyle = (): React.CSSProperties => {
+    if (!coords) return { display: 'none' };
+    const style: React.CSSProperties = {
+      position: 'fixed',
+      width: '300px',
+    };
+
+    // Vertical positioning
+    if (align === 'top') {
+      style.bottom = `${window.innerHeight - coords.top + 8}px`;
+      style.transformOrigin = 'bottom';
+    } else {
+      style.top = `${coords.bottom + 8}px`;
+      style.transformOrigin = 'top';
+    }
+
+    // Horizontal positioning
+    if (variant === 'form') {
+      style.left = `${coords.right - 300}px`;
+    } else {
+      style.left = `${coords.left}px`;
+    }
+
+    return style;
   };
 
   return (
@@ -263,14 +335,17 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
             document.body
           )}
 
-          {/* DESKTOP VERSION: Remains inline with button */}
-          <div className={`hidden lg:block absolute z-[200] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200 ${
-            align === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'
-          } ${
-            variant === 'form' ? 'right-0 lg:left-auto' : 'left-0'
-          }`}>
-            {renderPickerMain(false)}
-          </div>
+          {/* DESKTOP VERSION: Rendered via Portal to avoid overflow clipping */}
+          {mounted && coords && createPortal(
+            <div 
+              ref={pickerRef}
+              className="hidden lg:block fixed z-[1000] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200"
+              style={getDesktopStyle()}
+            >
+              {renderPickerMain(false)}
+            </div>,
+            document.body
+          )}
         </>
       )}
     </div>
