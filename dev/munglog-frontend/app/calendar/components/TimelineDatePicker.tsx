@@ -291,8 +291,20 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
       width: '300px',
     };
 
+    // Auto-detect best vertical alignment if space is tight
+    const pickerHeight = 350; // Approximate maximum height of the picker
+    const spaceBelow = window.innerHeight - coords.bottom;
+    const spaceAbove = coords.top;
+
+    let finalAlign = align;
+    if (align === 'bottom' && spaceBelow < pickerHeight && spaceAbove > spaceBelow) {
+      finalAlign = 'top';
+    } else if (align === 'top' && spaceAbove < pickerHeight && spaceBelow > spaceAbove) {
+      finalAlign = 'bottom';
+    }
+
     // Vertical positioning
-    if (align === 'top') {
+    if (finalAlign === 'top') {
       style.bottom = `${window.innerHeight - coords.top + 8}px`;
       style.transformOrigin = 'bottom';
     } else {

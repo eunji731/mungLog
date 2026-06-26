@@ -981,6 +981,7 @@ function AssetHubCard() {
                   onChange={v => { if (v <= endDate) { setStartDate(v); setHasCustomRange(true); } }}
                   label="시작일"
                   variant="button"
+                  align="top"
                 />
                 <span className="text-text-sub/50">~</span>
                 <TimelineDatePicker
@@ -988,6 +989,7 @@ function AssetHubCard() {
                   onChange={v => { if (v >= startDate) { setEndDate(v); setHasCustomRange(true); } }}
                   label="종료일"
                   variant="button"
+                  align="top"
                 />
               </div>
             </div>
