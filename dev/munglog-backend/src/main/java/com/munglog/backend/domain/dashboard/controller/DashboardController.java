@@ -28,8 +28,9 @@ public class DashboardController {
     @GetMapping("/summary")
     public ResponseEntity<ApiResponse<DashboardSummaryResponse>> getSummary(
             @AuthenticationPrincipal User user,
-            @RequestParam(required = false) UUID petId) {
-        return ResponseEntity.ok(ApiResponse.success(dashboardService.getSummary(uuid(user), petId)));
+            @RequestParam(required = false) UUID petId,
+            @RequestParam(required = false) String yearMonth) {
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getSummary(uuid(user), petId, yearMonth)));
     }
 
     @Operation(summary = "AI 월간 리포트 조회")

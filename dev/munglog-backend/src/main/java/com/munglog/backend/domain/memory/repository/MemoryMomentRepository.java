@@ -14,8 +14,14 @@ public interface MemoryMomentRepository extends JpaRepository<MemoryMoment, UUID
     @Query("SELECT mm.locationName, COUNT(mm) as cnt FROM MemoryMoment mm WHERE mm.memory.user.id = :userId AND mm.locationName IS NOT NULL GROUP BY mm.locationName ORDER BY cnt DESC")
     List<Object[]> findFavoritePlaces(@Param("userId") UUID userId);
 
+    @Query("SELECT mm.locationName, COUNT(mm) as cnt FROM MemoryMoment mm JOIN mm.memory m JOIN m.memoryDogs md WHERE m.user.id = :userId AND md.dog.id = :petId AND mm.locationName IS NOT NULL GROUP BY mm.locationName ORDER BY cnt DESC")
+    List<Object[]> findFavoritePlacesByPet(@Param("userId") UUID userId, @Param("petId") UUID petId);
+
     @Query("SELECT COUNT(DISTINCT mm.locationName) FROM MemoryMoment mm WHERE mm.memory.user.id = :userId AND mm.locationName IS NOT NULL AND mm.memory.memoryDate BETWEEN :start AND :end")
     long countDistinctVisitedPlaces(@Param("userId") UUID userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT COUNT(DISTINCT mm.locationName) FROM MemoryMoment mm JOIN mm.memory m JOIN m.memoryDogs md WHERE m.user.id = :userId AND md.dog.id = :petId AND mm.locationName IS NOT NULL AND m.memoryDate BETWEEN :start AND :end")
+    long countDistinctVisitedPlacesByPet(@Param("userId") UUID userId, @Param("petId") UUID petId, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
     @Query("SELECT AVG(CASE mm.energyLevel WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END) FROM MemoryMoment mm WHERE mm.memory.user.id = :userId AND mm.memory.memoryDate BETWEEN :start AND :end")
     Double findAvgEnergyLevel(@Param("userId") UUID userId, @Param("start") LocalDate start, @Param("end") LocalDate end);

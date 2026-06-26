@@ -26,6 +26,9 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
     @Query("SELECT p FROM Photo p WHERE p.memory.user.id = :userId AND p.isBest = true ORDER BY p.vibeScore DESC")
     List<Photo> findBestPhotos(@Param("userId") UUID userId);
 
+    @Query("SELECT p FROM Photo p JOIN p.memory m JOIN m.memoryDogs md WHERE m.user.id = :userId AND md.dog.id = :petId AND p.isBest = true ORDER BY p.vibeScore DESC")
+    List<Photo> findBestPhotosByPet(@Param("userId") UUID userId, @Param("petId") UUID petId);
+
     @Query("SELECT COUNT(p) FROM Photo p WHERE p.memory.user.id = :userId AND p.isBest = true")
     long countBestPhotos(@Param("userId") UUID userId);
 

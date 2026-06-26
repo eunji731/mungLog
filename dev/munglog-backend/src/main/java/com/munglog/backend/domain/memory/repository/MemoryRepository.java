@@ -30,6 +30,9 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID> {
     @Query("SELECT DISTINCT m.memoryDate FROM Memory m WHERE m.user.id = :userId ORDER BY m.memoryDate DESC")
     List<LocalDate> findAllMemoryDatesByUserIdOrderByDesc(@Param("userId") UUID userId);
 
+    @Query("SELECT DISTINCT m.memoryDate FROM Memory m JOIN m.memoryDogs md WHERE m.user.id = :userId AND md.dog.id = :petId ORDER BY m.memoryDate DESC")
+    List<LocalDate> findAllMemoryDatesByUserIdAndPetOrderByDesc(@Param("userId") UUID userId, @Param("petId") UUID petId);
+
     @Query("SELECT DISTINCT m FROM Memory m LEFT JOIN FETCH m.moments WHERE m.user.id = :userId AND m.memoryDate BETWEEN :start AND :end")
     List<Memory> findWithMomentsByUserAndDateRange(
             @Param("userId") UUID userId,

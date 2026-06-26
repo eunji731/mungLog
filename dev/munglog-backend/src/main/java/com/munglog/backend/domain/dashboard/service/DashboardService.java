@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,21 +30,32 @@ public class DashboardService {
     private final FileStorageService fileStorageService;
 
     @Transactional(readOnly = true)
-    public DashboardSummaryResponse getSummary(UUID userId, UUID petId) {
+    public DashboardSummaryResponse getSummary(UUID userId, UUID petId, String yearMonth) {
         Pet pet = petId != null ? petRepository.findById(petId).orElse(null) : null;
 
         LocalDate now = LocalDate.now();
-        LocalDate startOfMonth = now.withDayOfMonth(1);
-        LocalDate endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+        LocalDate startOfMonth;
+        LocalDate endOfMonth;
+        try {
+            YearMonth ym = (yearMonth != null && !yearMonth.isBlank()) ? YearMonth.parse(yearMonth) : YearMonth.from(now);
+            startOfMonth = ym.atDay(1);
+            endOfMonth = ym.atEndOfMonth();
+        } catch (DateTimeParseException e) {
+            startOfMonth = now.withDayOfMonth(1);
+            endOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+        }
 
         long memoryCount = pet != null
                 ? memoryRepository.countByUserAndDateRangeAndPet(userId, pet.getId(), startOfMonth, endOfMonth)
                 : memoryRepository.findByUser_IdAndMemoryDateBetweenOrderByMemoryDateDesc(userId, startOfMonth, endOfMonth).size();
 
-        long visitedPlaceCount = memoryMomentRepository.countDistinctVisitedPlaces(userId, startOfMonth, endOfMonth);
-        Double avgEnergy = memoryMomentRepository.findAvgEnergyLevel(userId, startOfMonth, endOfMonth);
+        long visitedPlaceCount = pet != null
+                ? memoryMomentRepository.countDistinctVisitedPlacesByPet(userId, pet.getId(), startOfMonth, endOfMonth)
+                : memoryMomentRepository.countDistinctVisitedPlaces(userId, startOfMonth, endOfMonth);
 
-        List<Photo> bestPhotos = photoRepository.findBestPhotos(userId);
+        List<Photo> bestPhotos = pet != null
+                ? photoRepository.findBestPhotosByPet(userId, pet.getId())
+                : photoRepository.findBestPhotos(userId);
         List<DashboardSummaryResponse.BestPhotoItem> bestPhotoItems = bestPhotos.stream()
                 .limit(5)
                 .map(p -> DashboardSummaryResponse.BestPhotoItem.builder()
@@ -54,7 +67,9 @@ public class DashboardService {
                         .build())
                 .toList();
 
-        List<Object[]> favoriteRows = memoryMomentRepository.findFavoritePlaces(userId);
+        List<Object[]> favoriteRows = pet != null
+                ? memoryMomentRepository.findFavoritePlacesByPet(userId, pet.getId())
+                : memoryMomentRepository.findFavoritePlaces(userId);
         List<DashboardSummaryResponse.FavoritePlaceItem> favoritePlaces = favoriteRows.stream()
                 .limit(5)
                 .map(row -> DashboardSummaryResponse.FavoritePlaceItem.builder()
@@ -63,7 +78,9 @@ public class DashboardService {
                         .build())
                 .toList();
 
-        List<LocalDate> dates = memoryRepository.findAllMemoryDatesByUserIdOrderByDesc(userId);
+        List<LocalDate> dates = pet != null
+                ? memoryRepository.findAllMemoryDatesByUserIdAndPetOrderByDesc(userId, pet.getId())
+                : memoryRepository.findAllMemoryDatesByUserIdOrderByDesc(userId);
         int currentStreak = calculateCurrentStreak(dates, now);
         int longestStreak = calculateLongestStreak(dates);
 
