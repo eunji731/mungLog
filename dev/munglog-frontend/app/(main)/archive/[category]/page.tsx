@@ -192,7 +192,7 @@ export default function ThemeDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-2 gap-6">
             <div className="aspect-[2/1] bg-surface-green rounded-[40px] p-6 md:p-8 flex flex-col justify-between border border-main-green/10">
               <span className="text-[11px] font-black uppercase tracking-widest text-main-green">Total Moments</span>
-              <span className="text-6xl md:text-7xl font-black text-text-main leading-none">{theme.photoCount}</span>
+              <span className="text-6xl md:text-7xl font-black text-text-main leading-none">{photos.length || theme.photoCount || 0}</span>
             </div>
             <div className="aspect-[2/1] bg-main-yellow rounded-[40px] p-6 md:p-8 flex flex-col justify-between shadow-xl shadow-main-yellow/20">
               <div className="flex justify-between items-start">

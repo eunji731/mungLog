@@ -57,7 +57,7 @@ export const useArchive = () => {
       const mapped: ArchiveTheme[] = data.map(item => ({
         categoryName: item.tag,
         representativePhoto: getImagePath(item.representativePhotoUrl),
-        photoCount: Number(item.count),
+        photoCount: Number(item.count ?? item.photoCount ?? 0),
         themeEssay: '',
         photos: [],
       }));
@@ -117,7 +117,7 @@ export const useArchive = () => {
       return data.map(item => ({
         categoryName: item.tag,
         representativePhoto: getImagePath(item.representativePhotoUrl),
-        photoCount: Number(item.count),
+        photoCount: Number(item.count ?? item.photoCount ?? 0),
         themeEssay: '',
         photos: [],
       }));
@@ -159,7 +159,7 @@ export const useArchive = () => {
       return {
         categoryName: item.tag,
         representativePhoto: getImagePath(item.representativePhotoUrl),
-        photoCount: Number(item.count),
+        photoCount: Number(item.count ?? item.photoCount ?? 0),
         themeEssay: '',
         photos: [],
       };

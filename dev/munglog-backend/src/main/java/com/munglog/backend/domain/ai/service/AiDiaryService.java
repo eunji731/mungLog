@@ -57,11 +57,14 @@ public class AiDiaryService {
 
     @Transactional(readOnly = true)
     public AiUsageResponse getUsage(UUID userId, LocalDate targetDate) {
-        long dateCount = aiDiaryUsageRepository.countByMember_IdAndUsageTypeAndTargetDate(userId, USAGE_TYPE_ANALYZE, targetDate);
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayStart = LocalDateTime.of(today, LocalTime.MIDNIGHT);
+        LocalDateTime todayEnd = LocalDateTime.of(today, LocalTime.MAX);
+
+        long dateCount = aiDiaryUsageRepository.countByMember_IdAndUsageTypeAndTargetDateAndCalledAtBetween(
+                userId, USAGE_TYPE_ANALYZE, targetDate, todayStart, todayEnd);
         long dailyTotal = aiDiaryUsageRepository.countByMember_IdAndUsageTypeAndCalledAtBetween(
-                userId, USAGE_TYPE_DAILY,
-                LocalDateTime.of(targetDate, LocalTime.MIDNIGHT),
-                LocalDateTime.of(targetDate, LocalTime.MAX));
+                userId, USAGE_TYPE_DAILY, todayStart, todayEnd);
         return AiUsageResponse.builder()
                 .dateCount(dateCount).dateLimit(DATE_LIMIT)
                 .dailyTotal(dailyTotal).dailyLimit(DAILY_LIMIT)
@@ -218,13 +221,16 @@ public class AiDiaryService {
     }
 
     private void checkRateLimit(UUID userId, LocalDate targetDate) {
-        long dateCount = aiDiaryUsageRepository.countByMember_IdAndUsageTypeAndTargetDate(userId, USAGE_TYPE_ANALYZE, targetDate);
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayStart = LocalDateTime.of(today, LocalTime.MIDNIGHT);
+        LocalDateTime todayEnd = LocalDateTime.of(today, LocalTime.MAX);
+
+        long dateCount = aiDiaryUsageRepository.countByMember_IdAndUsageTypeAndTargetDateAndCalledAtBetween(
+                userId, USAGE_TYPE_ANALYZE, targetDate, todayStart, todayEnd);
         if (dateCount >= DATE_LIMIT) throw AiRateLimitException.dateLimitExceeded(targetDate.toString());
 
         long dailyTotal = aiDiaryUsageRepository.countByMember_IdAndUsageTypeAndCalledAtBetween(
-                userId, USAGE_TYPE_DAILY,
-                LocalDateTime.of(targetDate, LocalTime.MIDNIGHT),
-                LocalDateTime.of(targetDate, LocalTime.MAX));
+                userId, USAGE_TYPE_DAILY, todayStart, todayEnd);
         if (dailyTotal >= DAILY_LIMIT) throw AiRateLimitException.dailyLimitExceeded();
     }
 
@@ -282,10 +288,24 @@ public class AiDiaryService {
                       "tags": ["태그1"],
                       "photoFileNames": ["파일명"],
                       "representativePhotoPath": null,
-                      "photoDetails": []
+                      "photoDetails": [
+                        {
+                          "fileName": "파일명 (photoFileNames의 값과 동일하게)",
+                          "themeTags": ["산책", "공원", "놀이"],
+                          "photoComment": "이 사진에 대한 한 줄 감성 코멘트",
+                          "vibeScore": 8,
+                          "isBest": false
+                        }
+                      ]
                     }
                   ]
                 }
+                photoDetails 작성 규칙:
+                - photoDetails는 photoFileNames에 나열된 파일마다 반드시 하나씩 작성하세요.
+                - fileName은 photoFileNames의 값을 그대로 복사하세요.
+                - themeTags는 사진의 내용을 잘 나타내는 한국어 키워드 2~5개 (예: "산책", "공원", "간식", "목욕", "병원", "놀이" 등)
+                - vibeScore는 1~10 사이 정수 (사진의 밝고 행복한 분위기 점수)
+                - isBest는 이 moment에서 가장 대표적인 사진 한 장에만 true, 나머지는 false
                 """,
                 targetDate,
                 petContext.isBlank() ? "알 수 없음" : petContext,

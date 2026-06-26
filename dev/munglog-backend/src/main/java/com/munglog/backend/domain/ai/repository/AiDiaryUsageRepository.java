@@ -11,11 +11,13 @@ import java.util.UUID;
 
 public interface AiDiaryUsageRepository extends JpaRepository<AiDiaryUsage, UUID> {
 
-    @Query("SELECT COUNT(u) FROM AiDiaryUsage u WHERE u.member.id = :memberId AND u.usageType = :usageType AND u.targetDate = :targetDate")
-    long countByMember_IdAndUsageTypeAndTargetDate(
+    @Query("SELECT COUNT(u) FROM AiDiaryUsage u WHERE u.member.id = :memberId AND u.usageType = :usageType AND u.targetDate = :targetDate AND u.calledAt BETWEEN :start AND :end")
+    long countByMember_IdAndUsageTypeAndTargetDateAndCalledAtBetween(
             @Param("memberId") UUID memberId,
             @Param("usageType") String usageType,
-            @Param("targetDate") LocalDate targetDate);
+            @Param("targetDate") LocalDate targetDate,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 
     @Query("SELECT COUNT(u) FROM AiDiaryUsage u WHERE u.member.id = :memberId AND u.usageType = :usageType AND u.calledAt BETWEEN :start AND :end")
     long countByMember_IdAndUsageTypeAndCalledAtBetween(
