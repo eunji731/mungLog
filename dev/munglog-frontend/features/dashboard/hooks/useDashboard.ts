@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/apiClient';
-import { usePetStore, ALL_PETS_ID } from './usePet';
+import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 
 export interface DashboardPetInfo {
   id: string;
@@ -135,7 +135,7 @@ export function useDashboard() {
 
   const goToDate = useCallback((year: number, month: number) => {
     setSelectedYear(year);
-    setSelectedMonth(month + 1); // 0-indexed month from DateDropdown
+    setSelectedMonth(month + 1);
   }, []);
 
   const query = buildQuery(petId, selectedYear, selectedMonth);

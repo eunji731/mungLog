@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { careApi } from '@/api/careApi';
 import { scheduleApi } from '@/api/scheduleApi';
-import { useInventoryStore } from './useInventory';
-import { usePetStore, ALL_PETS_ID } from './usePet';
+import { useInventoryStore } from '@/app/common/hooks/useInventory';
+import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import type { CareRecord } from '@/types/care';
 import type { Schedule, ScheduleStreak } from '@/types/schedule';
 
@@ -28,9 +28,9 @@ const EXPENSE_CAT_LABELS: Record<string, string> = {
   HOSPITAL: '병원비',
   MEDICINE: '약/영양제',
   GROOMING: '미용',
-  FOOD: '사료/간식',
+  FOOD:     '사료/간식',
   SUPPLIES: '용품',
-  ETC: '기타',
+  ETC:      '기타',
 };
 
 function categorizeRecord(r: CareRecord): string {
@@ -89,7 +89,6 @@ export function useDashboardExtra(selectedYear?: number, selectedMonth?: number)
   const monthSchedules = schedules.filter(s => s.scheduleDate.startsWith(monthPrefix));
   const completedCount = monthSchedules.filter(s => s.isCompleted).length;
 
-  // 이번달 일정 타입별 건수 (완료/미완료 분리)
   const completedTypeMap: Record<string, number> = {};
   const pendingTypeMap: Record<string, number> = {};
   for (const s of monthSchedules) {
@@ -100,6 +99,7 @@ export function useDashboardExtra(selectedYear?: number, selectedMonth?: number)
       pendingTypeMap[type] = (pendingTypeMap[type] || 0) + 1;
     }
   }
+
   const monthScheduleTypeStats: ScheduleTypeStat[] = Object.entries(
     monthSchedules.reduce((acc, s) => {
       const type = String(s.scheduleTypeCode || 'ETC');
@@ -113,7 +113,6 @@ export function useDashboardExtra(selectedYear?: number, selectedMonth?: number)
   const completedTypeStats: ScheduleTypeStat[] = Object.entries(completedTypeMap)
     .map(([type, count]) => ({ type, count })).sort((a, b) => b.count - a.count);
 
-  // 월별 지출 추이 (최근 6개월)
   const monthlyExpense: MonthlyExpensePoint[] = Array.from({ length: 6 }, (_, i) => {
     const d = new Date();
     d.setDate(1);
@@ -127,7 +126,6 @@ export function useDashboardExtra(selectedYear?: number, selectedMonth?: number)
     };
   });
 
-  // 카테고리별 지출 분류
   const catTotals: Record<string, number> = {};
   for (const r of careRecords) {
     if (!r.amount || r.amount <= 0) continue;
