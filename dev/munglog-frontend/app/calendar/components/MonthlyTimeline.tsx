@@ -301,7 +301,7 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
                                 <span className="w-1 h-1 bg-text-sub/30 rounded-full" /><MapPin className="w-3.5 h-3.5 text-main-green" /> {moment.locationName || '어딘가'}
                               </div>
                               <h3 className="text-xl font-black text-text-main group-hover:text-main-green transition-colors">{moment.aiTitle}</h3>
-                              <p className="text-sm font-medium text-text-main/80 leading-relaxed italic line-clamp-3">&quot;{moment.aiContent}&quot;</p>
+                              <p className="text-sm font-medium text-text-main/80 leading-relaxed italic">&quot;{moment.aiContent}&quot;</p>
                               <div className="flex flex-wrap justify-center md:justify-start gap-1.5 pt-2">{moment.tags.map(tag => (<span key={tag} className="text-[10px] font-bold text-text-sub whitespace-nowrap">#{tag}</span>))}</div>
                             </div>
                           </div>

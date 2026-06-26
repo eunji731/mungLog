@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import net.coobird.thumbnailator.Thumbnails;
+
 import java.io.*;
 import java.nio.file.*;
 import java.util.List;
@@ -79,6 +81,32 @@ public class LocalFileStorageService implements FileStorageService {
     public String getFileUrl(String storedPath) {
         if (storedPath == null) return null;
         return "/files/" + storedPath;
+    }
+
+    @Override
+    public String storeThumbnail(String storedPath, int size) {
+        try {
+            Path sourcePath = Paths.get(basePath, "files", storedPath);
+            if (!Files.exists(sourcePath)) return null;
+
+            int lastSlash = storedPath.lastIndexOf('/');
+            String dir = lastSlash >= 0 ? storedPath.substring(0, lastSlash) : "";
+            String filename = lastSlash >= 0 ? storedPath.substring(lastSlash + 1) : storedPath;
+            String thumbRelative = (dir.isEmpty() ? "" : dir + "/") + "thumb" + size + "_" + filename;
+
+            Path targetPath = Paths.get(basePath, "files", thumbRelative);
+            Files.createDirectories(targetPath.getParent());
+
+            Thumbnails.of(sourcePath.toFile())
+                    .size(size, size)
+                    .keepAspectRatio(true)
+                    .toFile(targetPath.toFile());
+
+            return thumbRelative;
+        } catch (IOException e) {
+            log.warn("썸네일 생성 실패 ({}px): {}", size, storedPath, e);
+            return null;
+        }
     }
 
     private String buildRelativePath(ParentDomainType parentType, UUID parentId, String ext) {

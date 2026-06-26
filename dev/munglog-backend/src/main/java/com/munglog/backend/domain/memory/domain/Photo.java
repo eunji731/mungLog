@@ -79,6 +79,11 @@ public class Photo extends BaseTimeEntity {
         this.moment = moment;
     }
 
+    public void updateThumbs(String thumb100, String thumb300) {
+        this.pathThumb100 = thumb100;
+        this.pathThumb300 = thumb300;
+    }
+
     public void updateAiData(String comment, Integer vibeScore, Boolean isBest) {
         this.aiComment = comment;
         this.vibeScore = vibeScore;

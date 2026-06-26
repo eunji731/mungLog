@@ -26,7 +26,7 @@ export default function NaverMap({
   const onBoundsChangedRef = useRef(onBoundsChanged);
   useEffect(() => { onBoundsChangedRef.current = onBoundsChanged; });
 
-  const clientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID;
+  const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
 
   const initMap = () => {
     if (!mapRef.current || !window.naver || !window.naver.maps || mapInstanceRef.current) {

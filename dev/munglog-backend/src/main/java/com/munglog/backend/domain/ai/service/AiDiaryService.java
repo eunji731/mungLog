@@ -191,6 +191,10 @@ public class AiDiaryService {
                                             .gpsLng(sf.getLongitude())
                                             .build());
 
+                                    String thumb100 = fileStorageService.storeThumbnail(sf.getStoredPath(), 100);
+                                    String thumb300 = fileStorageService.storeThumbnail(sf.getStoredPath(), 300);
+                                    photo.updateThumbs(thumb100, thumb300);
+
                                     if (momentResp.photoDetails() != null) {
                                         momentResp.photoDetails().stream()
                                                 .filter(pd -> pd.fileName().equals(fileName))

@@ -67,19 +67,10 @@ export default function MapPage() {
     return Array.from(momentMap.values());
   }, [markers]);
 
-  // 선택된 모멘트의 모든 사진 추출
   const photosForSelectedMoment = useMemo(() => {
     if (!selectedDetail) return [];
-    const photos = markers
-      .filter(m => m.momentId === selectedDetail.moment.id)
-      .map(m => ({ id: m.id, path: m.thumb }));
-    
-    // 만약 현재 markers에 정보가 부족하면(검색 결과 등) 현재 상세 정보의 사진이라도 넣음
-    if (photos.length === 0) {
-      return [{ id: selectedDetail.photoId, path: selectedDetail.path }];
-    }
-    return photos;
-  }, [selectedDetail, markers]);
+    return [{ id: selectedDetail.photoId, path: selectedDetail.path }];
+  }, [selectedDetail]);
 
   // 지도 초기화 → 전체 범위 조회 (지도는 아직 안 보임)
   const handleMapLoad = useCallback((map: naver.maps.Map) => {

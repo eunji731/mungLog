@@ -10,7 +10,7 @@ export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localh
  *  4. 파일명만 있는 레거시 케이스 → /uploads/{subfolder}/ 경로 사용
  */
 export const getImagePath = (path?: string, subfolder: 'daily' | 'profiles' = 'daily'): string => {
-  if (!path) return '/dog-profile.png';
+  if (!path) return '/logo_simple.png';
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   if (path.startsWith('/files/') || path.startsWith('/uploads/')) return `${BACKEND_URL}${path}`;
   if (path.includes('/')) return `${BACKEND_URL}/files/${path}`;

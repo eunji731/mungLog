@@ -20,6 +20,9 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
     @Query("SELECT p FROM Photo p WHERE p.memory.id = :memoryId AND p.gpsLat IS NOT NULL ORDER BY p.takenAt ASC")
     Optional<Photo> findFirstByMemory_IdAndGpsLatIsNotNull(@Param("memoryId") UUID memoryId);
 
+    @Query("SELECT p FROM Photo p WHERE p.moment.id = :momentId AND p.gpsLat IS NOT NULL ORDER BY p.takenAt ASC")
+    Optional<Photo> findFirstByMoment_IdAndGpsLatIsNotNull(@Param("momentId") UUID momentId);
+
     @Query("SELECT p FROM Photo p WHERE p.memory.user.id = :userId AND p.isBest = true ORDER BY p.vibeScore DESC")
     List<Photo> findBestPhotos(@Param("userId") UUID userId);
 
@@ -34,4 +37,7 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
 
     @Query("SELECT p FROM Photo p WHERE p.memory.user.id = :userId AND p.gpsLat IS NOT NULL ORDER BY p.takenAt DESC")
     List<Photo> findMapMarkers(@Param("userId") UUID userId);
+
+    @Query("SELECT p FROM Photo p WHERE p.pathThumb100 IS NULL AND p.pathOrigin IS NOT NULL")
+    List<Photo> findPhotosWithoutThumbnails();
 }

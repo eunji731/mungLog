@@ -21,4 +21,6 @@ public interface FileStorageService {
     InputStream getInputStream(String storedPath);
 
     String getFileUrl(String storedPath);
+
+    String storeThumbnail(String storedPath, int size);
 }

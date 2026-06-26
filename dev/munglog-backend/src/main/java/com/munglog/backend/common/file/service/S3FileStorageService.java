@@ -14,6 +14,9 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import net.coobird.thumbnailator.Thumbnails;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -84,6 +87,34 @@ public class S3FileStorageService implements FileStorageService {
     public String getFileUrl(String storedPath) {
         if (storedPath == null) return null;
         return "https://" + bucket + ".s3." + region + ".amazonaws.com/" + storedPath;
+    }
+
+    @Override
+    public String storeThumbnail(String storedPath, int size) {
+        try (InputStream inputStream = getInputStream(storedPath);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            int lastSlash = storedPath.lastIndexOf('/');
+            String dir = lastSlash >= 0 ? storedPath.substring(0, lastSlash) : "";
+            String filename = lastSlash >= 0 ? storedPath.substring(lastSlash + 1) : storedPath;
+            String thumbKey = (dir.isEmpty() ? "" : dir + "/") + "thumb" + size + "_" + filename;
+
+            Thumbnails.of(inputStream)
+                    .size(size, size)
+                    .keepAspectRatio(true)
+                    .outputFormat("jpg")
+                    .toOutputStream(baos);
+
+            byte[] bytes = baos.toByteArray();
+            s3Client.putObject(PutObjectRequest.builder()
+                            .bucket(bucket).key(thumbKey).contentType("image/jpeg").build(),
+                    RequestBody.fromBytes(bytes));
+
+            return thumbKey;
+        } catch (Exception e) {
+            log.warn("S3 썸네일 생성 실패 ({}px): {}", size, storedPath, e);
+            return null;
+        }
     }
 
     private String buildKey(ParentDomainType parentType, UUID parentId, String ext) {

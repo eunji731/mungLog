@@ -53,8 +53,8 @@ public class MapService {
     }
 
     @Transactional(readOnly = true)
-    public MapMemoryResponse getMemoryDetail(UUID userId, UUID memoryId) {
-        return photoRepository.findFirstByMemory_IdAndGpsLatIsNotNull(memoryId)
+    public MapMemoryResponse getMemoryDetail(UUID userId, UUID momentId) {
+        return photoRepository.findFirstByMoment_IdAndGpsLatIsNotNull(momentId)
                 .map(this::toMemoryResponse)
                 .orElseThrow(() -> new IllegalArgumentException("위치 정보가 없습니다."));
     }
@@ -71,7 +71,7 @@ public class MapService {
         }
         MapMemoryResponse.DailyLogInfo logInfo = MapMemoryResponse.DailyLogInfo.builder()
                 .id(p.getMemory().getId())
-                .memoryDate(p.getMemory().getMemoryDate() != null ? p.getMemory().getMemoryDate().toString() : null)
+                .dateKey(p.getMemory().getMemoryDate() != null ? p.getMemory().getMemoryDate().toString() : null)
                 .aiTitle(p.getMemory().getAiTitle())
                 .build();
 
