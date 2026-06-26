@@ -919,17 +919,28 @@ function buildCategoryStats(records: import('@/types/care').CareRecord[], startD
 
 function AssetHubCard() {
   const { careRecords, loading } = useExtra();
+  const { selectedYear, selectedMonth } = useDash();
 
-  const defaultEnd = new Date().toLocaleDateString('en-CA');
-  const defaultStart = (() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 5);
-    d.setDate(1);
-    return d.toLocaleDateString('en-CA');
-  })();
+  const getMonthRange = (year: number, month: number) => {
+    const start = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const end = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    return { start, end };
+  };
 
-  const [startDate, setStartDate] = useState(defaultStart);
-  const [endDate, setEndDate] = useState(defaultEnd);
+  const initial = getMonthRange(selectedYear, selectedMonth);
+  const [startDate, setStartDate] = useState(initial.start);
+  const [endDate, setEndDate] = useState(initial.end);
+  const [hasCustomRange, setHasCustomRange] = useState(false);
+
+  React.useEffect(() => {
+    if (!hasCustomRange) {
+      const { start, end } = getMonthRange(selectedYear, selectedMonth);
+      setStartDate(start);
+      setEndDate(end);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear, selectedMonth]);
 
   const monthlyExpense = startDate && endDate ? buildExpenseData(careRecords, startDate, endDate) : [];
   const expenseCategoryStats = startDate && endDate ? buildCategoryStats(careRecords, startDate, endDate) : [];
@@ -967,14 +978,14 @@ function AssetHubCard() {
               <div className="flex items-center gap-1 text-[11px]">
                 <TimelineDatePicker
                   value={startDate}
-                  onChange={v => { if (v <= endDate) setStartDate(v); }}
+                  onChange={v => { if (v <= endDate) { setStartDate(v); setHasCustomRange(true); } }}
                   label="시작일"
                   variant="button"
                 />
                 <span className="text-text-sub/50">~</span>
                 <TimelineDatePicker
                   value={endDate}
-                  onChange={v => { if (v >= startDate) setEndDate(v); }}
+                  onChange={v => { if (v >= startDate) { setEndDate(v); setHasCustomRange(true); } }}
                   label="종료일"
                   variant="button"
                 />
@@ -1215,7 +1226,7 @@ function StreaksCard() {
 
 export default function DashboardPage() {
   const dashboard = useDashboard();
-  const extra = useDashboardExtra();
+  const extra = useDashboardExtra(dashboard.selectedYear, dashboard.selectedMonth);
   const { aiReport, aiLoading, aiRefreshing, refreshAiReport } = dashboard;
   const { selectedPetId } = usePet();
   const isAll = selectedPetId === ALL_PETS_ID;
@@ -1285,12 +1296,9 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* AI 탭일 때만 월 네비게이터 노출 */}
-            {activeTab === 'ai' && (
-              <div className="pb-2">
-                <MonthNavigator />
-              </div>
-            )}
+            <div className="pb-2">
+              <MonthNavigator />
+            </div>
           </div>
 
           {!isAll && (

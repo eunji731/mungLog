@@ -107,7 +107,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
 
         {/* Ticket Body (Right column or Bottom row) */}
         <div className="p-6 md:p-8 flex flex-col justify-between md:col-span-3 md:pl-10 space-y-6">
-          <div className="space-y-4">
+          <div className="space-y-4 min-h-[130px]">
             {/* Top row in Body: Category, Time, Barcode & Edit */}
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 flex-wrap">
@@ -171,7 +171,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
               <div className="relative p-4 bg-black/10 rounded-xl border-l-4 border-yellow-200/60 backdrop-blur-sm shadow-inner">
                 <div className="flex gap-2 items-start">
                   <FileText className="w-4 h-4 text-yellow-100 shrink-0 mt-0.5" />
-                  <p className="text-[13px] font-bold text-white/90 leading-relaxed">
+                  <p className="text-[13px] font-bold text-white/90 leading-relaxed line-clamp-2">
                     {schedule.memo}
                   </p>
                 </div>

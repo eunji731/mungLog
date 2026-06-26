@@ -41,7 +41,7 @@ function categorizeRecord(r: CareRecord): string {
   return 'ETC';
 }
 
-export function useDashboardExtra() {
+export function useDashboardExtra(selectedYear?: number, selectedMonth?: number) {
   const { selectedPetId } = usePetStore();
   const petId = selectedPetId === ALL_PETS_ID ? undefined : (selectedPetId ?? undefined);
 
@@ -83,7 +83,9 @@ export function useDashboardExtra() {
     .slice(0, 5);
 
   const now = new Date();
-  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const targetYear = selectedYear ?? now.getFullYear();
+  const targetMonth = selectedMonth ?? (now.getMonth() + 1);
+  const monthPrefix = `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
   const monthSchedules = schedules.filter(s => s.scheduleDate.startsWith(monthPrefix));
   const completedCount = monthSchedules.filter(s => s.isCompleted).length;
 

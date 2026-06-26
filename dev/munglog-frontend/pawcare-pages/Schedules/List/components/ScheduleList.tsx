@@ -8,11 +8,11 @@ import { useCommonCodes } from '@/hooks/useCommonCodes';
 interface ScheduleListProps {
   schedules: Schedule[];
   onSelect: (id: string) => void;
-  activeId: string;
+  activeIds: string[];
   onToggleComplete: (id: string) => void;
 }
 
-export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeId, onToggleComplete }) => {
+export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeIds, onToggleComplete }) => {
   const router = useRouter();
   const { getCodeById } = useCommonCodes('SCHEDULE_TYPE');
 
@@ -43,7 +43,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeId,
             key={schedule.id}
             onClick={() => router.push(`/schedules/${schedule.id}`)}
             className={`group flex items-center justify-between p-5 rounded-[24px] border transition-all cursor-pointer hover:border-main-green hover:shadow-lg hover:shadow-main-green/5 active:scale-[0.99]
-              ${activeId === schedule.id 
+              ${activeIds.includes(schedule.id) 
                 ? 'bg-background border-main-green shadow-xl shadow-main-green/5' 
                 : 'bg-background border-border shadow-sm'
               }`}
@@ -62,14 +62,14 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeId,
                 )}
               </button>
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-[20px] transition-colors
-                ${activeId === schedule.id ? 'bg-main-green/10' : 'bg-surface-green group-hover:bg-main-green/5'}`}>
+                ${activeIds.includes(schedule.id) ? 'bg-main-green/10' : 'bg-surface-green group-hover:bg-main-green/5'}`}>
                 {getTypeIcon(typeCode)}
               </div>
               <div className="flex flex-col gap-0.5">
                 <span className="text-[12px] font-black text-text-sub uppercase tracking-tighter">
                   {new Date(schedule.scheduleDate).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
                 </span>
-                <span className={`text-[15px] font-black transition-colors ${schedule.isCompleted ? 'text-text-sub/50 line-through' : activeId === schedule.id ? 'text-main-green' : 'text-foreground group-hover:text-main-green'}`}>
+                <span className={`text-[15px] font-black transition-colors ${schedule.isCompleted ? 'text-text-sub/50 line-through' : activeIds.includes(schedule.id) ? 'text-main-green' : 'text-foreground group-hover:text-main-green'}`}>
                   {schedule.title}
                 </span>
               </div>
@@ -79,7 +79,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeId,
               <span className={`text-[11px] font-black px-2 py-1 rounded-lg border tabular-nums
                 ${schedule.isCompleted
                   ? 'text-emerald-600 border-emerald-200 bg-emerald-50'
-                  : activeId === schedule.id
+                  : activeIds.includes(schedule.id)
                     ? 'bg-main-green text-white border-none'
                     : isPast
                       ? 'text-text-sub/50 border-border'
@@ -87,7 +87,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeId,
                 }`}>
                 {schedule.isCompleted ? 'DONE' : `D${dDayLabel}`}
               </span>
-              <div className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${activeId === schedule.id ? 'text-main-green' : 'text-text-sub/50 group-hover:text-main-green group-hover:bg-surface-green'}`}>
+              <div className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${activeIds.includes(schedule.id) ? 'text-main-green' : 'text-text-sub/50 group-hover:text-main-green group-hover:bg-surface-green'}`}>
                 <span className="text-xl font-bold">→</span>
               </div>
             </div>

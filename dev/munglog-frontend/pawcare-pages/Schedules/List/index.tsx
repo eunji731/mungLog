@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ClipboardList, Search, X, Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { ClipboardList, Search, X, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
 import { ScheduleHeroCard } from './components/ScheduleHeroCard';
@@ -22,6 +22,7 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
   const { schedules, isLoading, filters, updateFilter, refetch } = useSchedules();
   const { streaks, isLoading: isStreaksLoading, refetch: refetchStreaks } = useScheduleStreaks();
   const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null);
+  const [heroIndex, setHeroIndex] = useState(0);
   const { pets, selectedPetId } = usePet();
   const { success, error } = useToast();
 
@@ -79,16 +80,31 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
     );
   }, [schedules]);
 
-  const heroSchedule = useMemo(() => {
+  const heroSchedules = useMemo(() => {
     if (activeScheduleId) {
       const found = sortedSchedules.find(s => s.id === activeScheduleId);
-      if (found) return found;
+      return found ? [found] : [];
     }
     const now = new Date();
     now.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todaySchedules = sortedSchedules.filter(s => {
+      const d = new Date(s.scheduleDate);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === now.getTime();
+    });
+    if (todaySchedules.length > 0) return todaySchedules;
+
     const upcoming = sortedSchedules.find(s => new Date(s.scheduleDate) >= now);
-    return upcoming || sortedSchedules[0] || null;
+    return upcoming ? [upcoming] : sortedSchedules.slice(0, 1);
   }, [sortedSchedules, activeScheduleId]);
+
+  useEffect(() => { setHeroIndex(0); }, [heroSchedules.length, activeScheduleId]);
+
+  const prevHero = useCallback(() => setHeroIndex(i => (i - 1 + heroSchedules.length) % heroSchedules.length), [heroSchedules.length]);
+  const nextHero = useCallback(() => setHeroIndex(i => (i + 1) % heroSchedules.length), [heroSchedules.length]);
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar bg-background text-text-main">
@@ -240,9 +256,28 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
               ) : (
                 <>
                   <div className="space-y-3">
-                    <h3 className="text-[11px] font-black text-text-sub uppercase tracking-widest px-2">Focus</h3>
-                    {heroSchedule ? (
-                      <ScheduleHeroCard schedule={heroSchedule} onToggleComplete={handleToggleComplete} />
+                    <div className="flex items-center justify-between px-2">
+                      <h3 className="text-[11px] font-black text-text-sub uppercase tracking-widest">Focus</h3>
+                      {heroSchedules.length > 1 && (
+                        <div className="flex items-center gap-2">
+                          <button onClick={prevHero} className="w-6 h-6 flex items-center justify-center rounded-full border border-border text-text-sub hover:border-main-green hover:text-main-green transition-all">
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="text-[11px] font-black text-text-sub tabular-nums">
+                            {heroIndex + 1} / {heroSchedules.length}
+                          </span>
+                          <button onClick={nextHero} className="w-6 h-6 flex items-center justify-center rounded-full border border-border text-text-sub hover:border-main-green hover:text-main-green transition-all">
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {heroSchedules.length > 0 ? (
+                      <ScheduleHeroCard
+                        key={heroSchedules[heroIndex]?.id}
+                        schedule={heroSchedules[heroIndex]}
+                        onToggleComplete={handleToggleComplete}
+                      />
                     ) : (
                       <div className="py-16 text-center bg-background rounded-3xl border border-border shadow-sm">
                         <span className="text-3xl mb-3 block opacity-20">🗓️</span>
@@ -258,7 +293,7 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
                       <ScheduleList
                         schedules={sortedSchedules}
                         onSelect={setActiveScheduleId}
-                        activeId={heroSchedule?.id || ''}
+                        activeIds={heroSchedules[heroIndex] ? [heroSchedules[heroIndex].id] : []}
                         onToggleComplete={handleToggleComplete}
                       />
                     ) : (
