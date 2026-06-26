@@ -2,6 +2,7 @@ package com.munglog.backend.domain.inventory.domain;
 
 import com.munglog.backend.common.domain.BaseTimeEntity;
 import com.munglog.backend.domain.member.domain.Member;
+import com.munglog.backend.domain.pet.domain.Pet;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -26,6 +27,10 @@ public class InventoryItem extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Member user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pet_id")
+    private Pet pet;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -89,7 +94,7 @@ public class InventoryItem extends BaseTimeEntity {
                        LocalDate productionDate, String expiryDateText, LocalDate expiryDateSpecific,
                        LocalDate openedAt, String ingredients, String material, String size,
                        StorageMethod storageMethod, String suggestedUsage,
-                       Integer rating, Integer stock, BigDecimal price) {
+                       Integer rating, Integer stock, BigDecimal price, Pet pet) {
         this.name = name;
         this.category = category;
         this.brand = brand;
@@ -106,6 +111,7 @@ public class InventoryItem extends BaseTimeEntity {
         this.rating = rating;
         this.stock = stock;
         this.price = price;
+        this.pet = pet;
     }
 
     public void toggleFeeding() {

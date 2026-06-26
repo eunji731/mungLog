@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useInventory, InventoryItem } from '@/app/common/hooks/useInventory';
 import { useToast } from '@/app/common/hooks/useToast';
+import { usePet } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 
@@ -20,6 +21,7 @@ export default function InventoryEditPage() {
   const id = params?.id as string;
   const { items, loading: listLoading, updateItem, fetchItems } = useInventory();
   const { success, error, info } = useToast();
+  const { pets } = usePet();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +52,7 @@ export default function InventoryEditPage() {
   const [rating, setRating] = useState(5);
   const [isFeeding, setIsFeeding] = useState(false);
   const [openedAt, setOpenedAt] = useState('');
+  const [petId, setPetId] = useState<string | null>(null);
 
   const applyItemData = useCallback((item: InventoryItem) => {
     setName(item.name || '');
@@ -69,6 +72,7 @@ export default function InventoryEditPage() {
     setRating(item.rating || 5);
     setIsFeeding(item.isFeeding || false);
     setOpenedAt(item.openedAt || '');
+    setPetId(item.petId ?? null);
     
     if (item.photos && item.photos.length > 0) {
       setPhotos(item.photos.map(p => getImagePath(p.url)));
@@ -226,6 +230,7 @@ export default function InventoryEditPage() {
         suggestedUsage: suggestedUsage || null,
         price: price ? parseInt(price) : null,
         stock, rating, isFeeding,
+        petId: petId || null,
         deletedFileIds: deletedPhotoIds,
       };
       formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
@@ -456,6 +461,55 @@ export default function InventoryEditPage() {
               )}
             </div>
           </div>
+
+          {/* Pet Assignment Section */}
+          {pets.length > 0 && (
+            <div className="bg-background rounded-[40px] p-8 lg:p-10 border border-border shadow-xl space-y-6">
+              <h3 className="text-xl font-black text-text-main flex items-center gap-3">
+                <Package className="w-6 h-6 text-main-yellow" /> 어떤 아이의 제품인가요?
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPetId(null)}
+                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-black transition-all border-2 ${
+                    petId === null
+                      ? 'bg-surface-green border-main-green text-main-green'
+                      : 'bg-background border-border text-text-sub hover:border-main-green/40'
+                  }`}
+                >
+                  공용 (전체)
+                </button>
+                {pets.map(pet => (
+                  <button
+                    key={pet.id}
+                    type="button"
+                    onClick={() => setPetId(pet.id)}
+                    className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-black transition-all border-2 ${
+                      petId === pet.id
+                        ? 'bg-main-yellow/10 border-main-yellow text-main-yellow'
+                        : 'bg-background border-border text-text-sub hover:border-main-yellow/40'
+                    }`}
+                  >
+                    {pet.photo ? (
+                      <Image
+                        src={getImagePath(pet.photo)}
+                        alt={pet.name}
+                        width={24}
+                        height={24}
+                        className="rounded-full object-cover w-6 h-6"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-main-yellow/20 flex items-center justify-center text-[10px] font-black text-main-yellow">
+                        {pet.name[0]}
+                      </div>
+                    )}
+                    {pet.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Management Section */}
           <div className="bg-background rounded-[40px] p-8 lg:p-10 border border-border shadow-xl space-y-10">

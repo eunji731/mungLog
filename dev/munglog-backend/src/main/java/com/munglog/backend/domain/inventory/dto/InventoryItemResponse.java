@@ -33,7 +33,8 @@ public record InventoryItemResponse(
         Boolean isFeeding,
         LocalDate addedAt,
         String photo,
-        List<PhotoInfo> photos
+        List<PhotoInfo> photos,
+        UUID petId
 ) {
     @Builder
     public record PhotoInfo(UUID id, String url) {}
@@ -65,6 +66,7 @@ public record InventoryItemResponse(
                 .addedAt(item.getAddedAt())
                 .photo(photos.isEmpty() ? null : photos.get(0).url())
                 .photos(photos)
+                .petId(item.getPet() != null ? item.getPet().getId() : null)
                 .build();
     }
 }

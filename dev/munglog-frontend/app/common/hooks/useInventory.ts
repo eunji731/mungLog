@@ -31,6 +31,7 @@ export interface InventoryItem {
   price?: number;
   isFeeding: boolean;
   addedAt: string;
+  petId?: string | null;
 }
 
 interface InventoryState {

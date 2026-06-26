@@ -25,5 +25,6 @@ public class InventoryItemRequest {
     private Integer rating;
     private Integer stock;
     private String price;
+    private UUID petId;
     private List<UUID> deletedFileIds;
 }

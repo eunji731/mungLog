@@ -7,23 +7,29 @@ import {
   ChevronLeft, Camera, Sparkles, Star, Calendar,
   Tag, Type, Briefcase, Plus, Minus, Package,
   Activity, Thermometer, Flame, Coins, Ruler, Layers,
-  Search, Wand2, X, AlertCircle
+  Search, Wand2, X, AlertCircle, PenLine
 } from 'lucide-react';
 import { useInventory, InventoryItem } from '@/app/common/hooks/useInventory';
 import { useToast } from '@/app/common/hooks/useToast';
+import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
+import { getImagePath } from '@/app/common/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
+
+type RegistrationMode = 'SELECT' | 'AI' | 'MANUAL';
 
 export default function InventoryRegisterPage() {
   const router = useRouter();
   const { addItem } = useInventory();
   const { success, error, info } = useToast();
+  const { pets, selectedPetId } = usePet();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [registrationMode, setRegistrationMode] = useState<RegistrationMode>('SELECT');
   const [isScanning, setIsScanning] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [showForm, setShowForm] = useState(false);
-  
+
   // AI Editable Form States
   const [name, setName] = useState('');
   const [category, setCategory] = useState<InventoryItem['category']>('ETC');
@@ -45,6 +51,9 @@ export default function InventoryRegisterPage() {
   const [rating, setRating] = useState(5);
   const [isFeeding, setIsFeeding] = useState(false);
   const [openedAt, setOpenedAt] = useState('');
+  const [petId, setPetId] = useState<string | null>(
+    selectedPetId && selectedPetId !== ALL_PETS_ID ? selectedPetId : null
+  );
 
   const handlePhotoClick = () => {
     if (photos.length >= 3) {
@@ -155,7 +164,7 @@ export default function InventoryRegisterPage() {
 
     try {
       const formData = new FormData();
-      
+
       photoFiles.forEach(file => formData.append('images', file));
 
       const data = {
@@ -168,6 +177,7 @@ export default function InventoryRegisterPage() {
         suggestedUsage: suggestedUsage || null,
         price: price ? parseInt(price) : null,
         stock, rating, isFeeding,
+        petId: petId || null,
       };
       formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
 
@@ -175,7 +185,6 @@ export default function InventoryRegisterPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // Update local Zustand store for immediate UI feedback
       const createdItem = res.data;
       if (createdItem) {
         addItem(createdItem);
@@ -204,21 +213,38 @@ export default function InventoryRegisterPage() {
 
   const isConsumable = ['FOOD', 'SNACK', 'HEALTH'].includes(category);
 
+  const resetMode = () => {
+    setRegistrationMode('SELECT');
+    setShowForm(false);
+    setPhotos([]);
+    setPhotoFiles([]);
+    setAiCandidates({});
+    setAiReviewFields([]);
+    setAiWarnings([]);
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-surface-green/30 overflow-hidden">
       {/* Header */}
       <div className="bg-background border-b border-border p-4 lg:p-6 shrink-0 z-20 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-surface-green rounded-full transition-colors">
+            <button
+              onClick={() => registrationMode !== 'SELECT' ? resetMode() : router.back()}
+              className="p-2 hover:bg-surface-green rounded-full transition-colors"
+            >
               <ChevronLeft className="w-6 h-6 text-text-main" />
             </button>
             <div>
-              <h1 className="text-xl font-black text-text-main">AI 스마트 등록</h1>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <Sparkles className="w-3 h-3 text-main-yellow fill-main-yellow" />
-                <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">Daily AI Limit: 10 / 10 Remaining</span>
-              </div>
+              <h1 className="text-xl font-black text-text-main">
+                {registrationMode === 'SELECT' ? '제품 등록' : registrationMode === 'AI' ? 'AI 스마트 등록' : '직접 입력'}
+              </h1>
+              {registrationMode === 'AI' && (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <Sparkles className="w-3 h-3 text-main-yellow fill-main-yellow" />
+                  <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">Daily AI Limit: 10 / 10 Remaining</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="w-10" />
@@ -226,32 +252,91 @@ export default function InventoryRegisterPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-6">
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-10 pb-24">
-          
-          {/* Step 1: Multi-Photo Upload & Guidance */}
+
+        {/* Mode Selection */}
+        {registrationMode === 'SELECT' && (
+          <div className="max-w-4xl mx-auto pt-6 pb-24 space-y-6">
+            <p className="text-center text-text-sub font-bold text-sm">등록 방법을 선택해주세요</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <button
+                type="button"
+                onClick={() => setRegistrationMode('AI')}
+                className="group flex flex-col items-center gap-5 p-10 bg-background rounded-[40px] border-2 border-border hover:border-main-yellow hover:shadow-xl hover:shadow-main-yellow/10 active:scale-[0.98] transition-all"
+              >
+                <div className="w-20 h-20 rounded-full bg-main-yellow/10 flex items-center justify-center group-hover:bg-main-yellow/20 transition-colors">
+                  <Wand2 className="w-10 h-10 text-main-yellow" />
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-black text-text-main mb-2">AI 스마트 등록</p>
+                  <p className="text-sm font-bold text-text-sub leading-relaxed">
+                    사진을 찍으면 AI가 제품명·성분·유통기한을<br />자동으로 채워드려요.
+                    <br /><span className="text-main-yellow font-black">사료·간식·영양제</span>에 추천
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 px-4 py-2 bg-main-yellow/10 rounded-full">
+                  <Sparkles className="w-3.5 h-3.5 text-main-yellow" />
+                  <span className="text-[11px] font-black text-main-yellow">하루 10회 한도</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setRegistrationMode('MANUAL'); setShowForm(true); }}
+                className="group flex flex-col items-center gap-5 p-10 bg-background rounded-[40px] border-2 border-border hover:border-main-green hover:shadow-xl hover:shadow-main-green/10 active:scale-[0.98] transition-all"
+              >
+                <div className="w-20 h-20 rounded-full bg-main-green/10 flex items-center justify-center group-hover:bg-main-green/20 transition-colors">
+                  <PenLine className="w-10 h-10 text-main-green" />
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-black text-text-main mb-2">직접 입력</p>
+                  <p className="text-sm font-bold text-text-sub leading-relaxed">
+                    AI 없이 직접 정보를 입력해요.<br />
+                    <span className="text-main-green font-black">옷·장난감·기타</span> 제품에 추천
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 px-4 py-2 bg-main-green/10 rounded-full">
+                  <Package className="w-3.5 h-3.5 text-main-green" />
+                  <span className="text-[11px] font-black text-main-green">제한 없이 바로 등록</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className={`max-w-4xl mx-auto space-y-10 pb-24 ${registrationMode === 'SELECT' ? 'hidden' : ''}`}>
+
+          {/* Photo Upload */}
           <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="bg-light-yellow/50 p-6 rounded-[32px] border border-main-yellow/20 flex gap-4">
-                <AlertCircle className="w-6 h-6 text-main-yellow shrink-0" />
-                <div className="text-sm font-bold text-text-sub leading-relaxed">
-                  <p className="text-text-main font-black mb-1">AI 인식 정확도를 높이는 팁!</p>
-                  사료나 간식은 <span className="text-main-yellow font-black">제품 앞면(브랜드/이름)</span>과 <span className="text-main-yellow font-black">뒷면(성분표/유통기한)</span> 사진을 모두 올려주시면 훨씬 정확하게 자동 입력됩니다. (최대 3장)
+            {registrationMode === 'AI' && (
+              <div className="space-y-3">
+                <div className="bg-light-yellow/50 p-6 rounded-[32px] border border-main-yellow/20 flex gap-4">
+                  <AlertCircle className="w-6 h-6 text-main-yellow shrink-0" />
+                  <div className="text-sm font-bold text-text-sub leading-relaxed">
+                    <p className="text-text-main font-black mb-1">AI 인식 정확도를 높이는 팁!</p>
+                    사료나 간식은 <span className="text-main-yellow font-black">제품 앞면(브랜드/이름)</span>과 <span className="text-main-yellow font-black">뒷면(성분표/유통기한)</span> 사진을 모두 올려주시면 훨씬 정확하게 자동 입력됩니다. (최대 3장)
+                  </div>
+                </div>
+                <div className="bg-background/60 p-4 rounded-2xl border border-border flex items-center gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                  <p className="text-[11px] font-bold text-text-sub">
+                    <span className="text-red-500 font-black">중요:</span> AI 분석은 하루 최대 <span className="text-text-main font-black">10회</span>로 제한됩니다. 분석 시작 시 저장 여부와 관계없이 <span className="text-text-main font-black">횟수가 1회 차감</span>되니 신중하게 이용해주세요.
+                  </p>
                 </div>
               </div>
+            )}
 
-              {/* AI Policy Notice */}
-              <div className="bg-background/60 p-4 rounded-2xl border border-border flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                <p className="text-[11px] font-bold text-text-sub">
-                  <span className="text-red-500 font-black">중요:</span> AI 분석은 하루 최대 <span className="text-text-main font-black">10회</span>로 제한됩니다. 분석 시작 시 저장 여부와 관계없이 <span className="text-text-main font-black">횟수가 1회 차감</span>되니 신중하게 이용해주세요.
+            {registrationMode === 'MANUAL' && (
+              <div className="bg-background/60 p-5 rounded-2xl border border-border flex items-center gap-3">
+                <Camera className="w-5 h-5 text-text-sub shrink-0" />
+                <p className="text-[12px] font-bold text-text-sub">
+                  사진은 선택 사항이에요. 없어도 바로 등록할 수 있습니다.
                 </p>
               </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Photo Slots */}
               {[0, 1, 2].map((idx) => (
-                <div 
+                <div
                   key={idx}
                   onClick={photos[idx] ? undefined : handlePhotoClick}
                   className={`relative aspect-square rounded-[32px] border-4 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center gap-2 ${
@@ -261,7 +346,7 @@ export default function InventoryRegisterPage() {
                   {photos[idx] ? (
                     <>
                       <Image src={photos[idx]} alt={`Product ${idx + 1}`} fill className="object-cover" />
-                      <button 
+                      <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); removePhoto(idx); }}
                         className="absolute top-3 right-3 p-1.5 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors"
@@ -281,17 +366,17 @@ export default function InventoryRegisterPage() {
               ))}
             </div>
 
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
               accept="image/*"
               multiple
               onChange={handleFileChange}
             />
 
-            {!showForm && !isScanning && (
-              <button 
+            {registrationMode === 'AI' && !showForm && !isScanning && (
+              <button
                 type="button"
                 onClick={triggerSmartScan}
                 disabled={photos.length === 0}
@@ -315,17 +400,19 @@ export default function InventoryRegisterPage() {
             )}
           </div>
 
-          {/* Step 2: Form (Shown only after AI scan) */}
+          {/* Form (AI: after scan / MANUAL: immediately) */}
           {showForm && (
             <div className="animate-in fade-in slide-in-from-bottom-10 duration-700 space-y-10">
-              <div className="flex justify-center">
-                <div className="bg-main-green text-white px-8 py-3 rounded-full font-black text-lg shadow-lg flex items-center gap-3">
-                  <Sparkles className="w-6 h-6" />
-                  {photoFiles.length > 1 ? '멀티 사진 분석 완료!' : '사진 분석 완료!'}
+              {registrationMode === 'AI' && (
+                <div className="flex justify-center">
+                  <div className="bg-main-green text-white px-8 py-3 rounded-full font-black text-lg shadow-lg flex items-center gap-3">
+                    <Sparkles className="w-6 h-6" />
+                    {photoFiles.length > 1 ? '멀티 사진 분석 완료!' : '사진 분석 완료!'}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {aiWarnings.length > 0 && (
+              {registrationMode === 'AI' && aiWarnings.length > 0 && (
                 <div className="space-y-2">
                   {aiWarnings.map((w, i) => (
                     <div key={i} className="flex items-start gap-3 px-5 py-3 bg-amber-50 border border-amber-200 rounded-2xl text-sm font-bold text-amber-700">
@@ -336,21 +423,27 @@ export default function InventoryRegisterPage() {
                 </div>
               )}
 
-              {aiReviewFields.length > 0 && (
+              {registrationMode === 'AI' && aiReviewFields.length > 0 && (
                 <div className="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-100 rounded-2xl text-sm font-bold text-blue-700">
                   <AlertCircle className="w-4 h-4 shrink-0 text-blue-400" />
                   <span>AI가 확인을 권장하는 항목: <span className="font-black">{aiReviewFields.join(', ')}</span></span>
                 </div>
               )}
 
-              {/* Editable Fields Section (Same as before but with integrated data) */}
+              {/* Editable Fields Section */}
               <div className="bg-background rounded-[40px] p-10 border border-border shadow-xl space-y-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <Sparkles className="w-32 h-32 text-main-yellow" />
-                </div>
-                
+                {registrationMode === 'AI' && (
+                  <div className="absolute top-0 right-0 p-8 opacity-5">
+                    <Sparkles className="w-32 h-32 text-main-yellow" />
+                  </div>
+                )}
+
                 <h3 className="text-xl font-black text-text-main flex items-center gap-3 mb-6">
-                  <Search className="w-6 h-6 text-main-yellow" /> 통합 분석 결과 (수정 가능)
+                  {registrationMode === 'AI' ? (
+                    <><Search className="w-6 h-6 text-main-yellow" /> 통합 분석 결과 (수정 가능)</>
+                  ) : (
+                    <><PenLine className="w-6 h-6 text-main-green" /> 제품 정보 입력</>
+                  )}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -510,6 +603,53 @@ export default function InventoryRegisterPage() {
                 <h3 className="text-xl font-black text-text-main flex items-center gap-3">
                   <Package className="w-6 h-6 text-main-green" /> 집사님 추가 설정
                 </h3>
+
+                {pets.length > 0 && (
+                  <div className="space-y-3">
+                    <label className="text-sm font-black text-text-sub px-1">어떤 아이의 제품인가요?</label>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPetId(null)}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-black transition-all border-2 ${
+                          petId === null
+                            ? 'bg-surface-green border-main-green text-main-green'
+                            : 'bg-background border-border text-text-sub hover:border-main-green/40'
+                        }`}
+                      >
+                        공용 (전체)
+                      </button>
+                      {pets.map(pet => (
+                        <button
+                          key={pet.id}
+                          type="button"
+                          onClick={() => setPetId(pet.id)}
+                          className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-sm font-black transition-all border-2 ${
+                            petId === pet.id
+                              ? 'bg-main-yellow/10 border-main-yellow text-main-yellow'
+                              : 'bg-background border-border text-text-sub hover:border-main-yellow/40'
+                          }`}
+                        >
+                          {pet.photo ? (
+                            <Image
+                              src={getImagePath(pet.photo)}
+                              alt={pet.name}
+                              width={24}
+                              height={24}
+                              className="rounded-full object-cover w-6 h-6"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-main-yellow/20 flex items-center justify-center text-[10px] font-black text-main-yellow">
+                              {pet.name[0]}
+                            </div>
+                          )}
+                          {pet.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
                     <label className="text-sm font-black text-text-sub flex items-center gap-2 px-1"><Coins className="w-4 h-4 text-amber-500" /> 구매 가격</label>

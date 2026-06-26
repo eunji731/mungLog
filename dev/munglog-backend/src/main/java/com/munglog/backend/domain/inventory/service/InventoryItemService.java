@@ -13,6 +13,8 @@ import com.munglog.backend.domain.inventory.dto.InventoryItemResponse;
 import com.munglog.backend.domain.inventory.repository.InventoryItemRepository;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
+import com.munglog.backend.domain.pet.domain.Pet;
+import com.munglog.backend.domain.pet.repository.PetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class InventoryItemService {
 
     private final InventoryItemRepository inventoryItemRepository;
     private final MemberRepository memberRepository;
+    private final PetRepository petRepository;
     private final AttachedFileService attachedFileService;
     private final ObjectMapper objectMapper;
 
@@ -40,8 +43,13 @@ public class InventoryItemService {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        Pet pet = (request.getPetId() != null)
+                ? petRepository.findById(request.getPetId()).orElse(null)
+                : null;
+
         InventoryItem item = InventoryItem.builder()
                 .user(member)
+                .pet(pet)
                 .name(request.getName())
                 .category(parseEnum(ItemCategory.class, request.getCategory()))
                 .brand(request.getBrand())
@@ -91,6 +99,10 @@ public class InventoryItemService {
     public InventoryItemResponse updateItem(UUID itemId, UUID userId, InventoryItemRequest request, List<MultipartFile> images) {
         InventoryItem item = findByIdAndUserId(itemId, userId);
 
+        Pet pet = (request.getPetId() != null)
+                ? petRepository.findById(request.getPetId()).orElse(null)
+                : null;
+
         item.update(request.getName(),
                 parseEnum(ItemCategory.class, request.getCategory()),
                 request.getBrand(), request.getFlavor(),
@@ -98,7 +110,7 @@ public class InventoryItemService {
                 parseDate(request.getExpiryDateSpecific()), parseDate(request.getOpenedAt()),
                 toIngredientsJson(request.getIngredients()), request.getMaterial(), request.getSize(),
                 parseEnum(StorageMethod.class, request.getStorageMethod()), request.getSuggestedUsage(),
-                request.getRating(), request.getStock(), parsePrice(request.getPrice()));
+                request.getRating(), request.getStock(), parsePrice(request.getPrice()), pet);
 
         inventoryItemRepository.save(item);
 

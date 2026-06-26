@@ -5,18 +5,26 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Plus, Star, ShoppingBag, X, Calendar, Tag, Package, Activity, Pencil, Sparkles } from 'lucide-react';
 import { useInventory } from '@/app/common/hooks/useInventory';
+import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 
 export default function InventoryPage() {
   const router = useRouter();
   const { items, loading, fetchItems, removeItem, toggleFeeding } = useInventory();
+  const { pets } = usePet();
 
   useEffect(() => {
     fetchItems();
   }, []);
+
+  const [activePetId, setActivePetId] = useState<string>(ALL_PETS_ID);
   const [activeTab, setActiveTab] = useState<'ALL' | 'FOOD' | 'SNACK' | 'TOY' | 'HEALTH' | 'CLOTHES' | 'ETC'>('ALL');
 
-  const filteredItems = activeTab === 'ALL' ? items : items.filter(i => i.category === activeTab);
+  const petFilteredItems = activePetId === ALL_PETS_ID
+    ? items
+    : items.filter(i => i.petId === activePetId);
+
+  const filteredItems = activeTab === 'ALL' ? petFilteredItems : petFilteredItems.filter(i => i.category === activeTab);
 
   const tabs = [
     { label: '전체', value: 'ALL' },
@@ -52,6 +60,52 @@ export default function InventoryPage() {
           </div>
         </div>
       </div>
+
+      {/* Pet Filter */}
+      {pets.length > 1 && (
+        <div className="bg-background border-b border-border/50 shrink-0">
+          <div className="max-w-6xl mx-auto px-6 py-3 overflow-x-auto no-scrollbar">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActivePetId(ALL_PETS_ID)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all shrink-0 ${
+                  activePetId === ALL_PETS_ID
+                    ? 'bg-main-yellow text-white shadow-md shadow-main-yellow/30'
+                    : 'bg-surface-green text-text-sub hover:text-text-main'
+                }`}
+              >
+                전체 보기
+              </button>
+              {pets.map(pet => (
+                <button
+                  key={pet.id}
+                  onClick={() => setActivePetId(pet.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-black transition-all shrink-0 ${
+                    activePetId === pet.id
+                      ? 'bg-main-yellow text-white shadow-md shadow-main-yellow/30'
+                      : 'bg-surface-green text-text-sub hover:text-text-main'
+                  }`}
+                >
+                  {pet.photo ? (
+                    <Image
+                      src={getImagePath(pet.photo)}
+                      alt={pet.name}
+                      width={20}
+                      height={20}
+                      className="rounded-full object-cover w-5 h-5"
+                    />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-main-yellow/20 flex items-center justify-center text-[9px] font-black text-main-yellow">
+                      {pet.name[0]}
+                    </div>
+                  )}
+                  {pet.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="bg-background border-b border-border shrink-0">
