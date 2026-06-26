@@ -43,17 +43,20 @@ export default function InventoryPage() {
         <div className="w-full px-4 md:px-10 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 shrink-0">
             <div className="w-8 h-8 bg-main-yellow/10 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-main-yellow" />
+              <ShoppingBag className="w-4 h-4 text-main-yellow" />
             </div>
             <h1 className="text-lg font-black tracking-tight whitespace-nowrap">
-              아이의<span className="text-main-yellow"> 보물창고</span>
+              {(() => {
+                const selectedPet = pets.find(p => p.id === activePetId);
+                return activePetId === ALL_PETS_ID ? '가족' : (selectedPet?.name || '아이');
+              })()}<span className="text-main-yellow"> 보물창고</span>
             </h1>
           </div>
           
           <div className="flex gap-3">
             <button 
               onClick={() => router.push('/inventory/register')}
-              className="flex items-center gap-1.5 px-4 py-2 bg-main-yellow text-white font-black rounded-xl text-xs shadow-md shadow-main-yellow/30 hover:scale-105 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 bg-main-yellow text-white font-black rounded-xl text-xs shadow-md shadow-main-yellow/30 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" /> 등록
             </button>
