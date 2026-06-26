@@ -8,7 +8,7 @@ import { DatePicker } from '@/components/common/DatePicker';
 import { Textarea } from '@/components/common/Textarea';
 import { Select } from '@/components/common/Select';
 import { TagInput } from '@/components/common/TagInput';
-import { useScheduleForm } from './hooks/useScheduleForm';
+import { useScheduleForm } from '../hooks/useScheduleForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { FileUploader } from '@/components/common/FileUploader';
 
@@ -34,7 +34,6 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
     titleSuggestions
   } = useScheduleForm(id, { prefillDate });
 
-  // DB에서 일정 유형(SCHEDULE_TYPE) 코드 목록 실시간 호출
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
 
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
@@ -104,9 +103,9 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
                 onChange={(e) => setFormData({ ...formData, scheduleTypeId: Number(e.target.value) })}
                 options={[
                   { label: '유형을 선택해주세요', value: '' },
-                  ...scheduleTypes.map(t => ({ 
-                    label: t.codeName, 
-                    value: t.id.toString() 
+                  ...scheduleTypes.map(t => ({
+                    label: t.codeName,
+                    value: t.id.toString()
                   }))
                 ]}
               />

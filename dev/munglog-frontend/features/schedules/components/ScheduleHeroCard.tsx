@@ -16,7 +16,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
 
   if (!schedule) return null;
-  
+
   const dDay = calculateDDay(schedule.scheduleDate);
   const dDayLabel = dDay === 0 ? 'Day' : dDay > 0 ? `-${dDay}` : `+${Math.abs(dDay)}`;
   const isPast = dDay < 0;
@@ -43,7 +43,6 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
   const weekDays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
   const dayOfWeek = weekDays[dateObj.getDay()];
 
-  // Format time (e.g., 오전 10:30)
   const timeString = dateObj.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
     minute: '2-digit',
@@ -51,7 +50,7 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
   });
 
   return (
-    <div 
+    <div
       onClick={() => router.push(`/schedules/${schedule.id}`)}
       className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#7DBE7A] via-[#5C9E61] to-[#45844B] border border-emerald-400/30 shadow-xl shadow-main-green/10 group cursor-pointer transition-all duration-300 hover:border-emerald-300 hover:shadow-main-green/20"
     >
@@ -64,21 +63,19 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
         CARE PASS
       </div>
 
-      {/* Ticket Cutouts & Divider lines */}
-      {/* Mobile Cutouts (visible on < md) */}
+      {/* Mobile Cutouts */}
       <div className="absolute left-0 top-[135px] -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background border-r border-emerald-400/30 z-20 md:hidden transition-colors duration-300" />
       <div className="absolute right-0 top-[135px] translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background border-l border-emerald-400/30 z-20 md:hidden transition-colors duration-300" />
       <div className="absolute top-[135px] left-6 right-6 border-t-2 border-dashed border-white/20 z-10 md:hidden" />
 
-      {/* Desktop Cutouts (visible on >= md) */}
+      {/* Desktop Cutouts */}
       <div className="absolute top-0 left-[25%] -translate-y-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-background border-b border-emerald-400/30 z-20 hidden md:block transition-colors duration-300" />
       <div className="absolute bottom-0 left-[25%] translate-y-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-background border-t border-emerald-400/30 z-20 hidden md:block transition-colors duration-300" />
       <div className="absolute top-6 bottom-6 left-[25%] border-l-2 border-dashed border-white/20 z-10 hidden md:block" />
 
       <div className="grid grid-cols-1 md:grid-cols-4 relative z-10">
-        {/* Ticket Stub (Left column or Top row) */}
+        {/* Ticket Stub */}
         <div className="h-[135px] md:h-auto flex flex-col justify-center items-center p-6 md:p-8 text-center md:col-span-1 bg-black/5 relative overflow-hidden">
-          {/* Vertical watermark running text */}
           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[8px] font-black text-white/10 tracking-[0.25em] uppercase select-none pointer-events-none [writing-mode:vertical-lr] rotate-180 hidden md:block">
             MUNGLOG CARE TICKET
           </span>
@@ -94,10 +91,10 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
           </span>
           <div className="mt-auto md:mt-2">
             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black tracking-wider shadow-md
-              ${schedule.isCompleted 
-                ? 'bg-emerald-600/30 text-white border border-emerald-400/40' 
-                : isPast 
-                  ? 'bg-stone-600/20 text-white/80 border border-white/20' 
+              ${schedule.isCompleted
+                ? 'bg-emerald-600/30 text-white border border-emerald-400/40'
+                : isPast
+                  ? 'bg-stone-600/20 text-white/80 border border-white/20'
                   : 'bg-red-500/20 text-red-100 border border-red-400/30 animate-pulse'}
             `}>
               {schedule.isCompleted ? '✅ 완료됨' : `🚨 D${dDayLabel}`}
@@ -105,10 +102,9 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
           </div>
         </div>
 
-        {/* Ticket Body (Right column or Bottom row) */}
+        {/* Ticket Body */}
         <div className="p-6 md:p-8 flex flex-col justify-between md:col-span-3 md:pl-10 space-y-6">
           <div className="space-y-4 min-h-[130px]">
-            {/* Top row in Body: Category, Time, Barcode & Edit */}
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-black bg-white/20 text-white border border-white/25 shadow-sm">
@@ -121,7 +117,6 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
                 </span>
               </div>
 
-              {/* Mock Barcode details */}
               <div className="hidden md:flex flex-col items-end gap-0.5 select-none pointer-events-none opacity-30 group-hover:opacity-50 transition-opacity">
                 <div className="flex items-end gap-0.5 h-6">
                   <div className="w-[1px] h-full bg-white" />
@@ -151,7 +146,6 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
               </button>
             </div>
 
-            {/* Title & Location */}
             <div className="space-y-2">
               <h2 className={`text-xl md:text-2xl font-black text-white leading-tight tracking-tight break-keep group-hover:text-yellow-100 transition-colors duration-300 ${
                 schedule.isCompleted ? 'line-through opacity-50' : ''
@@ -166,7 +160,6 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
               )}
             </div>
 
-            {/* Memo Block */}
             {schedule.memo && (
               <div className="relative p-4 bg-black/10 rounded-xl border-l-4 border-yellow-200/60 backdrop-blur-sm shadow-inner">
                 <div className="flex gap-2 items-start">
@@ -178,7 +171,6 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
               </div>
             )}
 
-            {/* Tags */}
             {schedule.symptomTags && schedule.symptomTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {schedule.symptomTags.map(tag => (
@@ -193,7 +185,6 @@ export const ScheduleHeroCard: React.FC<ScheduleHeroCardProps> = ({ schedule, on
             )}
           </div>
 
-          {/* Bottom Actions */}
           <div className="flex items-center justify-end pt-4 border-t border-white/15">
             <button
               onClick={(e) => { e.stopPropagation(); onToggleComplete(schedule.id); }}

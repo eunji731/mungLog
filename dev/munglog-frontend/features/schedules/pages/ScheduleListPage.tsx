@@ -3,11 +3,11 @@ import { useRouter } from 'next/navigation';
 import { ClipboardList, Search, X, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
-import { ScheduleHeroCard } from './components/ScheduleHeroCard';
-import { ScheduleList } from './components/ScheduleList';
-import ScheduleStreakBoard from './components/ScheduleStreakBoard';
-import { useSchedules } from './hooks/useSchedules';
-import { useScheduleStreaks } from './hooks/useScheduleStreaks';
+import { ScheduleHeroCard } from '../components/ScheduleHeroCard';
+import { ScheduleList } from '../components/ScheduleList';
+import ScheduleStreakBoard from '../components/ScheduleStreakBoard';
+import { useSchedules } from '../hooks/useSchedules';
+import { useScheduleStreaks } from '../hooks/useScheduleStreaks';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { scheduleApi } from '@/api/scheduleApi';
@@ -242,12 +242,10 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
 
         <div className="w-full px-4 md:px-8 pt-8 pb-32 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left Column: Recurring Streak Board */}
             <div className="lg:col-span-4 lg:sticky lg:top-24">
               <ScheduleStreakBoard streaks={streaks} isLoading={isStreaksLoading} onRecreated={handleRecreated} />
             </div>
 
-            {/* Right Column: Focus + Upcoming List */}
             <div className="lg:col-span-8 space-y-6">
               {isLoading ? (
                 <div className="h-[300px] flex items-center justify-center">

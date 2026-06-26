@@ -19,7 +19,7 @@ export const useSchedules = () => {
       setSchedules(data);
     } catch (err: unknown) {
       console.error('Failed to fetch schedules:', err);
-      setSchedules([]); // 에러 시 빈 배열로 초기화
+      setSchedules([]);
     } finally {
       setIsLoading(false);
     }
@@ -31,7 +31,6 @@ export const useSchedules = () => {
 
   const updateFilter = useCallback((newFilters: Partial<ScheduleFilters>) => {
     setFilters(prev => {
-      // 새로운 필터 값이 기존과 다를 때만 업데이트하여 무한 루프 방지
       const isChanged = Object.entries(newFilters).some(([key, value]) => prev[key as keyof ScheduleFilters] !== value);
       if (!isChanged) return prev;
       return { ...prev, ...newFilters };

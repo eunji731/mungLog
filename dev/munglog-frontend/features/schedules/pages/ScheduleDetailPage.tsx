@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { useScheduleDetail } from './hooks/useScheduleDetail';
-import { ScheduleDetailHeader } from './components/ScheduleDetailHeader';
-import { ScheduleDetailInfo } from './components/ScheduleDetailInfo';
+import { useScheduleDetail } from '../hooks/useScheduleDetail';
+import { ScheduleDetailHeader } from '../components/ScheduleDetailHeader';
+import { ScheduleDetailInfo } from '../components/ScheduleDetailInfo';
 import { CareRecordAttachmentGallery } from '@/features/care-records/components/CareRecordAttachmentGallery';
 import { scheduleApi } from '@/api/scheduleApi';
 import { useToast } from '@/context/ToastContext';
@@ -48,7 +48,6 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
     }
   };
 
-  // 백엔드가 직접 케어기록을 생성하고 새 ID를 돌려줍니다. 생성 후 수정 페이지로 이동해 추가 정보를 입력합니다.
   const handleConvertToCareRecord = async () => {
     if (!id) return;
     if (!window.confirm('이 일정을 케어기록으로 전환하시겠습니까? \n전환 후 등록된 기록을 바로 수정할 수 있습니다.')) return;
@@ -98,28 +97,24 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
     <div className="min-h-screen bg-background">
       <PageLayout title="" maxWidth="max-w-6xl" noPaddingTop>
         <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 pt-2 pb-16 space-y-6 lg:space-y-8">
-          
+
           <ScheduleDetailHeader schedule={schedule} />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-            {/* Left side: Info Cards sidebar */}
             <div className="lg:col-span-5 space-y-4">
-              <ScheduleDetailInfo 
-                schedule={schedule} 
-              />
+              <ScheduleDetailInfo schedule={schedule} />
             </div>
 
-            {/* Right side: Detailed Notes, Gallery and Action Buttons */}
             <div className="lg:col-span-7 space-y-6 lg:space-y-8">
-              
-              {/* Completion Action Card (완료 버튼 + 재고 연동 표시) */}
+
+              {/* Completion Action Card */}
               <div className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border flex flex-col gap-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <span className="text-[10px] font-black text-text-sub uppercase tracking-widest">Action / Integration</span>
                     <h4 className="text-[15px] font-black text-text-main">일정 완료 처리</h4>
                   </div>
-                  
+
                   <button
                     type="button"
                     onClick={handleToggleComplete}
@@ -158,7 +153,6 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
 
               {/* Note Card */}
               <section className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border min-h-[220px] space-y-8">
-                {/* Section Header */}
                 <div className="flex items-center gap-3 border-b border-border pb-5">
                   <div className="w-10 h-10 rounded-2xl bg-main-green/10 flex items-center justify-center shrink-0">
                     <span className="text-[20px]">📝</span>
@@ -172,12 +166,11 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
                 </div>
 
                 <div className="flex flex-col gap-6">
-                  {/* Symptom Tags */}
                   {schedule.symptomTags && schedule.symptomTags.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
                       {schedule.symptomTags.map((tag: string) => (
-                        <span 
-                          key={tag} 
+                        <span
+                          key={tag}
                           className="px-3.5 py-1.5 rounded-full bg-red-500/10 dark:bg-red-500/20 text-red-500 text-[11px] font-black border border-red-200/30 flex items-center gap-1.5 animate-in zoom-in-95 duration-300 shadow-xs"
                         >
                           <span className="opacity-70 text-[9px]">#</span>
@@ -187,7 +180,6 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
                     </div>
                   )}
 
-                  {/* Memo Content Block */}
                   <div className="bg-surface-green/50 dark:bg-zinc-900/50 border border-border p-5 rounded-2xl space-y-2.5 transition-all duration-300">
                     <h4 className="flex items-center gap-2 text-[11px] font-black text-text-sub uppercase tracking-widest">
                       <span className="w-1.5 h-1.5 bg-text-sub rounded-full" /> 상세 메모 및 참고사항 (Plan Memo)
@@ -199,7 +191,6 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
                 </div>
               </section>
 
-              {/* Attachment Gallery Card */}
               {files && files.length > 0 && (
                 <section className="bg-white dark:bg-zinc-900 rounded-[28px] lg:rounded-[36px] p-6 md:p-8 lg:p-10 shadow-xs border border-border">
                   <CareRecordAttachmentGallery files={files} />
@@ -208,21 +199,21 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
 
               {/* Action Bar */}
               <div className="pt-6 flex items-center justify-between gap-3 border-t border-border flex-wrap">
-                <button 
+                <button
                   onClick={() => router.push('/schedules')}
                   className="px-6 h-[48px] rounded-full border border-border text-text-sub font-black text-[13px] hover:border-text-sub hover:text-text-main hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
                 >
                   목록으로
                 </button>
-                
+
                 <div className="flex items-center gap-2.5">
-                  <button 
+                  <button
                     onClick={() => setIsDeleteModalOpen(true)}
                     className="px-5 h-[48px] rounded-full border border-border text-text-sub hover:text-red-500 hover:border-red-200/50 hover:bg-red-500/5 transition-all font-black text-[13px] active:scale-95 flex items-center gap-1.5 cursor-pointer"
                   >
                     삭제
                   </button>
-                  <button 
+                  <button
                     onClick={() => router.push(`/schedules/edit/${schedule.id}`)}
                     className="px-8 h-[48px] bg-background border-2 border-main-green text-main-green rounded-full font-black text-[13px] hover:bg-main-green/5 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
@@ -253,7 +244,6 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
         </div>
       </PageLayout>
 
-      {/* Delete Modal */}
       <ConfirmModal
         open={isDeleteModalOpen}
         title="일정 삭제"

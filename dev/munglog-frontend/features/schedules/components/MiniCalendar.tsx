@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
   isSameDay,
   parseISO
 } from 'date-fns';
@@ -32,7 +32,6 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, schedul
     return schedules.filter(s => isSameDay(parseISO(s.scheduleDate), day));
   };
 
-  // 색상 매핑 함수
   const getMarkerColor = (typeCode: string) => {
     switch(typeCode) {
       case 'HOSPITAL': return 'bg-main-green';
@@ -46,14 +45,12 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, schedul
 
   return (
     <div className="bg-background rounded-[32px] p-6 border border-border shadow-sm flex flex-col gap-6">
-      {/* 1. Header */}
       <div className="flex items-center justify-between px-2">
         <h3 className="text-[16px] font-black text-foreground uppercase tracking-tight">
           {format(currentDate, 'MMMM yyyy')}
         </h3>
       </div>
 
-      {/* 2. Calendar Grid */}
       <div className="grid grid-cols-7 gap-y-2">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
           <div key={i} className="text-center text-[10px] font-black text-text-sub/50 mb-2">{d}</div>
@@ -63,9 +60,9 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, schedul
           const isSelected = isSameDay(day, currentDate);
           const isCurrentMonth = isSameMonth(day, currentDate);
 
-           return (
-            <div 
-              key={i} 
+          return (
+            <div
+              key={i}
               onClick={() => onDateClick(day)}
               className={`relative aspect-square flex flex-col items-center justify-center cursor-pointer transition-all rounded-xl
                 ${isSelected ? 'bg-main-green text-white shadow-lg shadow-main-green/20 scale-110 z-10' : 'hover:bg-main-green/5'}
@@ -75,14 +72,14 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, schedul
               <span className={`text-[12px] font-black tabular-nums ${isSelected ? 'text-white' : 'text-foreground'}`}>
                 {format(day, 'd')}
               </span>
-              
+
               <div className="flex gap-0.5 mt-1 h-1">
                 {daySchedules.slice(0, 3).map((s, idx) => {
                   const typeCode = s.scheduleTypeId ? getCodeById(s.scheduleTypeId) : String(s.scheduleTypeCode || '');
                   return (
-                    <div 
-                      key={idx} 
-                      className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white/60' : getMarkerColor(typeCode)}`} 
+                    <div
+                      key={idx}
+                      className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white/60' : getMarkerColor(typeCode)}`}
                     />
                   );
                 })}
@@ -92,7 +89,6 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, schedul
         })}
       </div>
 
-      {/* 3. Legend (범례) 추가 */}
       <div className="pt-4 border-t border-border">
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {scheduleTypes.map((type) => (

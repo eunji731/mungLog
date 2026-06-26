@@ -36,7 +36,6 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
   const fileLoadedRef = useRef(false);
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
 
-  // 선택된 아이의 기존 일정 제목 + 인벤토리 제품명을 모아 자동완성 제안 (같은 제목을 반복 입력해야 스트릭으로 추적됨)
   useEffect(() => {
     const petId = formData.dogId || undefined;
     const inventoryNames = inventoryItems.map(i => i.name?.trim()).filter(Boolean) as string[];
@@ -48,7 +47,6 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
       .catch((err) => console.error('Failed to fetch title suggestions:', err));
   }, [formData.dogId, inventoryItems]);
 
-  // 1. 상세 데이터 본문 로드
   useEffect(() => {
     if (!id) return;
 
@@ -56,10 +54,10 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
       try {
         setIsFetching(true);
         const data = await scheduleApi.getScheduleDetail(id);
-        
+
         const fullDate = data.scheduleDate;
-        const [date, time] = fullDate.includes('T') 
-          ? fullDate.split('T') 
+        const [date, time] = fullDate.includes('T')
+          ? fullDate.split('T')
           : [fullDate, '10:00'];
 
         setFormData({
@@ -120,7 +118,7 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
 
       if (id) {
         showToast('일정이 수정되었습니다! ✨', 'success');
-        router.push(`/schedules/${id}`); // 수정 시 상세로 이동
+        router.push(`/schedules/${id}`);
       } else {
         showToast('일정이 예약되었습니다! ✨', 'success');
         router.push('/schedules');

@@ -34,17 +34,17 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeIds
         const dDayLabel = dDay === 0 ? 'Day' : dDay > 0 ? `-${dDay}` : `+${Math.abs(dDay)}`;
         const isPast = dDay < 0;
 
-        const typeCode = schedule.scheduleTypeId 
-          ? getCodeById(schedule.scheduleTypeId) 
+        const typeCode = schedule.scheduleTypeId
+          ? getCodeById(schedule.scheduleTypeId)
           : String(schedule.scheduleTypeCode);
 
         return (
-          <div 
+          <div
             key={schedule.id}
             onClick={() => router.push(`/schedules/${schedule.id}`)}
             className={`group flex items-center justify-between p-5 rounded-[24px] border transition-all cursor-pointer hover:border-main-green hover:shadow-lg hover:shadow-main-green/5 active:scale-[0.99]
-              ${activeIds.includes(schedule.id) 
-                ? 'bg-background border-main-green shadow-xl shadow-main-green/5' 
+              ${activeIds.includes(schedule.id)
+                ? 'bg-background border-main-green shadow-xl shadow-main-green/5'
                 : 'bg-background border-border shadow-sm'
               }`}
           >

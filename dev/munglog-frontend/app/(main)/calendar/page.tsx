@@ -12,7 +12,7 @@ import MonthlyTimeline from '@/app/calendar/components/MonthlyTimeline';
 import { useDiary, DailyLog } from '@/app/common/hooks/useDiary';
 import { useCalendar } from '@/app/calendar/hooks/useCalendar';
 import { useCareRecords } from '@/features/care-records/hooks/useCareRecords';
-import { useSchedules } from '@/pawcare-pages/Schedules/List/hooks/useSchedules';
+import { useSchedules } from '@/features/schedules/hooks/useSchedules';
 import CalendarCarePanel from '@/app/calendar/components/CalendarCarePanel';
 import CalendarSchedulePanel from '@/app/calendar/components/CalendarSchedulePanel';
 import CareRecordFormPage from '@/features/care-records/pages/CareRecordFormPage';

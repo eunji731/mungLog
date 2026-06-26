@@ -7,9 +7,9 @@ import DogFormPage from '@/pages/Dogs/Form';
 import CareRecordListPage from '@/features/care-records/pages/CareRecordListPage';
 import CareRecordFormPage from '@/features/care-records/pages/CareRecordFormPage';
 import CareRecordDetailPage from '@/features/care-records/pages/CareRecordDetailPage';
-import ScheduleListPage from '@/pages/Schedules/List';
-import ScheduleFormPage from '@/pages/Schedules/Form';
-import ScheduleDetailPage from '@/pages/Schedules/Detail';
+import ScheduleListPage from '@/features/schedules/pages/ScheduleListPage';
+import ScheduleFormPage from '@/features/schedules/pages/ScheduleFormPage';
+import ScheduleDetailPage from '@/features/schedules/pages/ScheduleDetailPage';
 
 function PawCareRoute() {
   const pathname = usePathname() ?? '/dogs';

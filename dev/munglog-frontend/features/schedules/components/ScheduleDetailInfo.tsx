@@ -9,13 +9,12 @@ interface ScheduleDetailInfoProps {
 export const ScheduleDetailInfo: React.FC<ScheduleDetailInfoProps> = ({ schedule }) => {
   const { getCodeNameById, getCodeById, getCodeName } = useCommonCodes('SCHEDULE_TYPE');
 
-  // 현재 아이템의 코드('MEDICAL' 등)와 한글 명칭('병원 진료' 등) 결정 (타입 안정성 보강)
-  const typeCode = schedule.scheduleTypeId 
-    ? getCodeById(schedule.scheduleTypeId) 
+  const typeCode = schedule.scheduleTypeId
+    ? getCodeById(schedule.scheduleTypeId)
     : String(schedule.scheduleTypeCode || '');
-    
-  const typeName = schedule.scheduleTypeId 
-    ? getCodeNameById(schedule.scheduleTypeId) 
+
+  const typeName = schedule.scheduleTypeId
+    ? getCodeNameById(schedule.scheduleTypeId)
     : getCodeName(String(schedule.scheduleTypeCode || ''));
 
   const typeIcon: Record<string, string> = {
@@ -31,7 +30,7 @@ export const ScheduleDetailInfo: React.FC<ScheduleDetailInfoProps> = ({ schedule
 
   return (
     <div className="flex flex-col gap-4">
-      
+
       {/* Time Widget */}
       <div className="bg-gradient-to-br from-main-green to-deep-green text-white rounded-3xl p-6 shadow-lg shadow-main-green/20 relative overflow-hidden flex flex-col justify-between min-h-[135px] group hover:scale-[1.02] transition-transform duration-300">
         <div className="absolute right-[-10px] top-[-10px] w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
@@ -54,7 +53,7 @@ export const ScheduleDetailInfo: React.FC<ScheduleDetailInfoProps> = ({ schedule
             {schedule.isCompleted ? 'COMPLETED' : 'UPCOMING'}
           </span>
         </div>
-        
+
         <div className="mt-4 flex items-center gap-2 text-text-main text-lg font-black tracking-tight leading-snug">
           <span>{typeIcon[typeCode] || '📅'}</span>
           <span>{typeName || typeCode}</span>
@@ -70,9 +69,9 @@ export const ScheduleDetailInfo: React.FC<ScheduleDetailInfoProps> = ({ schedule
           </div>
           <div className="mt-4 flex flex-col">
             <span className="text-[14px] font-bold text-text-main leading-tight truncate" title={location}>{location}</span>
-            <a 
+            <a
               href={`https://map.naver.com/v5/search/${encodeURIComponent(location)}`}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] font-black text-text-sub hover:text-main-green transition-colors underline decoration-border underline-offset-4 mt-1.5 self-start"
             >
