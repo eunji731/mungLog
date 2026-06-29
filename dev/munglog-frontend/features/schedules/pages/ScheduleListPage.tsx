@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation';
 import { ClipboardList, Search, X, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/common/Button';
-import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
+import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import { ScheduleHeroCard } from '../components/ScheduleHeroCard';
 import { ScheduleList } from '../components/ScheduleList';
 import ScheduleStreakBoard from '../components/ScheduleStreakBoard';

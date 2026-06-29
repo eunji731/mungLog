@@ -19,7 +19,7 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
   const [mode, setPickerMode] = useState<PickerMode>('day');
   const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
   const [mounted, setMounted] = useState(false);
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const yearListRef = useRef<HTMLDivElement>(null);
@@ -140,7 +140,7 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
       {mode === 'day' ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
-            <button 
+            <button
               onClick={() => setPickerMode('yearMonth')}
               className="group flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-main-green/5 transition-colors"
             >
@@ -183,7 +183,7 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
               );
             })}
           </div>
-          
+
           <div className="mt-4 pt-3 border-t border-border flex justify-between items-center px-1">
              <button onClick={() => { onChange(''); setIsOpen(false); }} className="text-[10px] font-black text-text-sub/60 hover:text-red-500">초기화</button>
              <button onClick={() => handleDateSelect(new Date())} className="text-[10px] font-black text-main-green hover:underline">오늘로 이동</button>
@@ -249,8 +249,8 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
               setIsOpen(!isOpen);
             }}
             className={`w-full px-5 py-3.5 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
-              isOpen 
-                ? 'border-main-green ring-4 ring-main-green/5' 
+              isOpen
+                ? 'border-main-green ring-4 ring-main-green/5'
                 : 'border-border hover:border-main-green/30'
             }`}
           >
@@ -349,7 +349,7 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
 
           {/* DESKTOP VERSION: Rendered via Portal to avoid overflow clipping */}
           {mounted && coords && createPortal(
-            <div 
+            <div
               ref={pickerRef}
               className="hidden lg:block fixed z-[1000] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200"
               style={getDesktopStyle()}

@@ -64,9 +64,9 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
             <h3 className="text-xl font-black text-text-main">아직 일정이 없어요</h3>
             <p className="text-text-sub font-bold mt-2 leading-relaxed">이날 예정된 일정/예약이 없습니다.<br/>새로운 일정이나 예약을 작성해보세요.</p>
           </div>
-          <Button 
-            variant="outline" 
-            size="md" 
+          <Button
+            variant="outline"
+            size="md"
             onClick={handleAddNew}
             className="rounded-xl border-border text-foreground hover:bg-surface-green px-6"
           >
@@ -103,9 +103,9 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 bg-surface-green/20 space-y-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between px-2">
           <span className="text-xs font-bold text-text-sub">총 {filteredSchedules.length}개의 일정</span>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleAddNew}
             className="rounded-xl border-border hover:border-main-green text-foreground hover:bg-surface-green text-xs px-3 h-8 shadow-sm"
           >
@@ -119,12 +119,12 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
             const dDayLabel = dDay === 0 ? 'Day' : dDay > 0 ? `-${dDay}` : `+${Math.abs(dDay)}`;
             const isPast = dDay < 0;
 
-            const typeCode = schedule.scheduleTypeId 
-              ? getCodeById(schedule.scheduleTypeId) 
+            const typeCode = schedule.scheduleTypeId
+              ? getCodeById(schedule.scheduleTypeId)
               : String(schedule.scheduleTypeCode);
 
             return (
-              <div 
+              <div
                 key={schedule.id}
                 onClick={() => router.push(`/schedules/${schedule.id}`)}
                 className="group flex flex-col p-6 bg-background rounded-[24px] border border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
@@ -140,8 +140,8 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded border tabular-nums shrink-0 ${
-                      isPast 
-                        ? 'text-text-sub/50 border-border' 
+                      isPast
+                        ? 'text-text-sub/50 border-border'
                         : 'text-main-green border-main-green/20 bg-main-green/5'
                     }`}>
                       D{dDayLabel}

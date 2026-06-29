@@ -10,7 +10,7 @@ import { Button } from '@/components/common/Button';
 import { useConfirm } from '@/app/common/hooks/useConfirm';
 
 import { TagInput } from '@/components/common/TagInput';
-import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
+import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import TimelineTimePicker from './TimelineTimePicker';
 import { getImagePath } from '@/app/common/lib/clientApi';
 import { downloadFile } from '@/utils/fileUtils';

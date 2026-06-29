@@ -69,9 +69,9 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
             <h3 className="text-xl font-black text-text-main">아직 기록이 없어요</h3>
             <p className="text-text-sub font-bold mt-2 leading-relaxed">이날 기록된 건강/지출 케어가 없습니다.<br/>새로운 케어 기록을 작성해보세요.</p>
           </div>
-          <Button 
-            variant="outline" 
-            size="md" 
+          <Button
+            variant="outline"
+            size="md"
             onClick={handleAddNew}
             className="rounded-xl border-border text-foreground hover:bg-surface-green px-6"
           >
@@ -108,9 +108,9 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 bg-surface-green/20 space-y-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between px-2">
           <span className="text-xs font-bold text-text-sub">총 {filteredRecords.length}개의 기록</span>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleAddNew}
             className="rounded-xl border-border hover:border-main-green text-foreground hover:bg-surface-green text-xs px-3 h-8 shadow-sm"
           >
@@ -125,7 +125,7 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
             const dogProfileUrl = matchedDog?.photo || record.dogProfileImageUrl;
 
             return (
-              <div 
+              <div
                 key={record.id}
                 onClick={() => router.push(`/care-records/${record.id}`)}
                 className="group flex flex-col p-6 bg-background rounded-[24px] border border-border/50 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"

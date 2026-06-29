@@ -3,7 +3,7 @@
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Sparkles, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
-import { useCalendar } from '../hooks/useCalendar';
+import { useCalendar } from '@/features/calendar/hooks/useCalendar';
 import { useDiary } from '@/features/diary/hooks/useDiary';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
@@ -16,7 +16,7 @@ const getRecordTypeMeta = (care: any) => {
     const typeId = care.recordTypeId || rawRecord.record_type_id;
     if (Number(typeId) === 1) typeCode = 'MEDICAL';
   }
-  
+
   switch (typeCode) {
     case 'HOSPITAL':
     case 'MEDICAL':
@@ -40,7 +40,7 @@ const getRecordTypeMeta = (care: any) => {
 const getScheduleTypeMeta = (sch: any) => {
   const typeCode = String(sch.scheduleType || '');
   const isCompleted = sch.isCompleted;
-  
+
   let icon = '⏰';
   if (isCompleted) {
     icon = '✅';
@@ -68,21 +68,21 @@ const getScheduleTypeMeta = (sch: any) => {
     }
   }
 
-  const bg = isCompleted 
+  const bg = isCompleted
     ? 'bg-gray-100 text-gray-400 border-gray-200 line-through opacity-70 dark:bg-gray-800/40 dark:text-gray-505 dark:border-gray-700/30'
     : 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/30';
 
   return { icon, label: sch.title || '일정', bg };
 };
 
-export default function CalendarGrid({ 
-  onDateSelect, 
+export default function CalendarGrid({
+  onDateSelect,
   selectedDate,
   currentDate,
   tab = 'petlog',
   careRecords = [],
   schedules = []
-}: { 
+}: {
   onDateSelect: (date: Date) => void;
   selectedDate: Date;
   currentDate: Date;
@@ -99,9 +99,9 @@ export default function CalendarGrid({
     const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const days = [];
-    
+
     // Previous month days
     const startDay = firstDay.getDay();
     for (let i = startDay - 1; i >= 0; i--) {
@@ -110,7 +110,7 @@ export default function CalendarGrid({
         isCurrentMonth: false
       });
     }
-    
+
     // Current month days
     for (let i = 1; i <= lastDay.getDate(); i++) {
       days.push({
@@ -118,7 +118,7 @@ export default function CalendarGrid({
         isCurrentMonth: true
       });
     }
-    
+
     // Next month days
     const remaining = 42 - days.length;
     for (let i = 1; i <= remaining; i++) {
@@ -127,7 +127,7 @@ export default function CalendarGrid({
         isCurrentMonth: false
       });
     }
-    
+
     return days;
   };
 
@@ -138,12 +138,12 @@ export default function CalendarGrid({
     const localDate = new Date(date.getTime() - offset * 60 * 1000);
     const dateKey = localDate.toISOString().split('T')[0];
     const logs = dailyLogs[dateKey] || [];
-    
+
     // 필터링된 결과 확인
     if (selectedPetId !== ALL_PETS_ID) {
       return logs.filter(log => log.moments.some(m => m.dogIds.includes(selectedPetId || '')));
     }
-    
+
     return logs;
   };
 
@@ -155,7 +155,7 @@ export default function CalendarGrid({
             {day}
           </div>
         ))}
-        
+
         {days.map((day, i) => {
           const logs = getDayContent(day.date);
           const hasLogs = logs.length > 0;
@@ -163,7 +163,7 @@ export default function CalendarGrid({
           const isToday = new Date().toDateString() === day.date.toDateString();
 
           return (
-            <div 
+            <div
               key={i}
               className={`relative flex flex-col items-center justify-start p-1 lg:p-2 transition-all group cursor-pointer border-b border-r border-border last:border-r-0 ${
                 day.isCurrentMonth ? 'bg-background' : 'bg-surface-green/5'
@@ -178,8 +178,8 @@ export default function CalendarGrid({
               {/* Date Number */}
               <div className="relative z-10 flex flex-col items-center gap-0.5">
                 <span className={`text-[11px] lg:text-sm font-black transition-all ${
-                  isToday ? 'text-main-green' : 
-                  isSelected ? 'text-main-green' : 
+                  isToday ? 'text-main-green' :
+                  isSelected ? 'text-main-green' :
                   day.isCurrentMonth ? 'text-text-main' : 'text-text-sub/30'
                 }`}>
                   {day.date.getDate()}
@@ -194,8 +194,8 @@ export default function CalendarGrid({
                     <div className="flex flex-col items-center gap-1">
                       <div className="relative flex items-center justify-center h-6 lg:h-10">
                         {logs.slice(0, 3).reverse().map((log, idx, arr) => (
-                          <div 
-                            key={log.id} 
+                          <div
+                            key={log.id}
                             className="relative w-6 h-6 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-background shadow-sm ring-1 ring-main-green/20"
                             style={{
                               marginLeft: idx === 0 ? 0 : '-12px',
@@ -242,8 +242,8 @@ export default function CalendarGrid({
                           {dayCares.slice(0, displayCount).map((care) => {
                             const meta = getRecordTypeMeta(care);
                             return (
-                              <div 
-                                key={care.id} 
+                              <div
+                                key={care.id}
                                 className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border truncate w-full transition-all hover:brightness-95 ${meta.bg}`}
                                 title={care.title}
                               >
@@ -264,9 +264,9 @@ export default function CalendarGrid({
                           {dayCares.slice(0, 3).map((care) => {
                             const meta = getRecordTypeMeta(care);
                             return (
-                              <span 
-                                key={care.id} 
-                                className={`w-5 h-5 flex items-center justify-center rounded-full border text-[11px] shrink-0 ${meta.bg}`} 
+                              <span
+                                key={care.id}
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border text-[11px] shrink-0 ${meta.bg}`}
                                 title={care.title}
                               >
                                 {meta.icon}
@@ -299,8 +299,8 @@ export default function CalendarGrid({
                           {daySchedules.slice(0, displayCount).map((sch) => {
                             const meta = getScheduleTypeMeta(sch);
                             return (
-                              <div 
-                                key={sch.id} 
+                              <div
+                                key={sch.id}
                                 className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border truncate w-full transition-all hover:brightness-95 ${meta.bg}`}
                                 title={sch.title}
                               >
@@ -321,9 +321,9 @@ export default function CalendarGrid({
                           {daySchedules.slice(0, 3).map((sch) => {
                             const meta = getScheduleTypeMeta(sch);
                             return (
-                              <span 
-                                key={sch.id} 
-                                className={`w-5 h-5 flex items-center justify-center rounded-full border text-[11px] shrink-0 ${meta.bg}`} 
+                              <span
+                                key={sch.id}
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border text-[11px] shrink-0 ${meta.bg}`}
                                 title={sch.title}
                               >
                                 {meta.icon}

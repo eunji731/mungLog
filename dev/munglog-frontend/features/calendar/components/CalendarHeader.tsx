@@ -17,10 +17,10 @@ interface CalendarHeaderProps {
   onTabChange?: (tab: string) => void;
 }
 
-export default function CalendarHeader({ 
-  currentDate, 
-  onPrevMonth, 
-  onNextMonth, 
+export default function CalendarHeader({
+  currentDate,
+  onPrevMonth,
+  onNextMonth,
   onToday,
   onGoToDate,
   onRecord,
@@ -30,7 +30,7 @@ export default function CalendarHeader({
   onTabChange
 }: CalendarHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
+
   const year = currentDate.getFullYear();
   const month = currentDate.toLocaleString('ko-KR', { month: 'long' });
 
@@ -40,15 +40,15 @@ export default function CalendarHeader({
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 lg:gap-6 flex-1">
         {/* Navigation Control (Plain design, no capsule border) */}
         <div className="flex items-center gap-0.5 lg:gap-2">
-          <button 
-            onClick={onPrevMonth} 
+          <button
+            onClick={onPrevMonth}
             className="p-1.5 hover:bg-main-yellow/10 rounded-xl transition-all text-text-sub hover:text-main-yellow active:scale-90"
           >
             <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
           </button>
-          
+
           <div className="relative">
-            <button 
+            <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className={`flex items-center gap-1 lg:px-4 py-2 rounded-2xl transition-all group active:scale-95 ${
                 isDropdownOpen ? 'bg-main-yellow/10 text-main-yellow' : 'hover:bg-main-yellow/5'
@@ -58,9 +58,9 @@ export default function CalendarHeader({
                 {year}년 {month}
               </span>
             </button>
- 
+
             {isDropdownOpen && (
-              <DateDropdown 
+              <DateDropdown
                 currentDate={currentDate}
                 onSelect={(y, m) => {
                   onGoToDate(y, m);
@@ -70,9 +70,9 @@ export default function CalendarHeader({
               />
             )}
           </div>
-          
-          <button 
-            onClick={onNextMonth} 
+
+          <button
+            onClick={onNextMonth}
             className="p-1.5 hover:bg-main-yellow/10 rounded-xl transition-all text-text-sub hover:text-main-yellow active:scale-90"
           >
             <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
@@ -80,7 +80,7 @@ export default function CalendarHeader({
         </div>
 
         {/* Premium Today Button */}
-        <button 
+        <button
           onClick={onToday}
           className="shrink-0 px-4 py-1.5 bg-main-yellow/10 border border-main-yellow/20 rounded-xl text-xs font-black text-main-yellow hover:bg-main-yellow hover:text-white transition-all shadow-sm hover:shadow-main-yellow/10 active:scale-95"
         >
@@ -122,11 +122,11 @@ export default function CalendarHeader({
       {/* Right: Record & Toggle View */}
       <div className="flex items-center justify-end gap-2.5 shrink-0">
         {activeTab === 'petlog' && (
-          <button 
+          <button
             onClick={onToggleView}
             className={`relative group flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black transition-all ${
-              isTimelineMode 
-                ? 'bg-main-green text-white shadow-md' 
+              isTimelineMode
+                ? 'bg-main-green text-white shadow-md'
                 : 'bg-background border border-border text-text-main hover:bg-main-green/5'
             }`}
           >
@@ -135,11 +135,11 @@ export default function CalendarHeader({
           </button>
         )}
 
-        <button 
+        <button
           onClick={onRecord}
           className="flex items-center gap-2 px-4 py-2 bg-main-yellow text-white font-black rounded-xl text-xs lg:text-sm shadow-md shadow-main-yellow/20 hover:scale-105 active:scale-95 transition-all"
         >
-          <Plus className="w-4 h-4" /> 
+          <Plus className="w-4 h-4" />
           <span>
             {activeTab === 'petlog' ? '일기 작성' : activeTab === 'care' ? '케어 기록' : '일정 등록'}
           </span>

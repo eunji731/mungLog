@@ -66,7 +66,7 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
       if (b.dateKey !== a.dateKey) {
         return b.dateKey.localeCompare(a.dateKey);
       }
-      
+
       // 2. 같은 일자 내에서는 시간순 (오름차순)
       const getEarliestTime = (log: typeof a) => {
         const timestamps = log.moments
@@ -74,7 +74,7 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
           .sort();
         return timestamps.length > 0 ? timestamps[0] : '99:99';
       };
-      
+
       return getEarliestTime(a).localeCompare(getEarliestTime(b));
     });
 
@@ -211,8 +211,8 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
           <span className="text-[11px] lg:text-xs font-black text-main-green">기간 필터</span>
         </div>
         <div className="flex items-center gap-2">
-          <TimelineDatePicker 
-            value={dateRange.start} 
+          <TimelineDatePicker
+            value={dateRange.start}
             onChange={(val) => {
               if (val && dateRange.end && val > dateRange.end) {
                 toast('시작일은 종료일보다 늦을 수 없습니다.', 'warning');
@@ -223,8 +223,8 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
             label="시작일"
           />
           <span className="text-text-sub text-xs">~</span>
-          <TimelineDatePicker 
-            value={dateRange.end} 
+          <TimelineDatePicker
+            value={dateRange.end}
             onChange={(val) => {
               if (val && dateRange.start && val < dateRange.start) {
                 toast('종료일은 시작일보다 빠를 수 없습니다.', 'warning');

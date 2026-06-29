@@ -4,7 +4,7 @@ import { Input } from '@/components/common/Input';
 import { Textarea } from '@/components/common/Textarea';
 import { TagInput } from '@/components/common/TagInput';
 import { careApi } from '@/api/careApi';
-import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
+import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 
 interface MedicalFormProps {
   data: {

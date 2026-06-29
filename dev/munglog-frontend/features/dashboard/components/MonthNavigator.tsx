@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import DateDropdown from '@/app/calendar/components/DateDropdown';
+import DateDropdown from '@/features/calendar/components/DateDropdown';
 import { useDash } from '../context/DashboardContext';
 
 export default function MonthNavigator() {

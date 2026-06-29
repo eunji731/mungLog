@@ -14,7 +14,7 @@ export default function DateDropdown({ currentDate, onSelect, onClose, align = '
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const years = Array.from({ length: 21 }, (_, i) => 2015 + i); // 2015 to 2035
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const desktopYearListRef = useRef<HTMLDivElement>(null);
   const mobileYearListRef = useRef<HTMLDivElement>(null);
@@ -63,7 +63,7 @@ export default function DateDropdown({ currentDate, onSelect, onClose, align = '
       {/* MOBILE VERSION */}
       <div className="lg:hidden fixed inset-0 z-[250] flex flex-col items-center justify-end">
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-        
+
         <div className="relative w-full bg-background rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col max-h-[85vh]">
           <div className="p-6 flex items-center justify-between border-b border-border shrink-0">
             <h3 className="text-lg font-black text-text-main">날짜 선택</h3>
@@ -77,15 +77,15 @@ export default function DateDropdown({ currentDate, onSelect, onClose, align = '
             <div className="flex-1 flex flex-col min-h-0">
               <span className="text-[10px] font-black text-text-sub/50 tracking-widest uppercase text-center mb-2 shrink-0">Year</span>
               <div className="relative flex-1 flex flex-col min-h-0">
-                <button 
+                <button
                   onPointerDown={(e) => { e.preventDefault(); scrollYears('up', true); }}
                   className="flex justify-center py-3 text-text-sub active:text-main-yellow active:scale-125 transition-all shrink-0"
                 >
                   <ChevronUp className="w-6 h-6" />
                 </button>
-                
-                <div 
-                  ref={mobileYearListRef} 
+
+                <div
+                  ref={mobileYearListRef}
                   className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2 scroll-smooth"
                 >
                   {years.map(year => (
@@ -102,7 +102,7 @@ export default function DateDropdown({ currentDate, onSelect, onClose, align = '
                   ))}
                 </div>
 
-                <button 
+                <button
                   onPointerDown={(e) => { e.preventDefault(); scrollYears('down', true); }}
                   className="flex justify-center py-3 text-text-sub active:text-main-yellow active:scale-125 transition-all shrink-0"
                 >
@@ -139,7 +139,7 @@ export default function DateDropdown({ currentDate, onSelect, onClose, align = '
       </div>
 
       {/* DESKTOP VERSION */}
-      <div 
+      <div
         ref={containerRef}
         className={`hidden lg:flex absolute top-full mt-2 bg-background shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[32px] border border-border p-4 z-[200] animate-in zoom-in-95 duration-200 ${
           align === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart3 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
-import TimelineDatePicker from '@/app/calendar/components/TimelineDatePicker';
+import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import { buildExpenseData, buildCategoryStats, formatAmount } from '../utils/expenseUtils';
 import { EXPENSE_CAT_COLORS } from '../constants/scheduleTypeConfig';
 import Skeleton from './Skeleton';
