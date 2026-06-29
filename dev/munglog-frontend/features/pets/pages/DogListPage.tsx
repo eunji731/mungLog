@@ -1,11 +1,11 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { DogCard } from '@/features/pets/components/DogCard';
-import { useDogList } from '@/features/pets/hooks/useDogList';
+import { usePet } from '@/app/common/hooks/usePet';
 
 const DogListPage = () => {
   const router = useRouter();
-  const { dogs, isLoading, error } = useDogList();
+  const { pets: dogs, loading: isLoading, error } = usePet();
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">

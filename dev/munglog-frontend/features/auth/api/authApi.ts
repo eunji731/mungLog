@@ -12,6 +12,9 @@ export const authApi = {
   logout: async () => {
     return apiClient.post('/auth/logout');
   },
+  rejoin: async (token: string) => {
+    return apiClient.post('/members/rejoin', { token });
+  },
   getMe: async (): Promise<User> => {
     try {
       const { data } = await apiClient.get<any>('/members/me');
