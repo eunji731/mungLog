@@ -100,7 +100,7 @@ const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) =>
             <Image src="/logo_simple.png" alt="Logo" fill sizes="36px" className="object-contain" />
           </div>
           <span className="text-[19px] font-black tracking-tighter text-text-main leading-tight">
-            Pet<span className="text-main-green">Life</span>Log
+            Mung<span className="text-main-green">Log</span>
           </span>
         </Link>
         <button onClick={onClose} className="lg:hidden p-2 text-text-main hover:bg-main-yellow/20 rounded-lg">

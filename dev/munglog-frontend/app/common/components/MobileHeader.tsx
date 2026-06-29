@@ -20,7 +20,7 @@ export default function MobileHeader({ onMenuClick }: { onMenuClick: () => void 
           <Image src="/logo_simple.png" alt="Logo" fill className="object-contain" />
         </div>
         <span className="text-lg font-black tracking-tighter text-text-main leading-tight">
-          Pet<span className="text-main-green">Life</span>Log
+          Mung<span className="text-main-green">Log</span>
         </span>
       </Link>
       

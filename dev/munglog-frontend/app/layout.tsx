@@ -5,7 +5,7 @@ import ConfirmContainer from "./common/components/ConfirmContainer";
 import { ThemeProvider } from "./common/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "PetLifeLog",
+  title: "MungLog",
   description: "햇살처럼 따뜻하게 기록하는 우리 아이와의 소중한 일상",
 };
 

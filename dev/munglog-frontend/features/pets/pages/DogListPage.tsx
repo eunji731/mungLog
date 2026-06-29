@@ -17,7 +17,7 @@ const DogListPage = () => {
           <div>
             <span className="text-xs font-black text-main-green tracking-widest uppercase mb-1 block">Family Members</span>
             <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">반려견 정보</h1>
-            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">PetLifeLog와 함께하는 소중한 반려견들의 프로필을 관리하세요.</p>
+            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">MungLog와 함께하는 소중한 반려견들의 프로필을 관리하세요.</p>
           </div>
           <div className="shrink-0">
             <Button

@@ -45,7 +45,7 @@ const DogFormPage = ({ id }: DogFormPageProps) => {
             <h1 className="text-2xl lg:text-3xl font-black text-foreground tracking-tight">
               {isEdit ? '반려견 정보 수정' : '새 가족 등록'}
             </h1>
-            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">소중한 가족의 프로필을 완성하세요. 아이의 성장을 PetLifeLog가 함께 기록합니다.</p>
+            <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">소중한 가족의 프로필을 완성하세요. 아이의 성장을 MungLog가 함께 기록합니다.</p>
           </div>
           <div className="flex gap-2 shrink-0">
             {isEdit && (

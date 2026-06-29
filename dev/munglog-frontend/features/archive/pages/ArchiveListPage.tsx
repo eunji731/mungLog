@@ -323,7 +323,7 @@ export default function ArchiveListPage() {
         <footer className="px-10 flex justify-between items-center border-t border-border py-10 opacity-30">
           <div className="flex items-center gap-4">
             <Image src="/logo_simple.png" alt="Logo" width={20} height={20} className="grayscale" />
-            <span className="text-[10px] font-black tracking-[0.5em] text-text-sub uppercase">PetLife / Unified Archive System</span>
+            <span className="text-[10px] font-black tracking-[0.5em] text-text-sub uppercase">MungLog / Unified Archive System</span>
           </div>
           <span className="text-[10px] font-black text-main-green/40">© 2026 EDITION</span>
         </footer>

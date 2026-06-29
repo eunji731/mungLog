@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -183,7 +183,7 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
 
       if (format === 'png') {
         const link = document.createElement('a');
-        link.download = `petlifelog-${dateKey}.png`;
+        link.download = `munglog-${dateKey}.png`;
         link.href = dataUrl;
         link.click();
       } else {
@@ -192,7 +192,7 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
         await new Promise((resolve) => (img.onload = resolve));
         const pdf = new jsPDF({ unit: 'px', format: [img.width, img.height], orientation: img.width > img.height ? 'l' : 'p' });
         pdf.addImage(dataUrl, 'PNG', 0, 0, img.width, img.height);
-        pdf.save(`petlifelog-${dateKey}.pdf`);
+        pdf.save(`munglog-${dateKey}.pdf`);
       }
     } catch (err: any) {
       console.error('Export failed', err);

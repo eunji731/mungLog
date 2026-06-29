@@ -306,7 +306,7 @@ export default function ArchiveDetailPage({ params }: PageProps) {
                 <div className="flex justify-between items-end pt-8 border-t border-white/10">
                   <div className="flex flex-col gap-1">
                     <span className="text-[9px] font-black text-white/40 tracking-[0.3em] uppercase">{bestPhoto.date}</span>
-                    <span className="text-[10px] font-black text-main-green tracking-widest uppercase">@PETLIFELOG</span>
+                    <span className="text-[10px] font-black text-main-green tracking-widest uppercase">@MUNGLOG</span>
                   </div>
                   <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center text-text-main">
                     <ArrowUpRight className="w-5 h-5" />

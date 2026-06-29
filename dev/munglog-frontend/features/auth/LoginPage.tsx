@@ -22,7 +22,7 @@ export default function LoginPage() {
                     <div className="relative w-40 h-40 md:w-56 md:h-56 mb-8 drop-shadow-sm hover:scale-105 transition-transform duration-500">
                         <Image
                             src="/logo_simple.png"
-                            alt="petLifeLog Logo"
+                            alt="MungLog Logo"
                             fill
                             className="object-contain"
                             priority
@@ -30,7 +30,7 @@ export default function LoginPage() {
                     </div>
                     <div className="space-y-4">
                         <h1 className="text-5xl md:text-7xl font-extrabold text-foreground tracking-tight">
-                            Pet<span className="text-main-green">Life</span>Log
+                            Mung<span className="text-main-green">Log</span>
                         </h1>
                         <p className="text-xl md:text-2xl text-sub-text font-medium leading-relaxed max-w-lg">
                             햇살처럼 따뜻하게 기록하는<br />
@@ -80,7 +80,7 @@ export default function LoginPage() {
                     </div>
 
                     <p className="text-center md:text-left text-xs text-sub-text/50">
-                        © 2026 petLifeLog. All rights reserved.
+                        © 2026 MungLog. All rights reserved.
                     </p>
                 </div>
 
