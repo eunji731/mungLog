@@ -16,6 +16,7 @@ import { useSchedules } from '@/features/schedules/hooks/useSchedules';
 import CalendarCarePanel from '@/features/calendar/components/CalendarCarePanel';
 import CalendarSchedulePanel from '@/features/calendar/components/CalendarSchedulePanel';
 import CareRecordFormPage from '@/features/care-records/pages/CareRecordFormPage';
+import ScheduleFormPage from '@/features/schedules/pages/ScheduleFormPage';
 
 
 function CalendarContent() {
@@ -29,7 +30,7 @@ function CalendarContent() {
 
   // 달력용 케어 및 일정 데이터 연동
   const { calendarRecords, refetch: refetchCareRecords } = useCareRecords();
-  const { schedules } = useSchedules();
+  const { schedules, refetch: refetchSchedules } = useSchedules();
 
   // URL에서 초기 날짜 계산 (렌더링 시점에 바로 결정)
   const getInitialDate = () => {
@@ -81,6 +82,24 @@ function CalendarContent() {
   };
 
   const handleCareCancel = () => {
+    setIsEditing(false);
+    setShowSidePanel(false);
+    setIsExpanded(false);
+  };
+
+  const handleScheduleAddNew = () => {
+    setIsEditing(true);
+    setShowSidePanel(true);
+  };
+
+  const handleScheduleSaveSuccess = () => {
+    refetchSchedules();
+    setIsEditing(false);
+    setShowSidePanel(false);
+    setIsExpanded(false);
+  };
+
+  const handleScheduleCancel = () => {
     setIsEditing(false);
     setShowSidePanel(false);
     setIsExpanded(false);
@@ -179,18 +198,10 @@ function CalendarContent() {
                 onToday={handleToday}
                 onGoToDate={goToDate}
                 onRecord={() => {
+                  setIsEditing(true);
+                  setShowSidePanel(true);
                   if (tabParam === 'petlog') {
-                    setIsEditing(true);
-                    setShowSidePanel(true);
                     setIsTimelineMode(false);
-                  } else if (tabParam === 'care') {
-                    setIsEditing(true);
-                    setShowSidePanel(true);
-                  } else {
-                    const offset = selectedDate.getTimezoneOffset();
-                    const localDate = new Date(selectedDate.getTime() - offset * 60 * 1000);
-                    const formattedDate = localDate.toISOString().split('T')[0];
-                    router.push(`/schedules/new?date=${formattedDate}`);
                   }
                 }}
                 isTimelineMode={tabParam === 'petlog' && isTimelineMode}
@@ -290,11 +301,21 @@ function CalendarContent() {
                       />
                     )
                   ) : (
-                    <CalendarSchedulePanel
-                      date={selectedDate}
-                      schedules={schedules}
-                      onClose={handleClosePanel}
-                    />
+                    isEditing ? (
+                      <ScheduleFormPage
+                        prefillDate={formattedSelectedDate}
+                        onSaveSuccess={handleScheduleSaveSuccess}
+                        onCancel={handleScheduleCancel}
+                        isEmbedded={true}
+                      />
+                    ) : (
+                      <CalendarSchedulePanel
+                        date={selectedDate}
+                        schedules={schedules}
+                        onClose={handleClosePanel}
+                        onAddNew={handleScheduleAddNew}
+                      />
+                    )
                   )}
                 </div>
               </>

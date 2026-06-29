@@ -12,9 +12,10 @@ interface CalendarSchedulePanelProps {
   date: Date;
   schedules: Schedule[];
   onClose: () => void;
+  onAddNew?: () => void;
 }
 
-export default function CalendarSchedulePanel({ date, schedules, onClose }: CalendarSchedulePanelProps) {
+export default function CalendarSchedulePanel({ date, schedules, onClose, onAddNew }: CalendarSchedulePanelProps) {
   const router = useRouter();
   const { getCodeById } = useCommonCodes('SCHEDULE_TYPE');
 
@@ -66,7 +67,11 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
   }, [schedules, formattedDate]);
 
   const handleAddNew = () => {
-    router.push(`/schedules/new?date=${formattedDate}`);
+    if (onAddNew) {
+      onAddNew();
+    } else {
+      router.push(`/schedules/new?date=${formattedDate}`);
+    }
   };
 
   const getTypeIcon = (type: string) => {

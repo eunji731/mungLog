@@ -97,7 +97,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ data, dogId, onDogChan
 
   return (
     <div className="space-y-6">
-      <Section title="지출 정보" description="얼마를 어디에 사용하셨나요?">
+      <Section title="지출 정보" description="얼마를 어디에 사용하셨나요?" overflowVisible={true}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <Select
             label="카테고리 *"

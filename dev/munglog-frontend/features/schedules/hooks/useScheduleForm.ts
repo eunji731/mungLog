@@ -7,7 +7,13 @@ import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
 import { useInventory } from '@/features/inventory/hooks/useInventory';
 
-export const useScheduleForm = (id?: string, options?: { prefillDate?: string }) => {
+export const useScheduleForm = (
+  id?: string,
+  options?: {
+    prefillDate?: string;
+    onSaveSuccess?: () => void;
+  }
+) => {
   const router = useRouter();
   const { success, error: toastError, warning } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -170,7 +176,9 @@ export const useScheduleForm = (id?: string, options?: { prefillDate?: string })
         await fileUploader.syncToServer(saved.id);
       }
 
-      if (id) {
+      if (options?.onSaveSuccess) {
+        options.onSaveSuccess();
+      } else if (id) {
         success('일정이 수정되었습니다! ✨');
         router.push(`/schedules/${id}`);
       } else {

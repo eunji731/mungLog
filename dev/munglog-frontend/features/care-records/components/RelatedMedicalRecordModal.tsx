@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { CareRecord } from '@/types/care';
 import { usePet } from '@/app/common/hooks/usePet';
+import { Select } from '@/components/common/Select';
 
 interface RelatedMedicalRecordModalProps {
   isOpen: boolean;
@@ -56,19 +57,19 @@ export const RelatedMedicalRecordModal: React.FC<RelatedMedicalRecordModalProps>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 강아지 선택 추가 */}
-            <div className="relative group">
-              <select
-                value={selectedDogId?.toString() || ''}
-                onChange={(e) => onDogChange(e.target.value)}
-                className="w-full h-[52px] px-5 rounded-2xl bg-surface-green border border-border focus:border-main-green focus:bg-background text-[14px] font-bold text-foreground appearance-none outline-none cursor-pointer transition-all"
-              >
-                <option value="" className="bg-background text-foreground">강아지 선택 🐾</option>
-                {dogs.map((dog) => (
-                  <option key={dog.id} value={dog.id.toString()} className="bg-background text-foreground">{dog.name}</option>
-                ))}
-              </select>
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-sub font-bold group-hover:text-main-green transition-colors">▼</span>
-            </div>
+            <Select
+              value={selectedDogId?.toString() || ''}
+              onChange={(e) => onDogChange(e.target.value)}
+              className="h-[52px]"
+              options={[
+                { label: '강아지 선택 🐾', value: '' },
+                ...dogs.map((dog) => ({
+                  label: dog.name,
+                  value: dog.id.toString(),
+                })),
+              ]}
+            />
+
 
             <div className="relative group">
               <input

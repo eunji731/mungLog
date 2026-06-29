@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Section } from '@/components/common/Section';
 import { Input } from '@/components/common/Input';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
@@ -79,7 +79,7 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
                     <span className="text-[13px]">🐾</span>
                   </div>
                   <span className="text-[15px] font-bold text-text-sub/50">
-                    반려견 선택
+                    아이 선택
                   </span>
                 </>
               )}

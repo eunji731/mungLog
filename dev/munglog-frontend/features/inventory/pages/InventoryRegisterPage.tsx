@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -570,7 +570,7 @@ export default function InventoryRegisterPage() {
                   </Section>
 
                   {/* 기본 정보 */}
-                  <Section title="기본 정보" description="제품의 기본 브랜드와 카테고리를 입력하세요.">
+                  <Section title="기본 정보" description="제품의 기본 브랜드와 카테고리를 입력하세요." overflowVisible={true}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
                         <Input
@@ -629,7 +629,7 @@ export default function InventoryRegisterPage() {
                   </Section>
 
                   {/* 상세 정보 */}
-                  <Section title="상세 정보" description="보관방법 및 규격 등 제품의 상세한 스펙을 작성하세요.">
+                  <Section title="상세 정보" description="보관방법 및 규격 등 제품의 상세한 스펙을 작성하세요." overflowVisible={true}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {isConsumable ? (
                         <>
@@ -772,9 +772,9 @@ export default function InventoryRegisterPage() {
 
                 {/* Right Column: Pet Select, Management */}
                 <div className="lg:col-span-5 space-y-6">
-                  {/* 반려견 선택 */}
+                  {/* 아이 선택 */}
                   {pets.length > 0 && (
-                    <Section title="반려견 선택" description="어떤 아이의 제품인지 선택해 주세요.">
+                    <Section title="아이 선택" description="어떤 아이의 제품인지 선택해 주세요.">
                       <div className="flex flex-wrap gap-2.5">
                         <button
                           type="button"
