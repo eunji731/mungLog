@@ -22,7 +22,7 @@ import Image from 'next/image';
 import { useToast } from '../hooks/useToast';
 import { useConfirm } from '../hooks/useConfirm';
 import { usePet, ALL_PETS_ID } from '../hooks/usePet';
-import { getImagePath } from '../lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { useAuth } from '@/context/AuthContext';
 
 const navItems = [

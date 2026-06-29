@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp } from 'lucide-react';
 import { usePet, PetProfile, PetFormData } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { useToast } from '@/app/common/hooks/useToast';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { FileUploader } from '@/components/common/FileUploader';
@@ -550,3 +550,4 @@ export default function FamilyPage() {
     </div>
   );
 }
+

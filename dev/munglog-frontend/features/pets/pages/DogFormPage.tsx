@@ -3,10 +3,10 @@ import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { DatePicker } from '@/components/common/DatePicker';
-import { FormActions } from '@/components/common/FormActions';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { FileUploader } from '@/components/common/FileUploader';
 import { useDogForm } from '@/features/pets/hooks/useDogForm';
+import { Spinner } from '@/components/common/Spinner';
 
 interface DogFormPageProps {
   id?: string;
@@ -30,7 +30,7 @@ const DogFormPage = ({ id }: DogFormPageProps) => {
   if (isFetching) {
     return (
       <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden items-center justify-center">
-        <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+        <Spinner />
       </div>
     );
   }
@@ -48,6 +48,9 @@ const DogFormPage = ({ id }: DogFormPageProps) => {
             <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">소중한 가족의 프로필을 완성하세요. 아이의 성장을 PetLifeLog가 함께 기록합니다.</p>
           </div>
           <div className="flex gap-2 shrink-0">
+            {isEdit && (
+              <Button variant="ghost" onClick={() => setIsDeleteModalOpen(true)} disabled={isLoading} className="px-4 font-bold text-red-400 hover:text-red-500 text-xs">삭제</Button>
+            )}
             <Button variant="ghost" onClick={() => router.back()} className="px-4 font-bold text-text-sub text-xs">취소</Button>
             <Button onClick={handleSave} disabled={isLoading} className="px-6 h-[40px] text-xs font-black rounded-xl">
               {isLoading ? '저장 중...' : (isEdit ? '수정' : '등록')}
@@ -122,16 +125,6 @@ const DogFormPage = ({ id }: DogFormPageProps) => {
                   </div>
                 </div>
 
-                {/* ACTION BAR */}
-                <div className="mt-8 pt-6 border-t border-border">
-                  <FormActions
-                    onCancel={() => router.back()}
-                    onSave={handleSave}
-                    onDelete={isEdit ? () => setIsDeleteModalOpen(true) : undefined}
-                    isSubmitting={isLoading}
-                    saveLabel={isEdit ? '프로필 업데이트' : '등록 완료'}
-                  />
-                </div>
               </div>
             </div>
           </main>

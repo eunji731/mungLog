@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Heart, MessageCircle, MapPin, Sparkles, Zap, Clock } from 'lucide-react';
 import { useDiary } from '@/features/diary/hooks/useDiary';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -155,3 +155,4 @@ export default function TimelinePage() {
     </Suspense>
   );
 }
+

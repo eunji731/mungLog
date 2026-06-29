@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { X, Calendar, MapPin, Sparkles, Clock, ChevronRight, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useDiary, DailyLog } from '@/features/diary/hooks/useDiary';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 import { useConfirm } from '@/app/common/hooks/useConfirm';
 import { useToast } from '@/app/common/hooks/useToast';
@@ -253,3 +253,4 @@ export default function DiaryPreview({
     </div>
   );
 }
+

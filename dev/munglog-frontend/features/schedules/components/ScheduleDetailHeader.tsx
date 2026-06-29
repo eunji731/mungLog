@@ -1,11 +1,11 @@
-import React from 'react';
+﻿import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { calculateDDay } from '@/utils/dateUtils';
 import type { Schedule } from '@/types/schedule';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { Calendar, ArrowLeft } from 'lucide-react';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { usePet } from '@/app/common/hooks/usePet';
 
 interface ScheduleDetailHeaderProps {
@@ -101,3 +101,4 @@ export const ScheduleDetailHeader: React.FC<ScheduleDetailHeaderProps> = ({ sche
     </header>
   );
 };
+

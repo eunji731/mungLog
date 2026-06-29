@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,9 +12,10 @@ import {
 import { useInventory, InventoryItem } from '../hooks/useInventory';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 import { Button } from '@/components/common/Button';
+import { Spinner } from '@/components/common/Spinner';
 import { Section } from '@/components/common/Section';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
@@ -463,7 +464,7 @@ export default function InventoryRegisterPage() {
                 {isScanning && (
                   <div className="py-6 flex flex-col items-center justify-center text-center space-y-3 bg-surface-green/10 rounded-2xl border border-main-yellow/20 animate-pulse">
                     <div className="relative">
-                      <div className="w-12 h-12 border-4 border-light-yellow border-t-main-yellow rounded-full animate-spin" />
+                      <Spinner size="lg" color="yellow" />
                       <Search className="absolute inset-0 m-auto w-5 h-5 text-main-yellow" />
                     </div>
                     <div>
@@ -562,7 +563,7 @@ export default function InventoryRegisterPage() {
                     />
                     {isScanning && (
                       <div className="py-6 flex flex-col items-center justify-center text-center space-y-3 bg-surface-green/10 rounded-2xl border border-main-yellow/20 animate-pulse">
-                        <div className="w-8 h-8 border-4 border-light-yellow border-t-main-yellow rounded-full animate-spin" />
+                        <Spinner size="sm" color="yellow" />
                         <p className="text-xs font-black text-main-yellow">새로운 사진 정보를 분석하고 있습니다...</p>
                       </div>
                     )}
@@ -916,3 +917,4 @@ export default function InventoryRegisterPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Search, Navigation, ZoomIn, ZoomOut, Calendar, Sparkles, X, MapPin } from 'lucide-react';
@@ -7,7 +7,7 @@ import Link from 'next/link';
 import NaverMap from '@/app/map/components/NaverMap';
 import MomentImageSlider from '@/features/diary/components/MomentImageSlider';
 import { useMapMarkers, MapMemoryDetail, BBox } from '@/app/map/hooks/useMapMarkers';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 const WORLD_BBOX: BBox = { swLat: -90, swLng: -180, neLat: 90, neLng: 180 };
 
@@ -380,3 +380,4 @@ export default function MapPage() {
     </div>
   );
 }
+

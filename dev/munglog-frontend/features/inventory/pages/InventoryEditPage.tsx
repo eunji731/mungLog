@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -12,9 +12,10 @@ import {
 import { useInventory, InventoryItem } from '../hooks/useInventory';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 import { Button } from '@/components/common/Button';
+import { Spinner } from '@/components/common/Spinner';
 import { Section } from '@/components/common/Section';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
@@ -259,7 +260,7 @@ export default function InventoryEditPage() {
   if (isLoading && listLoading) {
     return (
       <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden items-center justify-center">
-        <div className="w-10 h-10 border-4 border-border border-t-main-yellow rounded-full animate-spin mb-4" />
+        <Spinner color="yellow" className="mb-4" />
         <p className="text-text-sub text-xs font-bold animate-pulse">정보를 불러오는 중...</p>
       </div>
     );
@@ -386,7 +387,7 @@ export default function InventoryEditPage() {
 
                 {isScanning && (
                   <div className="mt-4 py-6 flex flex-col items-center justify-center text-center space-y-3 bg-surface-green/10 rounded-2xl border border-main-yellow/20 animate-pulse">
-                    <div className="w-8 h-8 border-4 border-light-yellow border-t-main-yellow rounded-full animate-spin" />
+                    <Spinner size="sm" color="yellow" />
                     <p className="text-xs font-black text-main-yellow">새로운 사진 정보를 분석하고 있습니다...</p>
                   </div>
                 )}
@@ -671,3 +672,4 @@ export default function InventoryEditPage() {
     </div>
   );
 }
+

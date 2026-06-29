@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { useRouter } from 'next/navigation';
 import type { PetProfile } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { Card } from '@/components/common/Card';
 
 interface DogCardProps {
@@ -102,3 +102,4 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
     </Card>
   );
 };
+

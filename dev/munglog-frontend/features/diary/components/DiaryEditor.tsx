@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Camera, Plus, Trash2, Sparkles, Check, RefreshCw, Calendar, MapPin, Zap, Info, AlertCircle } from 'lucide-react';
@@ -6,9 +6,10 @@ import Image from 'next/image';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
 import { DailyLog } from '@/features/diary/hooks/useDiary';
-import { toFileUrl, getImagePath } from '@/app/common/lib/clientApi';
+import { toFileUrl, getImagePath } from '@/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 import MomentImageSlider from './MomentImageSlider';
+import { Spinner } from '@/components/common/Spinner';
 
 // 백엔드 AnalyzeDiaryResult 에 맞는 타입
 interface StoredFileInfo {
@@ -694,7 +695,7 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
             /* Phase 2: 분석 중 */
             <div className="flex flex-col items-center justify-center py-20 space-y-8 animate-in zoom-in-95 duration-500">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full border-4 border-main-green/20 border-t-main-green animate-spin" />
+                <Spinner size="xl" />
                 <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-main-green fill-main-green animate-pulse" />
               </div>
               <div className="text-center space-y-2">
@@ -831,3 +832,4 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
     </div>
   );
 }
+

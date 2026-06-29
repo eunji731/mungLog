@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import { Heart, Plus, Flame, PartyPopper } from 'lucide-react';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import Skeleton from './Skeleton';
 import { useDash } from '../context/DashboardContext';
 
@@ -131,3 +131,4 @@ export default function DashboardHeader() {
     </div>
   );
 }
+

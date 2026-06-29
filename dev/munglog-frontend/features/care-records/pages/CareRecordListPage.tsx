@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 import { Stethoscope, Search, X, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
+import { Spinner } from '@/components/common/Spinner';
+import { EmptyState } from '@/components/common/EmptyState';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
@@ -197,7 +199,7 @@ const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
             <div className="lg:col-span-8">
               {isLoading ? (
                 <div className="h-[300px] flex items-center justify-center">
-                  <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+                  <Spinner />
                 </div>
               ) : records.length > 0 ? (
                 <div className="flex flex-col gap-4 animate-in fade-in duration-500">
@@ -206,18 +208,13 @@ const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-32 gap-6 animate-in fade-in zoom-in duration-700">
-                  <div className="w-20 h-20 bg-surface-green/50 rounded-full flex items-center justify-center">
-                    <Stethoscope className="w-8 h-8 text-main-green/30" />
-                  </div>
-                  <div className="text-center space-y-1">
-                    <h3 className="text-lg font-black text-text-main">기록된 케어가 없습니다</h3>
-                    <p className="text-xs font-bold text-text-sub">반려견의 건강 기록과 지출을 남겨보세요.</p>
-                  </div>
-                  <Button variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green" onClick={() => router.push('/care-records/new')}>
-                    기록 시작하기
-                  </Button>
-                </div>
+                <EmptyState
+                  icon="🩺"
+                  title="기록된 케어가 없습니다"
+                  description="반려견의 건강 기록과 지출을 남겨보세요."
+                  action={{ label: '기록 시작하기', onClick: () => router.push('/care-records/new') }}
+                  className="py-32"
+                />
               )}
             </div>
           </div>

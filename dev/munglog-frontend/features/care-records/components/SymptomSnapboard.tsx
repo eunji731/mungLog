@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -12,7 +12,7 @@ import { useConfirm } from '@/app/common/hooks/useConfirm';
 import { TagInput } from '@/components/common/TagInput';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import TimelineTimePicker from './TimelineTimePicker';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { downloadFile } from '@/utils/fileUtils';
 
 export interface SymptomSnap {
@@ -979,3 +979,4 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     </div>
   );
 }
+

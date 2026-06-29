@@ -1,12 +1,13 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Plus, Star, ShoppingBag, X, Calendar, Tag, Package, Activity, Pencil, Sparkles } from 'lucide-react';
 import { useInventory } from '../hooks/useInventory';
+import { Spinner } from '@/components/common/Spinner';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 export default function InventoryListPage() {
   const router = useRouter();
@@ -136,7 +137,7 @@ export default function InventoryListPage() {
         <div className="max-w-6xl mx-auto">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-12 h-12 border-4 border-main-yellow/10 border-t-main-yellow rounded-full animate-spin" />
+              <Spinner size="lg" color="yellow" />
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -317,3 +318,4 @@ export default function InventoryListPage() {
     </div>
   );
 }
+

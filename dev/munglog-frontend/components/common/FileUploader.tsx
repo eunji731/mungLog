@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { isImageFile, getFileExtension, getFileIcon, getFileNameFromUrl } from '@/utils/fileUtils';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 interface FileInfo {
   url: string;

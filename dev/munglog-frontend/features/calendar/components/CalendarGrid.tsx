@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Sparkles, MessageCircle } from 'lucide-react';
@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useCalendar } from '@/features/calendar/hooks/useCalendar';
 import { useDiary } from '@/features/diary/hooks/useDiary';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 // Helpers to get metadata for care and schedule items to style them beautifully
 const getRecordTypeMeta = (care: any) => {
@@ -349,3 +349,4 @@ export default function CalendarGrid({
     </div>
   );
 }
+

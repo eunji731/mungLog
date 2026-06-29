@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import type { FileItem } from '@/types/file';
 import { isImageFile, getFileIcon, getFileExtension, downloadFile } from '@/utils/fileUtils';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 interface CareRecordAttachmentGalleryProps {
   files: FileItem[];
@@ -107,3 +107,4 @@ export const CareRecordAttachmentGallery: React.FC<CareRecordAttachmentGalleryPr
     </section>
   );
 };
+

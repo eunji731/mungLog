@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 interface Photo {
   id: string;
@@ -85,3 +85,4 @@ export default function MomentImageSlider({ photos, alt }: MomentImageSliderProp
     </div>
   );
 }
+

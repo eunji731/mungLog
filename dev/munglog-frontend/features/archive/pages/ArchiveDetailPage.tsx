@@ -13,6 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useArchive, ArchivePhoto, ArchiveTheme } from '@/features/archive/hooks/useArchive';
+import { Spinner } from '@/components/common/Spinner';
 
 interface PageProps {
   params: Promise<{ category: string }>;
@@ -57,7 +58,7 @@ export default function ArchiveDetailPage({ params }: PageProps) {
     return (
       <div className="p-10 flex items-center justify-center h-full text-text-sub">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-main-green/20 border-t-main-green rounded-full animate-spin mx-auto mb-4" />
+          <Spinner size="lg" className="mx-auto mb-4" />
           <p className="text-lg font-bold mb-2">추억의 조각들을 모으는 중...</p>
           <p className="text-sm">잠시만 기다려 주세요.</p>
         </div>

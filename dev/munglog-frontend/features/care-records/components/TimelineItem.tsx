@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { parseISO, addDays, isBefore, startOfDay, format } from 'date-fns';
@@ -7,7 +7,7 @@ import { Card } from '@/components/common/Card';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { usePet } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { careApi } from '@/api/careApi';
 import { downloadFile } from '@/utils/fileUtils';
 import { X, AlertCircle } from 'lucide-react';
@@ -374,3 +374,4 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
     </div>
   );
 };
+

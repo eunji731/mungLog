@@ -1,10 +1,10 @@
-import React from 'react';
+﻿import React from 'react';
 import type { CareRecord } from '@/types/care';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { usePet } from '@/app/common/hooks/usePet';
 
 interface CareRecordDetailHeaderProps {
@@ -84,3 +84,4 @@ export const CareRecordDetailHeader: React.FC<CareRecordDetailHeaderProps> = ({ 
     </header>
   );
 };
+

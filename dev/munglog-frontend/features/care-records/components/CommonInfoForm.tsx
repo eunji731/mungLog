@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { Section } from '@/components/common/Section';
 import { Input } from '@/components/common/Input';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import { Textarea } from '@/components/common/Textarea';
 import { usePet } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 interface CommonInfoFormProps {
   data: {
@@ -160,3 +160,4 @@ export const CommonInfoForm: React.FC<CommonInfoFormProps> = ({ data, onChange, 
     </Section>
   );
 };
+

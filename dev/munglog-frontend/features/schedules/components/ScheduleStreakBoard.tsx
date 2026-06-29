@@ -5,6 +5,7 @@ import { Flame, RotateCcw, Syringe, Scissors, Pill, Stethoscope, CalendarDays, P
 import { format, parseISO, addDays } from 'date-fns';
 import { scheduleApi } from '@/api/scheduleApi';
 import { useToast } from '@/app/common/hooks/useToast';
+import { Spinner } from '@/components/common/Spinner';
 import type { ScheduleStreak } from '@/types/schedule';
 
 const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -63,7 +64,7 @@ export default function ScheduleStreakBoard({ streaks, isLoading, onRecreated }:
 
       {isLoading ? (
         <div className="h-[160px] flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-border border-t-main-green rounded-full animate-spin" />
+          <Spinner size="sm" />
         </div>
       ) : streaks.length === 0 ? (
         <div className="text-center py-10 border border-dashed border-border rounded-2xl bg-surface-green/10">

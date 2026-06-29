@@ -8,7 +8,10 @@ import { ScheduleDetailInfo } from '../components/ScheduleDetailInfo';
 import { CareRecordAttachmentGallery } from '@/features/care-records/components/CareRecordAttachmentGallery';
 import { scheduleApi } from '@/api/scheduleApi';
 import { useToast } from '@/app/common/hooks/useToast';
+import { useConfirm } from '@/app/common/hooks/useConfirm';
 import { CheckCircle2, Circle } from 'lucide-react';
+import { Spinner } from '@/components/common/Spinner';
+import { EmptyState } from '@/components/common/EmptyState';
 
 interface ScheduleDetailPageProps {
   id?: string;
@@ -17,6 +20,7 @@ interface ScheduleDetailPageProps {
 const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
   const router = useRouter();
   const { success, error: toastError } = useToast();
+  const { confirm } = useConfirm();
   const { schedule, files, isLoading, error, refetch } = useScheduleDetail(id);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -50,7 +54,8 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
 
   const handleConvertToCareRecord = async () => {
     if (!id) return;
-    if (!window.confirm('이 일정을 케어기록으로 전환하시겠습니까? \n전환 후 등록된 기록을 바로 수정할 수 있습니다.')) return;
+    const ok = await confirm('이 일정을 케어기록으로 전환하시겠습니까? \n전환 후 등록된 기록을 바로 수정할 수 있습니다.');
+    if (!ok) return;
 
     try {
       setIsConverting(true);
@@ -68,28 +73,20 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+        <Spinner />
       </div>
     );
   }
 
   if (error || !schedule) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="text-center max-w-sm w-full p-12 bg-white dark:bg-zinc-900 rounded-3xl border border-border shadow-sm">
-          <span className="text-5xl mb-6 block grayscale opacity-20">🗓️</span>
-          <h2 className="text-[22px] font-black text-text-main mb-3 tracking-tight">일정을 찾을 수 없습니다.</h2>
-          <p className="text-text-sub font-medium mb-10 leading-relaxed text-sm px-4 break-keep">
-            삭제된 일정이거나 <br /> 잘못된 접근입니다.
-          </p>
-          <button
-            onClick={() => router.push('/schedules')}
-            className="w-full h-[56px] bg-main-green text-white rounded-[16px] font-black text-[15px] shadow-lg shadow-main-green/20 active:scale-95 transition-all hover:bg-main-green/90"
-          >
-            목록으로 돌아가기
-          </button>
-        </div>
-      </div>
+      <EmptyState
+        variant="page"
+        icon="🗓️"
+        title="일정을 찾을 수 없습니다."
+        description={<>삭제된 일정이거나 <br /> 잘못된 접근입니다.</>}
+        action={{ label: '목록으로 돌아가기', onClick: () => router.push('/schedules') }}
+      />
     );
   }
 

@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Trophy, Camera } from 'lucide-react';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import Skeleton from './Skeleton';
 import { useDash } from '../context/DashboardContext';
 
@@ -76,3 +76,4 @@ export default function BestPhotosStrip() {
     </div>
   );
 }
+

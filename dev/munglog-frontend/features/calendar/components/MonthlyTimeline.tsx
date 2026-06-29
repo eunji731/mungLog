@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -17,7 +17,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { useDiary } from '@/features/diary/hooks/useDiary';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import TimelineDatePicker from './TimelineDatePicker';
@@ -321,3 +321,4 @@ export default function MonthlyTimeline({ currentDate, onDateSelect, initialDate
     </div>
   );
 }
+

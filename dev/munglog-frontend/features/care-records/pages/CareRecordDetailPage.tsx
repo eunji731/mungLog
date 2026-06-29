@@ -10,6 +10,8 @@ import { CareRecordAttachmentGallery } from '../components/CareRecordAttachmentG
 import { careApi } from '@/api/careApi';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { FileText, Edit3, Trash2, ArrowLeft } from 'lucide-react';
+import { Spinner } from '@/components/common/Spinner';
+import { EmptyState } from '@/components/common/EmptyState';
 
 interface CareRecordDetailPageProps {
   id?: string;
@@ -41,28 +43,20 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+        <Spinner />
       </div>
     );
   }
 
   if (error || !record) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <div className="text-center max-w-sm w-full p-12 bg-white dark:bg-zinc-900 rounded-3xl border border-border shadow-sm">
-          <span className="text-5xl mb-6 block grayscale opacity-20">📄</span>
-          <h2 className="text-[22px] font-black text-text-main mb-3 tracking-tight">기록을 찾을 수 없습니다.</h2>
-          <p className="text-text-sub font-medium mb-10 leading-relaxed text-sm px-4 break-keep">
-            삭제된 기록이거나 <br /> 잘못된 접근입니다.
-          </p>
-          <button
-            onClick={() => router.push('/care-records')}
-            className="w-full h-[56px] bg-main-green text-white rounded-[16px] font-black text-[15px] shadow-lg shadow-main-green/20 active:scale-95 transition-all hover:bg-main-green/90"
-          >
-            목록으로 돌아가기
-          </button>
-        </div>
-      </div>
+      <EmptyState
+        variant="page"
+        icon="📄"
+        title="기록을 찾을 수 없습니다."
+        description={<>삭제된 기록이거나 <br /> 잘못된 접근입니다.</>}
+        action={{ label: '목록으로 돌아가기', onClick: () => router.push('/care-records') }}
+      />
     );
   }
 

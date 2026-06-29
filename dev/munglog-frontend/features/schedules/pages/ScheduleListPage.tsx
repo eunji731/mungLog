@@ -12,6 +12,7 @@ import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { scheduleApi } from '@/api/scheduleApi';
 import { useToast } from '@/app/common/hooks/useToast';
+import { Spinner } from '@/components/common/Spinner';
 
 interface ScheduleListPageProps {
   showHeader?: boolean;
@@ -249,7 +250,7 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
             <div className="lg:col-span-8 space-y-6">
               {isLoading ? (
                 <div className="h-[300px] flex items-center justify-center">
-                  <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+                  <Spinner />
                 </div>
               ) : (
                 <>

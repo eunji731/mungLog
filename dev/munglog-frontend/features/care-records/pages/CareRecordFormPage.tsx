@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
+import { Spinner } from '@/components/common/Spinner';
 import { Section } from '@/components/common/Section';
 import { MedicalForm } from '../components/MedicalForm';
 import { ExpenseForm } from '../components/ExpenseForm';
@@ -52,7 +53,7 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
   if (isFetching) {
     return (
       <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden items-center justify-center">
-        <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin" />
+        <Spinner />
       </div>
     );
   }

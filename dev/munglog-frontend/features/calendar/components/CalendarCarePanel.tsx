@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,7 +8,7 @@ import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { Button } from '@/components/common/Button';
 import { usePet } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 
 
 interface CalendarCarePanelProps {
@@ -175,3 +175,4 @@ export default function CalendarCarePanel({ date, careRecords, onClose, onAddNew
     </div>
   );
 }
+

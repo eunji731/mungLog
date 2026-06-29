@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
-import { getImagePath } from '@/app/common/lib/clientApi';
+import { getImagePath } from '@/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 
 export interface ArchivePhoto {
@@ -182,3 +182,4 @@ export const useArchive = () => {
     getPhotosByTag,
   };
 };
+

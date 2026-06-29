@@ -2,6 +2,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { DogCard } from '@/features/pets/components/DogCard';
 import { usePet } from '@/app/common/hooks/usePet';
+import { Spinner } from '@/components/common/Spinner';
+import { EmptyState } from '@/components/common/EmptyState';
 
 const DogListPage = () => {
   const router = useRouter();
@@ -34,7 +36,7 @@ const DogListPage = () => {
         <div className="max-w-7xl mx-auto">
           {isLoading ? (
             <div className="h-[300px] flex flex-col items-center justify-center">
-              <div className="w-10 h-10 border-4 border-border border-t-main-green rounded-full animate-spin mb-4" />
+              <Spinner className="mb-4" />
               <p className="text-text-sub font-black tracking-widest uppercase text-xs">Loading Members</p>
             </div>
           ) : error ? (
@@ -49,19 +51,12 @@ const DogListPage = () => {
               ))}
             </div>
           ) : (
-            <div className="py-24 flex flex-col items-center justify-center bg-background rounded-3xl border border-border shadow-sm px-6 text-center">
-              <div className="w-16 h-16 bg-surface-green/20 rounded-2xl flex items-center justify-center mb-6 border border-border">
-                <span className="text-3xl grayscale opacity-40">🐕</span>
-              </div>
-              <h3 className="text-[20px] font-black text-foreground mb-2 tracking-tight">No Members Yet.</h3>
-              <p className="text-text-sub font-medium text-sm mb-6 max-w-xs leading-relaxed">
-                아직 등록된 반려견이 없습니다. <br />
-                첫 번째 가족을 등록하고 케어를 시작해보세요.
-              </p>
-              <Button onClick={() => router.push('/dogs/new')} variant="outline" size="md" className="rounded-xl px-8 border-border text-foreground hover:bg-surface-green">
-                가족 등록 시작하기
-              </Button>
-            </div>
+            <EmptyState
+              icon="🐕"
+              title="No Members Yet."
+              description={<>아직 등록된 반려견이 없습니다. <br />첫 번째 가족을 등록하고 케어를 시작해보세요.</>}
+              action={{ label: '가족 등록 시작하기', onClick: () => router.push('/dogs/new') }}
+            />
           )}
         </div>
       </div>
