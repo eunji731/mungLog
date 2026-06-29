@@ -51,7 +51,7 @@ export default function MomentImageSlider({ photos, alt }: MomentImageSliderProp
         fill
         className="object-cover transition-all duration-500"
       />
-      
+
       {/* Navigation Arrows */}
       <button
         onClick={handlePrev}

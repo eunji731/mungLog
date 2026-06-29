@@ -4,7 +4,7 @@ import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Sparkles, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useCalendar } from '../hooks/useCalendar';
-import { useDiary } from '@/app/common/hooks/useDiary';
+import { useDiary } from '@/features/diary/hooks/useDiary';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 

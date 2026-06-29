@@ -16,7 +16,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { useDiary } from '@/app/common/hooks/useDiary';
+import { useDiary } from '@/features/diary/hooks/useDiary';
 import { getImagePath } from '@/app/common/lib/clientApi';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';

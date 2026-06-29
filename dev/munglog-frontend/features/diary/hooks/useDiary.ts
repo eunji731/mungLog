@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { usePetStore, ALL_PETS_ID } from './usePet';
+import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { apiClient } from '@/lib/apiClient';
 
 // 모멘트에 포함된 사진 정보

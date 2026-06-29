@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Heart, MessageCircle, MapPin, Sparkles, Zap, Clock } from 'lucide-react';
-import { useDiary } from '@/app/common/hooks/useDiary';
+import { useDiary } from '@/features/diary/hooks/useDiary';
 import { getImagePath } from '@/app/common/lib/clientApi';
 
 import { useSearchParams } from 'next/navigation';

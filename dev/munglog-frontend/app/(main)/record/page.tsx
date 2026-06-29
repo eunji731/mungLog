@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useDiary } from '@/app/common/hooks/useDiary';
+import { useDiary } from '@/features/diary/hooks/useDiary';
 import { getImagePath } from '@/app/common/lib/clientApi';
 import { Calendar, Search, Filter, MessageCircle, Sparkles, MapPin, Zap, ChevronRight } from 'lucide-react';
 import Image from 'next/image';

@@ -5,7 +5,7 @@ import { Search, Navigation, ZoomIn, ZoomOut, Calendar, Sparkles, X, MapPin } fr
 import Image from 'next/image';
 import Link from 'next/link';
 import NaverMap from '@/app/map/components/NaverMap';
-import MomentImageSlider from '@/app/calendar/components/MomentImageSlider';
+import MomentImageSlider from '@/features/diary/components/MomentImageSlider';
 import { useMapMarkers, MapMemoryDetail, BBox } from '@/app/map/hooks/useMapMarkers';
 import { getImagePath } from '@/app/common/lib/clientApi';
 

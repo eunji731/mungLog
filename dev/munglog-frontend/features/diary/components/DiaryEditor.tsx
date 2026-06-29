@@ -5,7 +5,7 @@ import { X, Camera, Plus, Trash2, Sparkles, Check, RefreshCw, Calendar, MapPin, 
 import Image from 'next/image';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
-import { DailyLog } from '@/app/common/hooks/useDiary';
+import { DailyLog } from '@/features/diary/hooks/useDiary';
 import { toFileUrl, getImagePath } from '@/app/common/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 import MomentImageSlider from './MomentImageSlider';
