@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Circle } from 'lucide-react';
 import type { Schedule } from '@/types/schedule';
@@ -15,6 +15,33 @@ interface ScheduleListProps {
 export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeIds, onToggleComplete }) => {
   const router = useRouter();
   const { getCodeById } = useCommonCodes('SCHEDULE_TYPE');
+
+  const [snapMap, setSnapMap] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const loadSnaps = () => {
+      try {
+        const snapData = localStorage.getItem('munglog_symptom_snaps');
+        if (snapData) {
+          const snaps = JSON.parse(snapData);
+          const map: Record<string, any> = {};
+          snaps.forEach((s: any) => {
+            if (s.linkedScheduleId) {
+              map[String(s.linkedScheduleId)] = s;
+            }
+          });
+          setSnapMap(map);
+        }
+      } catch (e) {
+        console.error('Failed to load snaps in ScheduleList:', e);
+      }
+    };
+
+    loadSnaps();
+
+    window.addEventListener('symptom_snaps_updated', loadSnaps);
+    return () => window.removeEventListener('symptom_snaps_updated', loadSnaps);
+  }, []);
 
   const getTypeIcon = (type: string) => {
     switch(type) {
@@ -66,9 +93,18 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeIds
                 {getTypeIcon(typeCode)}
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-[12px] font-black text-text-sub uppercase tracking-tighter">
-                  {new Date(schedule.scheduleDate).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] font-black text-text-sub uppercase tracking-tighter">
+                    {new Date(schedule.scheduleDate).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
+                  </span>
+                  
+                  {/* 연동된 증상 뱃지 */}
+                  {snapMap[String(schedule.id)] && (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 text-[9px] font-black animate-in fade-in duration-300 shrink-0">
+                      🚨 {snapMap[String(schedule.id)].symptomTags?.join(', ')}
+                    </span>
+                  )}
+                </div>
                 <span className={`text-[15px] font-black transition-colors ${schedule.isCompleted ? 'text-text-sub/50 line-through' : activeIds.includes(schedule.id) ? 'text-main-green' : 'text-foreground group-hover:text-main-green'}`}>
                   {schedule.title}
                 </span>

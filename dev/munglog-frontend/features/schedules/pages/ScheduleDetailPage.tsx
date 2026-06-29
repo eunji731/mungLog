@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
@@ -25,6 +25,21 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
+  const [linkedSnap, setLinkedSnap] = useState<any>(null);
+
+  useEffect(() => {
+    if (!schedule?.id) return;
+    try {
+      const snapData = localStorage.getItem('munglog_symptom_snaps');
+      if (snapData) {
+        const snaps = JSON.parse(snapData);
+        const found = snaps.find((s: any) => String(s.linkedScheduleId) === String(schedule.id));
+        setLinkedSnap(found || null);
+      }
+    } catch (e) {
+      console.error('Failed to load linked snap in detail page:', e);
+    }
+  }, [schedule?.id]);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -60,6 +75,31 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
     try {
       setIsConverting(true);
       const newRecordId = await scheduleApi.convertToCareRecord(id);
+
+      // --- 증상 스냅 자동 해결 처리 ---
+      try {
+        const snapData = localStorage.getItem('munglog_symptom_snaps');
+        if (snapData) {
+          const snaps = JSON.parse(snapData);
+          const updated = snaps.map((s: any) => {
+            if (String(s.linkedScheduleId) === String(id)) {
+              return {
+                ...s,
+                status: 'RESOLVED' as const,
+                resolvedRecordId: String(newRecordId),
+                resolvedRecordTitle: schedule?.title || '병원 진료',
+              };
+            }
+            return s;
+          });
+          localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
+          window.dispatchEvent(new Event('symptom_snaps_updated'));
+        }
+      } catch (e) {
+        console.error('Failed to update linked symptom snap to resolved:', e);
+      }
+      // ---------------------------------
+
       success('케어기록으로 전환되었습니다! ✨');
       router.push(`/care-records/edit/${newRecordId}`);
     } catch (err: any) {
@@ -174,6 +214,37 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
                           {tag}
                         </span>
                       ))}
+                    </div>
+                  )}
+
+                  {linkedSnap && (
+                    <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 p-5 rounded-2xl space-y-2.5 transition-all duration-300">
+                      <h4 className="flex items-center gap-2 text-[11px] font-black text-amber-600 uppercase tracking-widest">
+                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" /> 
+                        연동된 이상 증상 관찰 기록 (Symptom Snap)
+                      </h4>
+                      <div className="flex gap-4">
+                        {linkedSnap.photoUrl && (
+                          <div className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0 bg-stone-100">
+                            <img src={linkedSnap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {linkedSnap.symptomTags?.map((tag: string) => (
+                              <span key={tag} className="text-[9px] font-black px-2 py-0.5 rounded bg-amber-500/10 text-amber-600">
+                                #{tag}
+                              </span>
+                            ))}
+                            <span className="text-[10px] text-text-sub font-bold">
+                              {linkedSnap.date} {linkedSnap.time} 발생
+                            </span>
+                          </div>
+                          <p className="text-[13px] font-bold text-text-main leading-relaxed mt-1">
+                            {linkedSnap.memo}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Calendar } from 'lucide-react';
 import type { Schedule } from '@/types/schedule';
@@ -17,6 +17,33 @@ interface CalendarSchedulePanelProps {
 export default function CalendarSchedulePanel({ date, schedules, onClose }: CalendarSchedulePanelProps) {
   const router = useRouter();
   const { getCodeById } = useCommonCodes('SCHEDULE_TYPE');
+
+  const [snapMap, setSnapMap] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const loadSnaps = () => {
+      try {
+        const snapData = localStorage.getItem('munglog_symptom_snaps');
+        if (snapData) {
+          const snaps = JSON.parse(snapData);
+          const map: Record<string, any> = {};
+          snaps.forEach((s: any) => {
+            if (s.linkedScheduleId) {
+              map[String(s.linkedScheduleId)] = s;
+            }
+          });
+          setSnapMap(map);
+        }
+      } catch (e) {
+        console.error('Failed to load snaps in CalendarSchedulePanel:', e);
+      }
+    };
+
+    loadSnaps();
+
+    window.addEventListener('symptom_snaps_updated', loadSnaps);
+    return () => window.removeEventListener('symptom_snaps_updated', loadSnaps);
+  }, []);
 
   const formattedDate = React.useMemo(() => {
     const offset = date.getTimezoneOffset();
@@ -137,6 +164,12 @@ export default function CalendarSchedulePanel({ date, schedules, onClose }: Cale
                     <span className="text-[9px] font-black tracking-widest px-2.5 py-1 rounded-md uppercase border shrink-0 bg-surface-green text-text-sub border-border">
                       {typeCode}
                     </span>
+                    {/* 연동된 증상 뱃지 */}
+                    {snapMap[String(schedule.id)] && (
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 shrink-0 animate-in fade-in duration-300">
+                        🚨 {snapMap[String(schedule.id)].symptomTags?.join(', ')}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded border tabular-nums shrink-0 ${

@@ -12,6 +12,7 @@ import { TagInput } from '@/components/common/TagInput';
 import { useScheduleForm } from '../hooks/useScheduleForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { FileUploader } from '@/components/common/FileUploader';
+import { SymptomSnap } from '@/features/care-records/components/SymptomSnapboard';
 
 interface ScheduleFormPageProps {
   id?: string;
@@ -39,6 +40,33 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
 
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const titleFieldRef = useRef<HTMLDivElement>(null);
+  
+  // 증상 스냅 목록 상태
+  const [availableSnaps, setAvailableSnaps] = useState<SymptomSnap[]>([]);
+
+  useEffect(() => {
+    if (!formData.dogId) {
+      setAvailableSnaps([]);
+      return;
+    }
+
+    try {
+      const snapData = localStorage.getItem('munglog_symptom_snaps');
+      if (snapData) {
+        const parsed: SymptomSnap[] = JSON.parse(snapData);
+        // 해당 강아지의 스냅 중 (관찰 중이거나, 현재 일정에 연동되어 있는 것) 필터링
+        const filtered = parsed.filter(s => 
+          String(s.petId) === String(formData.dogId) && 
+          (s.status === 'MONITORING' || (id && String(s.linkedScheduleId) === String(id)))
+        );
+        setAvailableSnaps(filtered);
+      } else {
+        setAvailableSnaps([]);
+      }
+    } catch (e) {
+      console.error('Failed to load snaps in ScheduleFormPage', e);
+    }
+  }, [formData.dogId, id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -192,6 +220,80 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({ id }) => {
                 tags={formData.symptomTags}
                 onChange={(tags) => setFormData({ ...formData, symptomTags: tags })}
               />
+
+              {/* 증상 스냅보드 연동 영역 */}
+              <div className="space-y-2.5">
+                <label className="text-[11px] font-black text-text-sub ml-1 uppercase tracking-wider block">
+                  증상 스냅보드 연동 (선택)
+                </label>
+                
+                {!formData.dogId ? (
+                  <div className="p-4 border border-dashed border-border rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 text-center text-xs font-bold text-text-sub">
+                    반려견을 먼저 선택하시면 관찰 중인 이상 증상 스냅을 연동할 수 있습니다.
+                  </div>
+                ) : availableSnaps.length === 0 ? (
+                  <div className="p-4 border border-dashed border-border rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 text-center text-xs font-bold text-text-sub">
+                    현재 관찰 중인 반려견의 이상 증상(스냅)이 없습니다.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto no-scrollbar pr-1">
+                    {availableSnaps.map((snap) => {
+                      const isSelected = formData.linkedSymptomSnapId === snap.id;
+                      return (
+                        <div
+                          key={snap.id}
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              linkedSymptomSnapId: isSelected ? '' : snap.id
+                            });
+                          }}
+                          className={`p-3.5 border rounded-2xl cursor-pointer transition-all flex gap-3 relative overflow-hidden group select-none ${
+                            isSelected
+                              ? 'border-main-green bg-main-green/5 ring-2 ring-main-green/20'
+                              : 'border-border bg-background hover:border-main-green/30'
+                          }`}
+                        >
+                          {/* Left: Thumbnail if photo exists */}
+                          {snap.photoUrl && (
+                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-border shrink-0 bg-stone-100 relative">
+                              <img src={snap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          
+                          {/* Right: Info */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-between">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {snap.symptomTags?.map((tag, idx) => (
+                                <span key={idx} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-main-green/10 text-main-green">
+                                  #{tag}
+                                </span>
+                              ))}
+                              <span className="text-[9px] text-text-sub font-bold">
+                                {snap.date} {snap.time}
+                              </span>
+                            </div>
+                            <p className="text-xs font-bold text-text-main truncate mt-1">
+                              {snap.memo || '이상 증상 관찰됨'}
+                            </p>
+                          </div>
+
+                          {/* Selected Check Indicator */}
+                          {isSelected && (
+                            <div className="absolute top-2 right-2 w-4.5 h-4.5 rounded-full bg-main-green flex items-center justify-center text-white text-[9px] font-bold">
+                              ✓
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="text-[10px] text-text-sub font-medium ml-1">
+                  💡 연동된 증상 스냅은 이 일정을 완료하여 '케어 기록'으로 전환할 때 자동으로 '해결됨(RESOLVED)' 상태가 되며, 생성된 케어 기록과 연결됩니다.
+                </p>
+              </div>
+
               <Textarea
                 label="상세 메모"
                 placeholder="수의사 선생님께 여쭤볼 내용이나 미용 시 주의사항을 적어주세요."

@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Camera, Trash2, Link as LinkIcon, AlertCircle, CheckCircle2, X, ChevronDown, Check, Pencil } from 'lucide-react';
+import Link from 'next/link';
 import { format, subDays, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { Card } from '@/components/common/Card';
@@ -26,6 +27,8 @@ export interface SymptomSnap {
   status: 'MONITORING' | 'RESOLVED';
   resolvedRecordId?: string;
   resolvedRecordTitle?: string;
+  linkedScheduleId?: string;
+  linkedScheduleTitle?: string;
 }
 
 const SUGGESTED_SYMPTOMS = ['구토', '설사', '긁음', '눈물', '절뚝임', '기침', '콧물', '식욕부진', '발열', '피부염', '가려움'];
@@ -114,7 +117,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
 
       // 데이트피커 포탈 영역 클릭 시 닫히는 현상 방지
       if (
-        target.closest('[class*="z-[1000]"]') ||
+        target.closest('[class*="z-[100]"]') ||
         target.closest('[class*="z-[100]"]') ||
         target.closest('#root-portal')
       ) {
@@ -281,6 +284,26 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
           status: 'MONITORING' as const,
           resolvedRecordId: undefined,
           resolvedRecordTitle: undefined,
+        };
+      }
+      return s;
+    });
+    setSnaps(updated);
+    localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
+    window.dispatchEvent(new Event('symptom_snaps_updated'));
+    if (onSnapLinked) onSnapLinked();
+  };
+
+  // 일정 연동 해제하기
+  const handleUnlinkSchedule = async (snapId: string) => {
+    const isConfirmed = await confirm('예약 일정 연동을 해제하시겠습니까?');
+    if (!isConfirmed) return;
+    const updated = snaps.map(s => {
+      if (s.id === snapId) {
+        return {
+          ...s,
+          linkedScheduleId: undefined,
+          linkedScheduleTitle: undefined,
         };
       }
       return s;
@@ -534,52 +557,73 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                 <div className="pt-2 border-t border-dashed border-border flex items-center justify-between text-[11px]">
                   {isMonitoring ? (
                     <>
-                      <span className="text-amber-600 bg-amber-50 dark:bg-amber-900/10 px-2 py-0.5 rounded-full font-black flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> 관찰 중
-                      </span>
+                      {snap.linkedScheduleId ? (
+                        <>
+                          <Link
+                            href={`/schedules/${snap.linkedScheduleId}`}
+                            className="text-main-green hover:underline font-black flex items-center gap-1 bg-transparent border-none"
+                          >
+                            📅 {snap.linkedScheduleTitle || '예약 일정'} 연동됨
+                          </Link>
+                          
+                          <button
+                            type="button"
+                            onClick={() => handleUnlinkSchedule(snap.id)}
+                            className="text-text-sub hover:text-red-500 hover:underline bg-transparent border-none font-bold"
+                          >
+                            연동 해제
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-amber-600 bg-amber-50 dark:bg-amber-900/10 px-2 py-0.5 rounded-full font-black flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> 관찰 중
+                          </span>
 
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setActiveLinkId(activeLinkId === snap.id ? null : snap.id)}
-                          className="flex items-center gap-1 font-black text-main-green hover:underline cursor-pointer bg-transparent border-none"
-                        >
-                          <LinkIcon className="w-3 h-3" /> 진료 연동
-                        </button>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setActiveLinkId(activeLinkId === snap.id ? null : snap.id)}
+                              className="flex items-center gap-1 font-black text-main-green hover:underline cursor-pointer bg-transparent border-none"
+                            >
+                              <LinkIcon className="w-3 h-3" /> 진료 연동
+                            </button>
 
-                        {/* Linkable Records Popover */}
-                        {activeLinkId === snap.id && (
-                          <div className="absolute right-0 bottom-full mb-2 w-64 bg-background border border-border shadow-2xl rounded-2xl p-2 z-[60] max-h-52 overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-2">
-                            <div className="p-2 border-b border-border mb-1 flex items-center justify-between">
-                              <span className="text-[10px] font-black text-text-sub">연동할 병원 기록 선택</span>
-                              <button type="button" onClick={() => setActiveLinkId(null)}>
-                                <X className="w-3 h-3 text-text-sub hover:text-red-500" />
-                              </button>
-                            </div>
+                            {/* Linkable Records Popover */}
+                            {activeLinkId === snap.id && (
+                              <div className="absolute right-0 bottom-full mb-2 w-64 bg-background border border-border shadow-2xl rounded-2xl p-2 z-[60] max-h-52 overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-2">
+                                <div className="p-2 border-b border-border mb-1 flex items-center justify-between">
+                                  <span className="text-[10px] font-black text-text-sub">연동할 병원 기록 선택</span>
+                                  <button type="button" onClick={() => setActiveLinkId(null)}>
+                                    <X className="w-3 h-3 text-text-sub hover:text-red-500" />
+                                  </button>
+                                </div>
 
-                            {getLinkableRecords().length === 0 ? (
-                              <p className="text-[10px] text-text-sub text-center py-4 font-bold">
-                                최근 등록된 병원 진료 기록이 없습니다.
-                              </p>
-                            ) : (
-                              getLinkableRecords().map((record: any) => (
-                                <button
-                                  type="button"
-                                  key={record.id}
-                                  onClick={() => handleLinkRecord(snap.id, record)}
-                                  className="w-full text-left p-2 hover:bg-surface-green rounded-xl transition-colors flex items-center gap-2"
-                                >
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-black text-text-main truncate">{record.title}</p>
-                                    <p className="text-[9px] text-text-sub font-bold mt-0.5">{record.recordDate} · {record.clinicName || '진료'}</p>
-                                  </div>
-                                  <Check className="w-3.5 h-3.5 text-main-green shrink-0 opacity-0 hover:opacity-100" />
-                                </button>
-                              ))
+                                {getLinkableRecords().length === 0 ? (
+                                  <p className="text-[10px] text-text-sub text-center py-4 font-bold">
+                                    최근 등록된 병원 진료 기록이 없습니다.
+                                  </p>
+                                ) : (
+                                  getLinkableRecords().map((record: any) => (
+                                    <button
+                                      type="button"
+                                      key={record.id}
+                                      onClick={() => handleLinkRecord(snap.id, record)}
+                                      className="w-full text-left p-2 hover:bg-surface-green rounded-xl transition-colors flex items-center gap-2"
+                                    >
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-black text-text-main truncate">{record.title}</p>
+                                        <p className="text-[9px] text-text-sub font-bold mt-0.5">{record.recordDate} · {record.clinicName || '진료'}</p>
+                                      </div>
+                                      <Check className="w-3.5 h-3.5 text-main-green shrink-0 opacity-0 hover:opacity-100" />
+                                    </button>
+                                  ))
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
-                      </div>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
