@@ -5,7 +5,7 @@ import { fileApi } from '@/api/fileApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/context/ToastContext';
 import { usePet } from '@/app/common/hooks/usePet';
-import { useInventory } from '@/app/common/hooks/useInventory';
+import { useInventory } from '@/features/inventory/hooks/useInventory';
 
 export const useScheduleForm = (id?: string, options?: { prefillDate?: string }) => {
   const router = useRouter();

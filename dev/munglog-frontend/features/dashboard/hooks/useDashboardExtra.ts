@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { careApi } from '@/api/careApi';
 import { scheduleApi } from '@/api/scheduleApi';
-import { useInventoryStore } from '@/app/common/hooks/useInventory';
+import { useInventoryStore } from '@/features/inventory/hooks/useInventory';
 import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import type { CareRecord } from '@/types/care';
 import type { Schedule, ScheduleStreak } from '@/types/schedule';

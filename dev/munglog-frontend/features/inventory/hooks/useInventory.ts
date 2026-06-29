@@ -97,7 +97,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
 export const useInventory = () => {
   const store = useInventoryStore();
-  
+
   // Helper filters
   const snacks = store.items.filter(i => i.category === 'SNACK');
   const toys = store.items.filter(i => i.category === 'TOY');
