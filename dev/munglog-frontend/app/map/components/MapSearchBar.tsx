@@ -81,7 +81,7 @@ export default function MapSearchBar({
                       </p>
                       {searchResults.map((result) => (
                         <button
-                          key={result.moment.id}
+                          key={result.photoId}
                           onClick={() => onResultClick(result)}
                           className="w-full flex items-center gap-4 p-3 hover:bg-surface-green rounded-2xl transition-all text-left group"
                         >
@@ -95,10 +95,10 @@ export default function MapSearchBar({
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-bold text-text-main truncate">
-                              {result.moment.locationName || '추억의 장소'}
+                              {result.moment?.locationName || '추억의 장소'}
                             </h4>
                             <p className="text-[11px] font-medium text-text-sub truncate">
-                              {result.dailyLog.dateKey} · {result.moment.aiTitle || result.dailyLog.aiTitle}
+                              {result.dailyLog.dateKey} · {result.moment?.aiTitle || result.dailyLog.aiTitle}
                             </p>
                           </div>
                         </button>

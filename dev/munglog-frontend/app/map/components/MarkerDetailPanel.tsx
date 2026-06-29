@@ -23,7 +23,7 @@ export default function MarkerDetailPanel({ detail, loading, photos, onClose }: 
         ) : (
           <>
             <div className="relative h-48">
-              <MomentImageSlider photos={photos} alt={detail.moment.aiTitle || '추억 사진'} />
+              <MomentImageSlider photos={photos} alt={detail.moment?.aiTitle || '추억 사진'} />
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors z-20"
@@ -31,7 +31,7 @@ export default function MarkerDetailPanel({ detail, loading, photos, onClose }: 
                 <X className="w-4 h-4" />
               </button>
               <div className="absolute bottom-4 left-4 flex gap-1.5 z-10">
-                {detail.moment.category && (
+                {detail.moment?.category && (
                   <span className="px-2.5 py-1 bg-main-green text-white text-[9px] font-black rounded-full shadow-lg uppercase tracking-widest">
                     {detail.moment.category}
                   </span>
@@ -44,14 +44,14 @@ export default function MarkerDetailPanel({ detail, loading, photos, onClose }: 
             <div className="p-6 space-y-4">
               <div className="space-y-1">
                 <h3 className="text-xl font-black text-text-main tracking-tight">
-                  {detail.moment.locationName || '추억의 장소'}
+                  {detail.moment?.locationName || '추억의 장소'}
                 </h3>
                 <p className="text-sm font-bold text-text-sub flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-main-yellow fill-main-yellow" />
-                  {detail.moment.aiTitle || detail.dailyLog.aiTitle}
+                  {detail.moment?.aiTitle || detail.dailyLog.aiTitle}
                 </p>
               </div>
-              {detail.moment.aiDiary && (
+              {detail.moment?.aiDiary && (
                 <div className="bg-surface-green/50 p-4 rounded-2xl border border-main-green/5 italic text-sm font-medium text-text-main/80 leading-relaxed max-h-[120px] overflow-y-auto no-scrollbar">
                   &quot;{detail.moment.aiDiary}&quot;
                 </div>

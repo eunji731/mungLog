@@ -25,7 +25,7 @@ export interface MapMemoryDetail {
     category?: string;
     locationName?: string;
     aiDiary?: string;
-  };
+  } | null;
   dailyLog: {
     id: string;
     dateKey: string;
@@ -89,11 +89,11 @@ export function useMapMarkers() {
       
       // 2. 검색 결과에 맞춰 지도 마커 업데이트
       const searchMarkers: MapMarker[] = results.map(r => ({
-        id: r.moment.id,
+        id: r.photoId,
         lat: r.latitude,
         lng: r.longitude,
         thumb: r.path,
-        momentId: r.moment.id,
+        momentId: r.moment?.id ?? '',
         dateKey: r.dailyLog.dateKey
       }));
       setMarkers(searchMarkers);
