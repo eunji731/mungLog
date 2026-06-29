@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { usePetStore, ALL_PETS_ID } from './usePet';
+import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 import { apiClient } from '@/lib/apiClient';
 
@@ -63,7 +63,7 @@ export const useArchive = () => {
       }));
       setArchiveThemes(prev => {
         const next = pageNum === 0 ? mapped : [...prev, ...mapped];
-        return next.filter((theme, idx, self) => 
+        return next.filter((theme, idx, self) =>
           idx === self.findIndex((t) => t.categoryName === theme.categoryName)
         );
       });
@@ -155,7 +155,7 @@ export const useArchive = () => {
       const res = await apiClient.get(`/archive/themes/${encodeURIComponent(tag)}${petParam}`);
       const item = res.data;
       if (!item) return null;
-      
+
       return {
         categoryName: item.tag,
         representativePhoto: getImagePath(item.representativePhotoUrl),
