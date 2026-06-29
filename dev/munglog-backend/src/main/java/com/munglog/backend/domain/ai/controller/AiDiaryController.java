@@ -50,9 +50,10 @@ public class AiDiaryController {
             @AuthenticationPrincipal User user,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate targetDate,
             @RequestPart("files") List<MultipartFile> files,
-            @RequestPart(value = "petInfos", required = false) List<PetInfoRequest> petInfos) {
+            @RequestPart(value = "petInfos", required = false) List<PetInfoRequest> petInfos,
+            @RequestPart(value = "userTags", required = false) List<String> userTags) {
         return ResponseEntity.ok(ApiResponse.success(
-                aiDiaryService.analyze(uuid(user), targetDate, files, petInfos)));
+                aiDiaryService.analyze(uuid(user), targetDate, files, petInfos, userTags)));
     }
 
     @Operation(summary = "AI 일지 저장")

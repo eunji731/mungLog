@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "회원", description = "회원 정보 API")
@@ -37,6 +38,15 @@ public class MemberController {
             @RequestPart("data") MemberUpdateRequest request,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
         return ResponseEntity.ok(ApiResponse.success(memberService.updateMe(uuid(user), request, profileImage)));
+    }
+
+    @Operation(summary = "AI 컨텍스트 수정")
+    @PutMapping("/me/ai-context")
+    public ResponseEntity<ApiResponse<Void>> updateAiContext(
+            @AuthenticationPrincipal User user,
+            @RequestBody Map<String, String> body) {
+        memberService.updateAiContext(uuid(user), body.get("aiContext"));
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Operation(summary = "회원 탈퇴")

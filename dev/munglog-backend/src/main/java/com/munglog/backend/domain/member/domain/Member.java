@@ -65,6 +65,10 @@ public class Member extends BaseTimeEntity {
         if (profileImagePath != null) this.profileImagePath = profileImagePath;
     }
 
+    public void updateAiContext(String aiContext) {
+        this.aiContext = aiContext;
+    }
+
     public void updateRefreshToken(String refreshTokenHash) {
         this.refreshTokenHash = refreshTokenHash;
         this.tokenIssuedAt = Instant.now();

@@ -10,7 +10,8 @@ public record MemberResponse(
         UUID id,
         String kakaoEmail,
         String nickname,
-        String profileImageUrl
+        String profileImageUrl,
+        String aiContext
 ) {
     public static MemberResponse from(Member member, String profileImageUrl) {
         return MemberResponse.builder()
@@ -18,6 +19,7 @@ public record MemberResponse(
                 .kakaoEmail(member.getKakaoEmail())
                 .nickname(member.getDisplayName())
                 .profileImageUrl(profileImageUrl)
+                .aiContext(member.getAiContext())
                 .build();
     }
 }

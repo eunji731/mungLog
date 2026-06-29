@@ -79,6 +79,7 @@ export const useDiaryStore = create<DiaryState>()(
     }),
     {
       name: 'diary-hierarchical-storage',
+      skipHydration: true,
     }
   )
 );
@@ -186,5 +187,6 @@ export const useDiary = () => {
     getDailyLogsForDate,
     allLogs: filteredLogs,
     syncFromBackend,
+    rehydrate: () => useDiaryStore.persist.rehydrate(),
   };
 };

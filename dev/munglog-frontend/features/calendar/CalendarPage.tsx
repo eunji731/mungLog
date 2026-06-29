@@ -45,14 +45,18 @@ function CalendarContent() {
   const initialDate = getInitialDate();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
   // dateParam이 있고 mode가 timeline이 아니면 상세 창이 열린 상태로 시작
   const [showSidePanel, setShowSidePanel] = useState(!!dateParam && modeParam !== 'timeline');
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTimelineMode, setIsTimelineMode] = useState(modeParam === 'timeline');
 
-  const { addDailyLog, syncFromBackend } = useDiary();
+  const { addDailyLog, syncFromBackend, rehydrate } = useDiary();
 
-  useEffect(() => { syncFromBackend(); }, []);
+  useEffect(() => {
+    rehydrate();
+    syncFromBackend();
+  }, []);
   const {
     currentDate,
     selectedDate,
@@ -151,6 +155,7 @@ function CalendarContent() {
   const handleSave = (data: DailyLog) => {
     addDailyLog(data);
     setIsEditing(false);
+    setEditingLog(null);
     setShowSidePanel(false);
     setIsExpanded(false);
     syncFromBackend();
@@ -158,11 +163,13 @@ function CalendarContent() {
 
   const handleCancel = () => {
     setIsEditing(false);
+    setEditingLog(null);
     setShowSidePanel(false);
     setIsExpanded(false);
   };
 
-  const handleEditRequest = () => {
+  const handleEditRequest = (log: DailyLog) => {
+    setEditingLog(log?.id ? log : null);
     setIsEditing(true);
     setShowSidePanel(true);
   };
@@ -273,6 +280,7 @@ function CalendarContent() {
                     isEditing ? (
                       <DiaryEditor
                         date={selectedDate}
+                        initialData={editingLog ?? undefined}
                         onSave={handleSave}
                         onCancel={handleCancel}
                       />

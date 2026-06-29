@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { X, Camera, Plus, Trash2, Sparkles, Check, RefreshCw, Calendar, MapPin, Zap, Info, AlertCircle, Search } from 'lucide-react';
+import { X, Camera, Plus, Trash2, Sparkles, Check, RefreshCw, Calendar, MapPin, Zap, Info, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
@@ -58,11 +58,6 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [userTags, setUserTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
-  const [tagMode, setTagMode] = useState<'text' | 'place'>('text');
-  const [placeQuery, setPlaceQuery] = useState('');
-  const [placeResults, setPlaceResults] = useState<{ id: string; place_name: string; address_name: string; category_name: string }[]>([]);
-  const [isSearchingPlace, setIsSearchingPlace] = useState(false);
-  const placeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedDogIds, setSelectedDogIds] = useState<string[]>([]);
 
   // AI 분석 결과 상태
@@ -80,6 +75,8 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
   const [aiErrorModal, setAiErrorModal] = useState<{ title: string; message: string } | null>(null);
   // 메타데이터 누락 경고
   const [metaWarnings, setMetaWarnings] = useState<{ missingDate: boolean; missingLocation: boolean } | null>(null);
+  // 재분석 시 기존 사진 로딩 상태
+  const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
 
   // 서버 사용량 상태
   const [usageInfo, setUsageInfo] = useState<{
@@ -109,72 +106,15 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
 
   useEffect(() => { fetchUsage(); }, [fetchUsage]);
 
-  // ─── 장소 검색 (Naver Maps Geocoder) ────────────────────────────
-
-  const naverGeocoderLoadedRef = useRef(false);
-
-  const ensureNaverGeocoder = useCallback((): Promise<void> => {
-    if (naverGeocoderLoadedRef.current && window.naver?.maps?.Service) return Promise.resolve();
-    return new Promise((resolve) => {
-      const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
-      const existing = document.getElementById('naver-geocoder-script');
-      if (existing) {
-        const check = setInterval(() => {
-          if (window.naver?.maps?.Service) { clearInterval(check); naverGeocoderLoadedRef.current = true; resolve(); }
-        }, 100);
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = 'naver-geocoder-script';
-      script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&submodules=geocoder`;
-      script.onload = () => {
-        const check = setInterval(() => {
-          if (window.naver?.maps?.Service) { clearInterval(check); naverGeocoderLoadedRef.current = true; resolve(); }
-        }, 100);
-      };
-      document.head.appendChild(script);
-    });
-  }, []);
-
-  const searchPlaces = useCallback(async (query: string) => {
-    if (!query.trim()) { setPlaceResults([]); return; }
-    setIsSearchingPlace(true);
-    try {
-      await ensureNaverGeocoder();
-      window.naver.maps.Service.geocode({ query }, (status, response) => {
-        if (status === window.naver.maps.Service.Status.OK) {
-          setPlaceResults(
-            (response.v2.addresses ?? []).map((addr, i) => ({
-              id: String(i),
-              place_name: addr.roadAddress || addr.jibunAddress,
-              address_name: addr.jibunAddress,
-              category_name: '',
-            }))
-          );
-        } else {
-          setPlaceResults([]);
-        }
-        setIsSearchingPlace(false);
-      });
-    } catch {
-      setPlaceResults([]);
-      setIsSearchingPlace(false);
+  // edit 모드 초기화: 기존 데이터에서 아이 선택 + 태그 복원
+  useEffect(() => {
+    if (initialData?.moments?.length) {
+      const dogIds = [...new Set(initialData.moments.flatMap(m => m.dogIds))];
+      setSelectedDogIds(dogIds);
+      const existingTags = [...new Set(initialData.moments.flatMap(m => m.tags ?? []))];
+      setUserTags(existingTags);
     }
-  }, [ensureNaverGeocoder]);
-
-  const handlePlaceQueryChange = (value: string) => {
-    setPlaceQuery(value);
-    if (placeDebounceRef.current) clearTimeout(placeDebounceRef.current);
-    placeDebounceRef.current = setTimeout(() => searchPlaces(value), 400);
-  };
-
-  const addPlaceTag = (placeName: string) => {
-    if (!userTags.includes(placeName)) {
-      setUserTags(p => [...p, placeName]);
-    }
-    setPlaceQuery('');
-    setPlaceResults([]);
-  };
+  }, [initialData]);
 
   // ─── 사진 선택 ────────────────────────────────────────────────────
 
@@ -464,7 +404,45 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
     }
   };
 
-  const handleReAnalyze = () => {
+  const handleReAnalyze = async () => {
+    // 현재 Phase 3에 표시 중인 태그를 Phase 1 userTags에 반영 (재분석 맥락 유지)
+    if (aiResult?.moments?.length) {
+      const tags = [...new Set(aiResult.moments.flatMap(m => m.tags ?? []))];
+      if (tags.length > 0) setUserTags(tags);
+    }
+
+    // 기존 initialData 사진이 있으면 서버에서 다운로드해 File 객체로 복원
+    if (initialData?.moments?.length) {
+      setIsLoadingPhotos(true);
+      try {
+        const allPhotos = initialData.moments.flatMap(m => m.photos ?? []).slice(0, 5);
+        const files: File[] = [];
+        const previews: string[] = [];
+
+        for (const photo of allPhotos) {
+          try {
+            const url = getImagePath(photo.path);
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const blob = await res.blob();
+            const filename = photo.path.split('/').pop() || `photo_${photo.id}.jpg`;
+            const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+            files.push(file);
+            previews.push(URL.createObjectURL(blob));
+          } catch {
+            // 개별 사진 로드 실패 시 무시
+          }
+        }
+
+        if (files.length > 0) {
+          setPhotoFiles(files);
+          setPhotoPreviews(previews);
+        }
+      } finally {
+        setIsLoadingPhotos(false);
+      }
+    }
+
     setAiResult(null);
     setRawAiResult(null);
     setStoredFiles([]);
@@ -662,88 +640,22 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
                       추가 태그(선택)
                     </label>
                     <p className="mt-1 text-xs font-medium text-text-sub/70 leading-relaxed">
-                      <span className="text-main-green font-black">💡 AI가 더 정확한 일기를 작성할 수 있도록 중요한 단어와 상황을 적어주세요.</span>
+                      <span className="text-main-green font-black">💡 AI가 더 정확한 일기를 작성할 수 있도록 중요한 단어와 상황을 적어주세요.</span><br />
+                      태그를 입력한 뒤 Enter를 눌러 추가하세요.
                     </p>
                   </div>
-
-                  {/* 탭 */}
-                  <div className="flex gap-1 p-1 bg-surface-green rounded-xl w-fit">
+                  <div className="flex gap-2">
+                    <input
+                      type="text" value={newTag} onChange={e => setNewTag(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && newTag.trim() && !userTags.includes(newTag.trim())) { setUserTags(p => [...p, newTag.trim()]); setNewTag(''); } }}
+                      placeholder="#서울숲 #피곤 #카페 #산책"
+                      className="flex-1 px-4 py-3 bg-surface-green border border-border rounded-xl text-sm font-bold focus:outline-none"
+                    />
                     <button
-                      onClick={() => setTagMode('text')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${tagMode === 'text' ? 'bg-background text-main-green shadow-sm' : 'text-text-sub'}`}
-                    >직접 입력</button>
-                    <button
-                      onClick={() => { setTagMode('place'); setPlaceResults([]); }}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1 ${tagMode === 'place' ? 'bg-background text-main-green shadow-sm' : 'text-text-sub'}`}
-                    ><MapPin className="w-3 h-3" />장소 검색</button>
+                      onClick={() => { if (newTag.trim() && !userTags.includes(newTag.trim())) { setUserTags(p => [...p, newTag.trim()]); setNewTag(''); } }}
+                      className="px-6 py-3 bg-main-green text-white font-black rounded-xl text-sm"
+                    >추가</button>
                   </div>
-
-                  {tagMode === 'text' ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="text" value={newTag} onChange={e => setNewTag(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter' && newTag.trim() && !userTags.includes(newTag.trim())) { setUserTags(p => [...p, newTag.trim()]); setNewTag(''); } }}
-                        placeholder="#피곤 #카페 #산책"
-                        className="flex-1 px-4 py-3 bg-surface-green border border-border rounded-xl text-sm font-bold focus:outline-none"
-                      />
-                      <button
-                        onClick={() => { if (newTag.trim() && !userTags.includes(newTag.trim())) { setUserTags(p => [...p, newTag.trim()]); setNewTag(''); } }}
-                        className="px-6 py-3 bg-main-green text-white font-black rounded-xl text-sm"
-                      >추가</button>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub" />
-                          <input
-                            type="text"
-                            value={placeQuery}
-                            onChange={e => handlePlaceQueryChange(e.target.value)}
-                            placeholder="장소명 또는 주소를 입력하세요"
-                            className="w-full pl-9 pr-4 py-3 bg-surface-green border border-border rounded-xl text-sm font-bold focus:outline-none"
-                            autoFocus
-                          />
-                        </div>
-                        {placeQuery && (
-                          <button
-                            onClick={() => { setPlaceQuery(''); setPlaceResults([]); }}
-                            className="px-3 py-3 bg-surface-green border border-border rounded-xl"
-                          ><X className="w-4 h-4 text-text-sub" /></button>
-                        )}
-                      </div>
-                      {(isSearchingPlace || placeResults.length > 0) && (
-                        <div className="absolute top-full mt-2 w-full bg-background border border-border rounded-2xl shadow-xl z-20 overflow-hidden">
-                          {isSearchingPlace ? (
-                            <div className="py-4 text-center text-xs font-bold text-text-sub">검색 중...</div>
-                          ) : (
-                            <ul className="max-h-52 overflow-y-auto no-scrollbar divide-y divide-border/50">
-                              {placeResults.map(place => (
-                                <li key={place.id}>
-                                  <button
-                                    onClick={() => addPlaceTag(place.place_name)}
-                                    className="w-full flex items-start gap-3 px-4 py-3 hover:bg-surface-green transition-all text-left"
-                                  >
-                                    <MapPin className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-black text-text-main truncate">{place.place_name}</p>
-                                      {place.address_name && place.address_name !== place.place_name && (
-                                        <p className="text-[11px] font-medium text-text-sub truncate">{place.address_name}</p>
-                                      )}
-                                    </div>
-                                  </button>
-                                </li>
-                              ))}
-                              {placeResults.length === 0 && placeQuery && !isSearchingPlace && (
-                                <li className="py-4 text-center text-xs font-bold text-text-sub">검색 결과가 없어요</li>
-                              )}
-                            </ul>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   <div className="flex flex-wrap gap-2">
                     {userTags.map(tag => (
                       <span key={tag} className="px-3 py-1.5 bg-light-green text-main-green text-[11px] font-black rounded-lg flex items-center gap-1">
@@ -853,7 +765,7 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
                 {aiResult.representativePhotoPath && (
                   <div className="relative w-full h-48 lg:h-64 bg-surface-green/10 border-b border-border/50">
                     <Image
-                      src={aiResult.representativePhotoPath}
+                      src={getImagePath(aiResult.representativePhotoPath)}
                       alt="오늘의 대표 사진"
                       fill
                       className="object-cover"
@@ -885,7 +797,7 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
                   <Calendar className="w-5 h-5 text-main-green" /> 오늘의 모멘트 타임라인
                 </h3>
                 <div className="relative space-y-6 lg:space-y-8 before:absolute before:left-8 before:top-4 before:bottom-4 before:w-0.5 before:bg-main-green/10">
-                  {aiResult.moments.map((moment, idx) => (
+                  {(aiResult.moments ?? []).map((moment, idx) => (
                     <div key={moment.id} className="relative pl-14 lg:pl-20 pr-0 lg:pr-4">
                       <div className="absolute left-6 top-6 w-4 h-4 rounded-full bg-main-green border-4 border-background shadow-sm ring-4 ring-main-green/5 z-10" />
                       <div className="bg-background rounded-[24px] lg:rounded-[32px] overflow-hidden border border-border shadow-sm hover:shadow-md transition-all group">
@@ -953,9 +865,14 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
                   )}
                   <button
                     onClick={handleReAnalyze}
-                    className="w-full py-4 bg-background border-2 border-border text-text-sub font-black rounded-2xl hover:bg-surface-green transition-all flex items-center justify-center gap-2"
+                    disabled={isLoadingPhotos}
+                    className="w-full py-4 bg-background border-2 border-border text-text-sub font-black rounded-2xl hover:bg-surface-green transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <RefreshCw className="w-4 h-4" /> 다시 분석하기
+                    {isLoadingPhotos ? (
+                      <><Spinner size="sm" /> 기존 사진 불러오는 중...</>
+                    ) : (
+                      <><RefreshCw className="w-4 h-4" /> 다시 분석하기</>
+                    )}
                   </button>
                 </div>
                 <button

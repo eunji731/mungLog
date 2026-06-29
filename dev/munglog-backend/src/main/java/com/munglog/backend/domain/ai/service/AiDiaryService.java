@@ -86,7 +86,7 @@ public class AiDiaryService {
 
     @Transactional
     public AnalyzeDiaryResult analyze(UUID userId, LocalDate targetDate, List<MultipartFile> files,
-                                      List<PetInfoRequest> petInfos) {
+                                      List<PetInfoRequest> petInfos, List<String> userTags) {
         checkRateLimit(userId, targetDate);
 
         Member member = memberRepository.findById(userId)
@@ -122,9 +122,13 @@ public class AiDiaryService {
             }
         }
 
-        String petContext = petInfos != null ? petInfos.stream()
-                .map(p -> p.name()).reduce("", (a, b) -> a + ", " + b) : "";
-        String prompt = buildAnalyzePrompt(targetDate.toString(), petContext, member.getAiContext());
+        List<Pet> selectedPets = petInfos != null
+                ? petInfos.stream()
+                    .flatMap(p -> petRepository.findById(p.id()).stream())
+                    .toList()
+                : List.of();
+        String petContext = buildPetContext(selectedPets);
+        String prompt = buildAnalyzePrompt(targetDate.toString(), petContext, member.getAiContext(), imageFileNames, storedFiles, userTags);
         DailyLogResponse aiResult = geminiClient.analyzeImages(base64Images, imageFileNames, prompt);
 
         recordUsage(member, targetDate, USAGE_TYPE_ANALYZE);
@@ -269,13 +273,63 @@ public class AiDiaryService {
         }
     }
 
-    private String buildAnalyzePrompt(String targetDate, String petContext, String userAiContext) {
+    private String buildPetContext(List<Pet> pets) {
+        if (pets.isEmpty()) return "알 수 없음";
+        StringBuilder sb = new StringBuilder();
+        for (Pet pet : pets) {
+            sb.append("- ").append(pet.getName());
+            if (pet.getBreed() != null) sb.append("(").append(pet.getBreed()).append(")");
+            if (pet.getPersonality() != null) sb.append(", 성격/특징: ").append(pet.getPersonality());
+            if (pet.getAppearance() != null) sb.append(", 외모: ").append(pet.getAppearance());
+            if (pet.getLikes() != null) sb.append(", 좋아하는 것: ").append(pet.getLikes());
+            if (pet.getDislikes() != null) sb.append(", 싫어하는 것: ").append(pet.getDislikes());
+            if (pet.getDiaryTone() != null) sb.append(", 일기 말투: ").append(pet.getDiaryTone());
+            sb.append("\n");
+        }
+        return sb.toString().stripTrailing();
+    }
+
+    private String buildAnalyzePrompt(String targetDate, String petContext, String userAiContext,
+                                      List<String> imageFileNames, List<StoredFileInfo> storedFiles,
+                                      List<String> userTags) {
+        StringBuilder gpsInfo = new StringBuilder();
+        for (int i = 0; i < imageFileNames.size(); i++) {
+            if (i < storedFiles.size()) {
+                StoredFileInfo sf = storedFiles.get(i);
+                if (sf.getLatitude() != null && sf.getLongitude() != null) {
+                    gpsInfo.append(String.format("- %s: 위도 %.6f, 경도 %.6f%n",
+                            imageFileNames.get(i), sf.getLatitude(), sf.getLongitude()));
+                }
+            }
+        }
+
+        String gpsSection = gpsInfo.isEmpty() ? "" : String.format("""
+
+                각 사진의 GPS 좌표 정보:
+                %s
+                위 좌표를 참고하여 locationName에 실제 한국 장소명(예: 서울숲, 혜화동, 경의선숲길, 한강공원 등 구체적인 POI 이름이나 동네명)을 추론해서 넣어주세요.
+                GPS가 없는 사진은 사진 내용을 보고 추측하세요.
+                """, gpsInfo);
+
+        String userTagsSection = (userTags != null && !userTags.isEmpty())
+                ? "사용자 키워드(반드시 일기 내용, 장소명, tags에 이 키워드들을 최대한 반영하세요): " + String.join(", ", userTags) + "\n"
+                : "";
+
+        String userContextSection = (userAiContext != null && !userAiContext.isBlank())
+                ? "반드시 반영할 사용자 개인 맥락(이 내용을 일기 전체 톤과 내용에 꼭 반영하세요): " + userAiContext + "\n"
+                : "";
+
         return String.format("""
                 날짜: %s
-                반려동물: %s
-                추가 맥락: %s
 
-                위 사진들을 분석하여 반려동물의 하루를 일기 형식으로 작성해주세요.
+                [반려동물 정보 - 아래 성격/말투/특징을 일기에 반드시 반영하세요]
+                %s
+
+                %s%s%s
+                위 사진들을 분석하여 반려동물이 직접 쓴 1인칭 일기 형식으로 작성해주세요.
+                반려동물 본인의 시점으로, "오늘 한강에 갔다", "냄새가 너무 좋았다", "주인이랑 같이 뛰었는데 신났다" 같은 식으로 자연스럽고 귀엽게 써주세요.
+                특히 위에 명시된 성격/말투를 철저히 따라 써주세요. 예: 말투가 "~했다냥"이면 모든 문장을 그 말투로 써주세요.
+                aiTitle과 aiSummary, aiContent 모두 반려동물 1인칭으로 작성하세요.
                 각 사진 바로 앞에는 "[사진 파일명: 실제파일명]" 형태의 라벨이 붙어 있습니다.
                 moments의 photoFileNames에는 그 사진에 해당하는 라벨의 파일명을 정확히 그대로(대소문자, 확장자 포함) 적어주세요. 파일명을 변형하거나 새로 만들지 마세요.
                 반드시 아래 JSON 형식으로만 응답하세요:
@@ -312,8 +366,10 @@ public class AiDiaryService {
                 - isBest는 이 moment에서 가장 대표적인 사진 한 장에만 true, 나머지는 false
                 """,
                 targetDate,
-                petContext.isBlank() ? "알 수 없음" : petContext,
-                userAiContext != null ? userAiContext : "");
+                petContext,
+                userContextSection,
+                userTagsSection,
+                gpsSection);
     }
 
     private DailyLogResponse parseDailyLog(String aiJson) {

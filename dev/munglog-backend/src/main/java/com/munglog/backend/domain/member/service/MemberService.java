@@ -51,6 +51,13 @@ public class MemberService {
     }
 
     @Transactional
+    public void updateAiContext(UUID userId, String aiContext) {
+        Member member = findById(userId);
+        member.updateAiContext(aiContext);
+        memberRepository.save(member);
+    }
+
+    @Transactional
     public void withdraw(UUID userId) {
         Member member = findById(userId);
         member.withdraw();
