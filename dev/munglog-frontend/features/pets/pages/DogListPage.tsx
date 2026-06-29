@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
-import { DogCard } from './components/DogCard';
-import { useDogList } from './hooks/useDogList';
+import { DogCard } from '@/features/pets/components/DogCard';
+import { useDogList } from '@/features/pets/hooks/useDogList';
 
 const DogListPage = () => {
   const router = useRouter();
@@ -18,8 +18,8 @@ const DogListPage = () => {
             <p className="text-text-sub text-xs lg:text-sm font-bold mt-1">PetLifeLog와 함께하는 소중한 반려견들의 프로필을 관리하세요.</p>
           </div>
           <div className="shrink-0">
-            <Button 
-              size="md" 
+            <Button
+              size="md"
               onClick={() => router.push('/dogs/new')}
               className="px-6 h-[48px] text-[14px] font-black rounded-2xl"
             >

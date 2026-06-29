@@ -1,5 +1,3 @@
-import PawCareClient from '@/app/pawcare/PawCareClient';
+import PetsPage from '@/features/pets/PetsPage';
 
-export default function DogsPage() {
-  return <PawCareClient />;
-}
+export default PetsPage;

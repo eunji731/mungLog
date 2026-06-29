@@ -43,7 +43,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
           <img
             src={getImagePath(dog.photo, 'profiles')}
             alt={dog.name}
-            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-surface-green to-background/50">
@@ -87,7 +87,7 @@ export const DogCard: React.FC<DogCardProps> = ({ dog, onDelete }) => {
               <span>{calculateAge(dog.birthDate)}</span>
             </p>
           </div>
-          
+
           <div className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 mb-1">
             <span className="text-[14px] font-black text-white tabular-nums">
               {dog.weightKg ? Number(dog.weightKg).toFixed(1) : '0.0'}

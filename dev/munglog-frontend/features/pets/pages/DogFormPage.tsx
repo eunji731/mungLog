@@ -6,7 +6,7 @@ import { DatePicker } from '@/components/common/DatePicker';
 import { FormActions } from '@/components/common/FormActions';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { FileUploader } from '@/components/common/FileUploader';
-import { useDogForm } from '@/pages/Dogs/Form/hooks/useDogForm';
+import { useDogForm } from '@/features/pets/hooks/useDogForm';
 
 interface DogFormPageProps {
   id?: string;
@@ -60,10 +60,10 @@ const DogFormPage = ({ id }: DogFormPageProps) => {
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 bg-surface-green/10">
         <div className="max-w-6xl mx-auto">
           <main className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             {/* LEFT: VISUAL PROFILE PANEL (5/12) */}
             <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-0">
-              <FileUploader 
+              <FileUploader
                 variant="panel"
                 mode="single"
                 fileInfos={photoUploader.fileInfos}
@@ -85,37 +85,37 @@ const DogFormPage = ({ id }: DogFormPageProps) => {
                 <div className="space-y-6">
                   {/* GRID 1: NAME & BREED */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input 
-                      label="아이 이름 *" 
-                      placeholder="아이의 소중한 이름" 
-                      value={formData.name} 
-                      onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                      required 
+                    <Input
+                      label="아이 이름 *"
+                      placeholder="아이의 소중한 이름"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      required
                     />
-                    <Input 
-                      label="품종" 
-                      placeholder="예: 토이푸들, 말티즈" 
-                      value={formData.breed} 
-                      onChange={(e) => setFormData({...formData, breed: e.target.value})} 
+                    <Input
+                      label="품종"
+                      placeholder="예: 토이푸들, 말티즈"
+                      value={formData.breed}
+                      onChange={(e) => setFormData({...formData, breed: e.target.value})}
                     />
                   </div>
 
                   {/* GRID 2: BIRTH & WEIGHT */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <DatePicker 
-                      label="생년월일" 
+                    <DatePicker
+                      label="생년월일"
                       variant="form"
-                      selected={formData.birthDate ? parseISO(formData.birthDate) : null} 
-                      onChange={(date) => setFormData({...formData, birthDate: date ? format(date, 'yyyy-MM-dd') : ''})} 
+                      selected={formData.birthDate ? parseISO(formData.birthDate) : null}
+                      onChange={(date) => setFormData({...formData, birthDate: date ? format(date, 'yyyy-MM-dd') : ''})}
                     />
                     <div className="relative">
-                      <Input 
-                        label="몸무게" 
-                        type="number" 
-                        step="0.01" 
-                        placeholder="0.00" 
-                        value={formData.weight} 
-                        onChange={(e) => setFormData({...formData, weight: e.target.value})} 
+                      <Input
+                        label="몸무게"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={formData.weight}
+                        onChange={(e) => setFormData({...formData, weight: e.target.value})}
                       />
                       <span className="absolute right-5 bottom-3.5 text-[11px] font-black text-text-sub uppercase">kg</span>
                     </div>
@@ -124,12 +124,12 @@ const DogFormPage = ({ id }: DogFormPageProps) => {
 
                 {/* ACTION BAR */}
                 <div className="mt-8 pt-6 border-t border-border">
-                  <FormActions 
-                    onCancel={() => router.back()} 
-                    onSave={handleSave} 
+                  <FormActions
+                    onCancel={() => router.back()}
+                    onSave={handleSave}
                     onDelete={isEdit ? () => setIsDeleteModalOpen(true) : undefined}
-                    isSubmitting={isLoading} 
-                    saveLabel={isEdit ? '프로필 업데이트' : '등록 완료'} 
+                    isSubmitting={isLoading}
+                    saveLabel={isEdit ? '프로필 업데이트' : '등록 완료'}
                   />
                 </div>
               </div>

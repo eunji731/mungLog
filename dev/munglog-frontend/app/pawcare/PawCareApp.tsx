@@ -2,8 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { ToastProvider } from '@/context/ToastContext';
-import DogListPage from '@/pages/Dogs/List';
-import DogFormPage from '@/pages/Dogs/Form';
 import CareRecordListPage from '@/features/care-records/pages/CareRecordListPage';
 import CareRecordFormPage from '@/features/care-records/pages/CareRecordFormPage';
 import CareRecordDetailPage from '@/features/care-records/pages/CareRecordDetailPage';
@@ -12,16 +10,10 @@ import ScheduleFormPage from '@/features/schedules/pages/ScheduleFormPage';
 import ScheduleDetailPage from '@/features/schedules/pages/ScheduleDetailPage';
 
 function PawCareRoute() {
-  const pathname = usePathname() ?? '/dogs';
+  const pathname = usePathname() ?? '/';
   const segments = pathname.split('/').filter(Boolean);
   const section = segments[0];
   const action = segments[1];
-
-  if (section === 'dogs') {
-    if (action === 'new') return <DogFormPage />;
-    if (action === 'edit') return <DogFormPage id={segments[2]} />;
-    return <DogListPage />;
-  }
 
   if (section === 'care-records') {
     if (action === 'new') return <CareRecordFormPage />;
@@ -37,7 +29,7 @@ function PawCareRoute() {
     return <ScheduleListPage />;
   }
 
-  return <DogListPage />;
+  return null;
 }
 
 export default function PawCareApp() {
