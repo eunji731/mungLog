@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePetStore } from '@/app/common/hooks/usePet';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import { useToast } from '@/context/ToastContext';
+import { useToast } from '@/app/common/hooks/useToast';
 
 export const useDogForm = (id?: string) => {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { success, error: toastError, warning } = useToast();
   const { pets, fetchPets, addPet, updatePet, removePet } = usePetStore();
   const isEdit = !!id;
 
@@ -70,7 +70,7 @@ export const useDogForm = (id?: string) => {
             }]);
           }
         } catch (err: any) {
-          showToast('정보를 불러오지 못했습니다.', 'error');
+          toastError('정보를 불러오지 못했습니다.');
           router.push('/dogs');
         } finally {
           setIsFetching(false);
@@ -84,7 +84,7 @@ export const useDogForm = (id?: string) => {
   // ============ 저장 ============
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      showToast('반려견 이름은 필수입니다! 🐾', 'warning');
+      warning('반려견 이름은 필수입니다! 🐾');
       return;
     }
 
@@ -108,11 +108,11 @@ export const useDogForm = (id?: string) => {
         await addPet(payload, newPhoto);
       }
 
-      showToast('성공적으로 저장되었습니다! ✨', 'success');
+      success('성공적으로 저장되었습니다! ✨');
       router.push('/dogs');
     } catch (err: any) {
       console.error('Save Error:', err);
-      showToast(err.response?.data?.message || '저장 중 오류가 발생했습니다.', 'error');
+      toastError(err.response?.data?.message || '저장 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -123,10 +123,10 @@ export const useDogForm = (id?: string) => {
     try {
       setIsLoading(true);
       await removePet(id);
-      showToast('삭제되었습니다.', 'success');
+      success('삭제되었습니다.');
       router.push('/dogs');
     } catch (err: any) {
-      showToast('삭제 중 오류가 발생했습니다.', 'error');
+      toastError('삭제 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }

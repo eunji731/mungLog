@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
-import { useToast } from '@/context/ToastContext';
+import { useToast } from '@/app/common/hooks/useToast';
 import { useCareRecordDetail } from '../hooks/useCareRecordDetail';
 import { CareRecordDetailHeader } from '../components/CareRecordDetailHeader';
 import { CareRecordInfoSections } from '../components/CareRecordInfoSections';
@@ -17,7 +17,7 @@ interface CareRecordDetailPageProps {
 
 const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { success, error: toastError } = useToast();
   const { record, files, isLoading, error } = useCareRecordDetail(id);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -28,11 +28,11 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
       setIsDeleting(true);
       await careApi.deleteRecord(id);
       setIsDeleteModalOpen(false);
-      showToast('기록이 삭제되었습니다.', 'success');
+      success('기록이 삭제되었습니다.');
       router.push('/care-records');
     } catch (err) {
       console.error('Delete failed:', err);
-      showToast('기록 삭제에 실패했습니다. 다시 시도해주세요.', 'error');
+      toastError('기록 삭제에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsDeleting(false);
     }

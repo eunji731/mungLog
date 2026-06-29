@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { ToastProvider } from '@/context/ToastContext';
 import CareRecordListPage from '@/features/care-records/pages/CareRecordListPage';
 import CareRecordFormPage from '@/features/care-records/pages/CareRecordFormPage';
 import CareRecordDetailPage from '@/features/care-records/pages/CareRecordDetailPage';
@@ -34,10 +33,8 @@ function PawCareRoute() {
 
 export default function PawCareApp() {
   return (
-    <ToastProvider>
-      <div className="pawcare-integrated min-h-full">
-        <PawCareRoute />
-      </div>
-    </ToastProvider>
+    <div className="pawcare-integrated min-h-full">
+      <PawCareRoute />
+    </div>
   );
 }

@@ -16,7 +16,7 @@ import { useSchedules } from '@/features/schedules/hooks/useSchedules';
 import CalendarCarePanel from '@/features/calendar/components/CalendarCarePanel';
 import CalendarSchedulePanel from '@/features/calendar/components/CalendarSchedulePanel';
 import CareRecordFormPage from '@/features/care-records/pages/CareRecordFormPage';
-import { ToastProvider } from '@/context/ToastContext';
+
 
 function CalendarContent() {
   const searchParams = useSearchParams();
@@ -308,10 +308,8 @@ function CalendarContent() {
 
 export default function CalendarPage() {
   return (
-    <ToastProvider>
-      <Suspense fallback={<div className="flex-1 flex items-center justify-center bg-background text-sm font-bold text-text-sub">불러오는 중...</div>}>
-        <CalendarContent />
-      </Suspense>
-    </ToastProvider>
+    <Suspense fallback={<div className="flex-1 flex items-center justify-center bg-background text-sm font-bold text-text-sub">불러오는 중...</div>}>
+      <CalendarContent />
+    </Suspense>
   );
 }

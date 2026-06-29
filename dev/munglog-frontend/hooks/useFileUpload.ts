@@ -58,7 +58,7 @@ export const useFileUpload = (targetCode: string) => {
       const urlToRevoke = previewUrls[localIdx];
       if (urlToRevoke?.startsWith('blob:')) URL.revokeObjectURL(urlToRevoke);
       setLocalFiles(prev => prev.filter((_, i) => i !== localIdx));
-      setPreviewUrls(prev => [...previewUrls.slice(0, localIdx), ...previewUrls.slice(localIdx + 1)]);
+      setPreviewUrls(prev => [...prev.slice(0, localIdx), ...prev.slice(localIdx + 1)]);
     }
   };
 

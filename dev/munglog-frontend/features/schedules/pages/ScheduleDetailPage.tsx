@@ -7,7 +7,7 @@ import { ScheduleDetailHeader } from '../components/ScheduleDetailHeader';
 import { ScheduleDetailInfo } from '../components/ScheduleDetailInfo';
 import { CareRecordAttachmentGallery } from '@/features/care-records/components/CareRecordAttachmentGallery';
 import { scheduleApi } from '@/api/scheduleApi';
-import { useToast } from '@/context/ToastContext';
+import { useToast } from '@/app/common/hooks/useToast';
 import { CheckCircle2, Circle } from 'lucide-react';
 
 interface ScheduleDetailPageProps {
@@ -16,7 +16,7 @@ interface ScheduleDetailPageProps {
 
 const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { success, error: toastError } = useToast();
   const { schedule, files, isLoading, error, refetch } = useScheduleDetail(id);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,7 +31,7 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
       router.push('/schedules');
     } catch (err) {
       console.error('Delete failed:', err);
-      showToast('일정 삭제에 실패했습니다.', 'error');
+      toastError('일정 삭제에 실패했습니다.');
     } finally {
       setIsDeleting(false);
     }
@@ -44,7 +44,7 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
       refetch();
     } catch (err) {
       console.error('Toggle complete failed:', err);
-      showToast('완료 처리에 실패했습니다.', 'error');
+      toastError('완료 처리에 실패했습니다.');
     }
   };
 
@@ -55,11 +55,11 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
     try {
       setIsConverting(true);
       const newRecordId = await scheduleApi.convertToCareRecord(id);
-      showToast('케어기록으로 전환되었습니다! ✨', 'success');
+      success('케어기록으로 전환되었습니다! ✨');
       router.push(`/care-records/edit/${newRecordId}`);
     } catch (err: any) {
       console.error('Convert to care record failed:', err);
-      showToast(err?.response?.data?.message || '케어기록 전환에 실패했습니다.', 'error');
+      toastError(err?.response?.data?.message || '케어기록 전환에 실패했습니다.');
     } finally {
       setIsConverting(false);
     }

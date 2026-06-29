@@ -5,13 +5,13 @@ import { fileApi } from '@/api/fileApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
-import { useToast } from '@/context/ToastContext';
+import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
 import type { CareRecordCreateRequest } from '@/types/care';
 
 export const useCareRecordForm = (id?: string, options?: { prefillDate?: string; onSaveSuccess?: () => void }) => {
   const router = useRouter();
-  const { showToast } = useToast();
+  const { success, error: toastError, warning } = useToast();
   const { selectedPetId } = usePet();
 
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
@@ -191,13 +191,13 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
   }, [medicalData.amount, expenseData.amount, recordTypeId, recordTypes]);
 
   const handleSave = async () => {
-    if (!commonData.dogId) return showToast('반려견을 선택해주세요.', 'warning');
-    if (!commonData.title.trim()) return showToast('제목을 입력해주세요.', 'warning');
+    if (!commonData.dogId) return warning('반려견을 선택해주세요.');
+    if (!commonData.title.trim()) return warning('제목을 입력해주세요.');
 
     const typeCode = getRecordTypeCode(recordTypeId);
     const isMedical = isMedicalRecordType(typeCode);
     if (!isMedical && !expenseData.categoryCode) {
-      return showToast('지출 카테고리를 선택해주세요.', 'warning');
+      return warning('지출 카테고리를 선택해주세요.');
     }
 
     try {
@@ -238,14 +238,14 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
       }
 
       if (id) {
-        showToast('기록이 수정되었습니다! ✨', 'success');
+        success('기록이 수정되었습니다! ✨');
         if (options?.onSaveSuccess) {
           options.onSaveSuccess();
         } else {
           router.push(`/care-records/${id}`);
         }
       } else {
-        showToast('기록이 저장되었습니다! ✨', 'success');
+        success('기록이 저장되었습니다! ✨');
         if (options?.onSaveSuccess) {
           options.onSaveSuccess();
         } else {
@@ -254,7 +254,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
       }
     } catch (err: any) {
       console.error('Save Error:', err);
-      showToast(err.response?.data?.message || '저장 중 오류가 발생했습니다.', 'error');
+      toastError(err.response?.data?.message || '저장 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
