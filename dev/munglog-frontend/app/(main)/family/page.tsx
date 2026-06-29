@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -8,6 +8,7 @@ import { getImagePath } from '@/lib/clientApi';
 import { useToast } from '@/app/common/hooks/useToast';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { FileUploader } from '@/components/common/FileUploader';
+import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 
 export default function FamilyPage() {
   const { pets, addPet, updatePet, removePet, loading } = usePet();
@@ -250,17 +251,21 @@ export default function FamilyPage() {
                     />
                   </div>
 
+                  <TimelineDatePicker
+                    value={newBirthDate}
+                    onChange={(date) => setNewBirthDate(date)}
+                    label="생일 *"
+                    variant="form"
+                  />
+
+                  <TimelineDatePicker
+                    value={newAdoptionDate}
+                    onChange={(date) => setNewAdoptionDate(date)}
+                    label="입양일"
+                    variant="form"
+                  />
+
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className={modernLabelClass}>생일 *</label>
-                      <div className="relative">
-                        <input 
-                          type="date" value={newBirthDate} onChange={e => setNewBirthDate(e.target.value)}
-                          className={modernInputClass}
-                        />
-                        <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub/55 pointer-events-none" />
-                      </div>
-                    </div>
                     <div className="space-y-1">
                       <label className={modernLabelClass}>성별</label>
                       <div className="flex bg-zinc-50 border border-border/80 rounded-xl p-1 h-[46px] items-center">
@@ -278,19 +283,6 @@ export default function FamilyPage() {
                         >
                           여아
                         </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className={modernLabelClass}>입양일</label>
-                      <div className="relative">
-                        <input 
-                          type="date" value={newAdoptionDate} onChange={e => setNewAdoptionDate(e.target.value)}
-                          className={modernInputClass}
-                        />
-                        <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-sub/55 pointer-events-none" />
                       </div>
                     </div>
                     <div className="space-y-1">

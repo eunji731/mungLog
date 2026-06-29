@@ -12,7 +12,6 @@ import { useScheduleForm } from '../hooks/useScheduleForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { FileUploader } from '@/components/common/FileUploader';
 import { SymptomSnap } from '@/features/care-records/components/SymptomSnapboard';
-import { getImagePath } from '@/lib/clientApi';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import TimelineTimePicker from '@/features/care-records/components/TimelineTimePicker';
 
@@ -53,10 +52,6 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
 
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const titleFieldRef = useRef<HTMLDivElement>(null);
-  
-  const [dogDropdownOpen, setDogDropdownOpen] = useState(false);
-  const dogDropdownRef = useRef<HTMLDivElement>(null);
-  const selectedDog = dogs.find(d => String(d.id) === String(formData.dogId));
 
   
   // 증상 스냅 목록 상태
@@ -90,9 +85,6 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (titleFieldRef.current && !titleFieldRef.current.contains(event.target as Node)) {
         setShowTitleSuggestions(false);
-      }
-      if (dogDropdownRef.current && !dogDropdownRef.current.contains(event.target as Node)) {
-        setDogDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -138,97 +130,18 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
 
           <Section title="기본 정보" description="누구의 어떤 일정인가요?" overflowVisible={true}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Custom Cute Dog Dropdown */}
-              <div className="w-full space-y-2 text-left relative animate-in fade-in duration-300" ref={dogDropdownRef}>
-                <label className="text-[13px] font-black text-text-sub uppercase tracking-wider ml-1">
-                  아이 선택
-                </label>
-
-                <button
-                  type="button"
-                  onClick={() => setDogDropdownOpen(!dogDropdownOpen)}
-                  className={`w-full px-4 py-3 rounded-xl border transition-all flex items-center justify-between shadow-sm bg-background ${
-                    dogDropdownOpen
-                      ? 'border-main-green ring-4 ring-main-green/5'
-                      : 'border-border hover:border-main-green/30'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {selectedDog ? (
-                      <>
-                        <div className="w-7 h-7 rounded-full overflow-hidden bg-surface-green border border-border flex items-center justify-center shrink-0 shadow-sm">
-                          {selectedDog.photo ? (
-                            <img src={getImagePath(selectedDog.photo, 'profiles')} alt={selectedDog.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-[13px]">🐶</span>
-                          )}
-                        </div>
-                        <span className="text-[15px] font-black text-foreground">
-                          {selectedDog.name}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-7 h-7 rounded-full bg-surface-green border border-border flex items-center justify-center shrink-0 text-text-sub shadow-sm">
-                          <span className="text-[13px]">🐾</span>
-                        </div>
-                        <span className="text-[15px] font-bold text-text-sub/50">
-                          아이 선택
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <span className="text-[9px] text-text-sub tracking-widest pl-2">
-                    {dogDropdownOpen ? '▲' : '▼'}
-                  </span>
-                </button>
-
-                {dogDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1.5 z-[150] bg-background rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-border overflow-hidden p-2 animate-in zoom-in-95 duration-200 origin-top">
-                    <div className="max-h-[190px] overflow-y-auto no-scrollbar space-y-1">
-                      {dogs.map((dog) => {
-                        const isCurrent = String(dog.id) === String(formData.dogId);
-                        return (
-                          <button
-                            key={dog.id}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ ...formData, dogId: dog.id.toString() });
-                              setDogDropdownOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all ${
-                              isCurrent
-                                ? 'bg-main-green text-white font-black'
-                                : 'hover:bg-surface-green/45 text-text-main hover:text-main-green hover:translate-x-1'
-                            }`}
-                          >
-                            <div className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 border ${
-                              isCurrent ? 'border-white/30 bg-white/20' : 'border-border bg-surface-green'
-                            }`}>
-                              {dog.photo ? (
-                                <img src={getImagePath(dog.photo, 'profiles')} alt={dog.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-[14px]">🐶</span>
-                              )}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-[14px] font-bold leading-tight">{dog.name}</span>
-                              <span className={`text-[10px] leading-tight ${isCurrent ? 'text-white/70' : 'text-text-sub/70'}`}>
-                                {dog.breed || '믹스견'}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                      {dogs.length === 0 && (
-                        <div className="text-center py-4 text-xs font-bold text-text-sub">
-                          등록된 아이가 없습니다.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Select
+                label="아이 선택"
+                value={formData.dogId}
+                onChange={(e) => setFormData({ ...formData, dogId: e.target.value })}
+                options={dogs.map(d => ({
+                  label: d.name,
+                  value: d.id.toString(),
+                  photo: d.photo || '',
+                  subLabel: d.breed || '믹스견'
+                }))}
+                placeholder="아이 선택"
+              />
               <Select
                 label="일정 유형"
                 value={formData.scheduleTypeId?.toString() || ''}

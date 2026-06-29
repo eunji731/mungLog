@@ -292,12 +292,12 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
     };
 
     // Auto-detect best vertical alignment if space is tight
-    const pickerHeight = 350; // Approximate maximum height of the picker
+    const pickerHeight = 400; // Approximate maximum height of the picker
     const spaceBelow = window.innerHeight - coords.bottom;
     const spaceAbove = coords.top;
 
     let finalAlign = align;
-    if (align === 'bottom' && spaceBelow < pickerHeight && spaceAbove > spaceBelow) {
+    if (align === 'bottom' && spaceBelow < pickerHeight && spaceAbove > spaceBelow && spaceAbove > pickerHeight + 16) {
       finalAlign = 'top';
     } else if (align === 'top' && spaceAbove < pickerHeight && spaceBelow > spaceAbove) {
       finalAlign = 'bottom';
@@ -305,19 +305,35 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
 
     // Vertical positioning
     if (finalAlign === 'top') {
-      style.bottom = `${window.innerHeight - coords.top + 8}px`;
+      let bottomY = window.innerHeight - coords.top + 8;
+      const computedTop = window.innerHeight - bottomY - pickerHeight;
+      if (computedTop < 16) {
+        bottomY = window.innerHeight - 16 - pickerHeight;
+      }
+      style.bottom = `${bottomY}px`;
       style.transformOrigin = 'bottom';
     } else {
-      style.top = `${coords.bottom + 8}px`;
+      let topY = coords.bottom + 8;
+      if (topY + pickerHeight > window.innerHeight - 16) {
+        topY = window.innerHeight - 16 - pickerHeight;
+      }
+      if (topY < 16) {
+        topY = 16;
+      }
+      style.top = `${topY}px`;
       style.transformOrigin = 'top';
     }
 
     // Horizontal positioning
-    if (variant === 'form') {
-      style.left = `${coords.right - 300}px`;
-    } else {
-      style.left = `${coords.left}px`;
+    let left = variant === 'form' ? coords.right - 300 : coords.left;
+    if (left + 300 > window.innerWidth - 16) {
+      left = window.innerWidth - 316;
     }
+    if (left < 16) {
+      left = 16;
+    }
+    style.left = `${left}px`;
+
 
     return style;
   };
