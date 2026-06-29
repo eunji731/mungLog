@@ -142,6 +142,15 @@ public class AiDiaryService {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        // 재분석 저장 시 기존 Memory 교체 (중복 생성 방지)
+        if (request.getOldMemoryId() != null) {
+            memoryRepository.findByIdAndUser_Id(request.getOldMemoryId(), userId).ifPresent(old -> {
+                old.setRepresentativePhoto(null);
+                memoryRepository.delete(old);
+                memoryRepository.flush();
+            });
+        }
+
         Memory memory = memoryRepository.save(Memory.builder()
                 .user(member)
                 .memoryDate(request.getTargetDate())

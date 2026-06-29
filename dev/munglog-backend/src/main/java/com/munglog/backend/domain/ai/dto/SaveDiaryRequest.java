@@ -15,4 +15,5 @@ public class SaveDiaryRequest {
     private DailyLogResponse aiResult;
     private List<StoredFileInfo> storedFiles;
     private List<UUID> petIds;
+    private UUID oldMemoryId;
 }

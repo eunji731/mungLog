@@ -393,6 +393,7 @@ export default function DiaryEditor({ date, initialData, onSave, onCancel }: Dia
         aiResult: rawAiResult,
         storedFiles,
         petIds: selectedDogIds,
+        oldMemoryId: initialData?.id ?? null,
       });
       const memoryId: string = saveResponse.data;
       onSave(memoryId ? { ...data, id: memoryId } : data);
