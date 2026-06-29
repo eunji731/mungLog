@@ -16,7 +16,7 @@ public record MapMemoryResponse(
         DailyLogInfo dailyLog
 ) {
     @Builder
-    public record MemoryInfo(UUID id, String category, String aiTitle, String locationName) {}
+    public record MemoryInfo(UUID id, String category, String aiTitle, String locationName, String aiDiary) {}
 
     @Builder
     public record DailyLogInfo(UUID id, String dateKey, String aiTitle) {}

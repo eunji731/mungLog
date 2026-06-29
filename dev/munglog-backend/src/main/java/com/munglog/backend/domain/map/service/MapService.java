@@ -53,10 +53,11 @@ public class MapService {
     }
 
     @Transactional(readOnly = true)
-    public MapMemoryResponse getMemoryDetail(UUID userId, UUID momentId) {
-        return photoRepository.findFirstByMoment_IdAndGpsLatIsNotNull(momentId)
+    public MapMemoryResponse getMemoryDetail(UUID userId, UUID photoId) {
+        return photoRepository.findById(photoId)
+                .filter(p -> p.getMemory().getUser().getId().equals(userId))
                 .map(this::toMemoryResponse)
-                .orElseThrow(() -> new IllegalArgumentException("위치 정보가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("사진 정보를 찾을 수 없습니다."));
     }
 
     private MapMemoryResponse toMemoryResponse(Photo p) {
@@ -67,6 +68,7 @@ public class MapService {
                     .category(p.getMoment().getCategory())
                     .aiTitle(p.getMoment().getAiTitle())
                     .locationName(p.getMoment().getLocationName())
+                    .aiDiary(p.getMoment().getAiContent())
                     .build();
         }
         MapMemoryResponse.DailyLogInfo logInfo = MapMemoryResponse.DailyLogInfo.builder()
