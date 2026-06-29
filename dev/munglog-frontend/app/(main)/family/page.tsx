@@ -6,8 +6,8 @@ import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp } fr
 import { usePet, PetProfile, PetFormData } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/app/common/lib/clientApi';
 import { useToast } from '@/app/common/hooks/useToast';
-import { useAttachedFiles } from '@/app/common/hooks/useAttachedFiles';
-import FileAttachment from '@/app/common/components/FileAttachment';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { FileUploader } from '@/components/common/FileUploader';
 
 export default function FamilyPage() {
   const { pets, addPet, updatePet, removePet, loading } = usePet();
@@ -28,8 +28,7 @@ export default function FamilyPage() {
   const [newLikes, setNewLikes] = useState('');
   const [newDislikes, setNewDislikes] = useState('');
   const [newDiaryTone, setNewDiaryTone] = useState('');
-  // 프로필 사진 — 공통 파일 훅 사용 (최대 1장)
-  const profilePhoto = useAttachedFiles({ maxFiles: 1, subfolder: 'profiles' });
+  const profilePhoto = useFileUpload('DOG');
 
   const handleEditClick = (e: React.MouseEvent, pet: PetProfile) => {
     e.stopPropagation();
@@ -45,10 +44,18 @@ export default function FamilyPage() {
     setNewLikes(pet.likes || '');
     setNewDislikes(pet.dislikes || '');
     setNewDiaryTone(pet.diaryTone || '');
-    // 수정 시: 기존 사진을 AttachedFileResponse 형태로 변환해 훅에 세팅
     profilePhoto.setInitialFiles(
-      pet.photo ? [{ id: `existing-${pet.id}`, originalName: '프로필 사진', fileUrl: pet.photo,
-                     contentType: 'image/jpeg', fileSize: 0, sortOrder: 0, createdAt: '' }] : []
+      pet.photo ? [{
+        id: `existing-${pet.id}`,
+        originalFileName: '프로필 사진',
+        storedFileName: '프로필 사진',
+        fileUrl: pet.photo,
+        fileSize: 0,
+        fileType: 'image/jpeg',
+        targetType: 'DOG',
+        targetId: pet.id,
+        createdAt: '',
+      }] : []
     );
     setIsAdding(true);
     setViewingPet(null);
@@ -84,7 +91,7 @@ export default function FamilyPage() {
     };
 
     try {
-      const newFile = profilePhoto.pendingFiles[0] ?? null;
+      const newFile = profilePhoto.localFiles[0] ?? null;
       if (editingPetId) {
         await updatePet(editingPetId, petData, newFile);
         success(`${newName}의 정보가 수정되었습니다! ✨`);
@@ -123,7 +130,7 @@ export default function FamilyPage() {
     setNewLikes('');
     setNewDislikes('');
     setNewDiaryTone('');
-    profilePhoto.setInitialFiles([]);
+    profilePhoto.clear();
   };
 
   const calculateAge = (birthDate: string) => {
@@ -200,14 +207,16 @@ export default function FamilyPage() {
                 <div className="pb-6 lg:pb-0 lg:pr-8 flex flex-col items-center justify-center space-y-5">
                   <div className="w-full flex flex-col items-center gap-4 py-2">
                     <span className={modernLabelClass}>프로필 사진</span>
-                    <FileAttachment
-                      attachedFiles={profilePhoto}
+                    <FileUploader
+                      variant="profile"
+                      mode="single"
+                      fileInfos={profilePhoto.fileInfos}
+                      onFileSelect={(files) => profilePhoto.handleSelect(files, 1)}
+                      onFileDelete={profilePhoto.handleDelete}
+                      loading={profilePhoto.isUploading}
+                      maxCount={1}
                       accept="image/*"
-                      multiple={false}
                       isCircle={true}
-                      hideHeader={true}
-                      cardSize="2xl"
-                      emptyText="사진 추가"
                     />
                   </div>
                   

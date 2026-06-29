@@ -11,13 +11,14 @@ interface FileInfo {
 interface FileUploaderProps {
   variant?: 'profile' | 'grid' | 'panel';
   mode?: 'single' | 'multiple';
-  displayUrls?: string[]; 
-  fileInfos?: FileInfo[]; 
+  displayUrls?: string[];
+  fileInfos?: FileInfo[];
   onFileSelect: (files: File[]) => void;
   onFileDelete: (index: number) => void;
   loading?: boolean;
   maxCount?: number;
   accept?: string;
+  isCircle?: boolean;
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({
@@ -30,6 +31,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   loading = false,
   maxCount = 1,
   accept = 'image/*,.pdf,.xls,.xlsx,.doc,.docx,.hwp',
+  isCircle = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -146,10 +148,12 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
   if (variant === 'profile') {
     const file = effectiveFiles[0];
+    const shapeClass = isCircle ? 'rounded-full' : 'rounded-3xl';
+    const sizeClass = isCircle ? 'w-56 h-56' : 'w-44 h-44';
     return (
       <div className="flex flex-col items-center">
         <div className="relative group">
-          <div className="w-44 h-44 rounded-3xl overflow-hidden border-4 border-background shadow-2xl bg-surface-green flex items-center justify-center relative">
+          <div className={`${sizeClass} ${shapeClass} overflow-hidden border-4 border-background shadow-2xl bg-surface-green flex items-center justify-center relative`}>
             {file ? (
               isImageFile(file.url, file.name) ? <img src={getImagePath(file.url)} alt="Preview" className="w-full h-full object-cover" /> : <span className="text-5xl">{getFileIcon(getFileExtension(file.url, file.name))}</span>
             ) : <span className="text-5xl opacity-10">🐶</span>}
