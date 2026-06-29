@@ -11,6 +11,12 @@ import java.util.UUID;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
 
+    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.pet.id = :petId AND (LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.memo) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY s.scheduleDate ASC")
+    List<Schedule> findByUserIdAndPetIdAndKeyword(@Param("userId") UUID userId, @Param("petId") UUID petId, @Param("keyword") String keyword);
+
+    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND (LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.memo) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY s.scheduleDate ASC")
+    List<Schedule> findByUserIdAndKeyword(@Param("userId") UUID userId, @Param("keyword") String keyword);
+
     @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.pet.id = :petId ORDER BY s.scheduleDate ASC")
     List<Schedule> findByUserIdAndPetId(@Param("userId") UUID userId, @Param("petId") UUID petId);
 

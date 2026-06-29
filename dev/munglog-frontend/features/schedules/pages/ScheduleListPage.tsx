@@ -59,8 +59,11 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dateFilterRef.current && !dateFilterRef.current.contains(event.target as Node)) {
-        setShowDateFilter(false);
+      const target = event.target as Element;
+      if (dateFilterRef.current && !dateFilterRef.current.contains(target)) {
+        if (!target.closest?.('[data-date-picker-portal]')) {
+          setShowDateFilter(false);
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -157,7 +160,7 @@ const ScheduleListPage: React.FC<ScheduleListPageProps> = ({ showHeader = true }
                   <Search className="w-4 h-4 text-text-sub mr-2 shrink-0" />
                   <input
                     type="text"
-                    placeholder="일정 검색..."
+                    placeholder="제목·내용 검색..."
                     className="flex-1 bg-transparent border-none focus:outline-none text-[11px] font-bold text-text-main placeholder:text-text-sub/40 min-w-0"
                     value={localKeyword}
                     onChange={(e) => setLocalKeyword(e.target.value)}

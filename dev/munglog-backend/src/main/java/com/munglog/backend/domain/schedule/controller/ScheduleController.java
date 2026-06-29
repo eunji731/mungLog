@@ -28,8 +28,9 @@ public class ScheduleController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<ScheduleResponse>>> getSchedules(
             @AuthenticationPrincipal User user,
-            @RequestParam(required = false) UUID petId) {
-        return ResponseEntity.ok(ApiResponse.success(scheduleService.getSchedules(uuid(user), petId)));
+            @RequestParam(required = false) UUID petId,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(ApiResponse.success(scheduleService.getSchedules(uuid(user), petId, keyword)));
     }
 
     @Operation(summary = "반복 일정 스트릭 조회")

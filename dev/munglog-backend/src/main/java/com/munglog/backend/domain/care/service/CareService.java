@@ -36,10 +36,18 @@ public class CareService {
     private final SymptomService symptomService;
 
     @Transactional(readOnly = true)
-    public List<CareRecordListResponse> getRecords(UUID userId, UUID petId) {
-        List<CareRecord> records = petId != null
-                ? careRecordRepository.findByUserIdAndPetId(userId, petId)
-                : careRecordRepository.findByUserId(userId);
+    public List<CareRecordListResponse> getRecords(UUID userId, UUID petId, String keyword) {
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        List<CareRecord> records;
+        if (kw != null && petId != null) {
+            records = careRecordRepository.findByUserIdAndPetIdAndKeyword(userId, petId, kw);
+        } else if (kw != null) {
+            records = careRecordRepository.findByUserIdAndKeyword(userId, kw);
+        } else if (petId != null) {
+            records = careRecordRepository.findByUserIdAndPetId(userId, petId);
+        } else {
+            records = careRecordRepository.findByUserId(userId);
+        }
         return records.stream()
                 .map(r -> CareRecordListResponse.from(r,
                         attachedFileService.getFiles(ParentDomainType.CARE, r.getId()).size()))

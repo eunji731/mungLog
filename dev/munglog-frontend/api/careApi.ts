@@ -99,10 +99,13 @@ function mapDetail(raw: BackendCareDetail): CareRecord {
 }
 
 export const careApi = {
-  // 백엔드는 petId 필터만 지원하므로, 나머지(type/recordTypeId/keyword/날짜)는 프런트에서 필터링합니다.
   getRecords: async (filters: CareRecordsFilter): Promise<CareRecord[]> => {
     const petId = filters.petId ?? filters.dogId;
-    const response = await apiClient.get('/care', { params: petId ? { petId } : undefined });
+    const keyword = filters.keyword?.trim() || undefined;
+    const params: Record<string, string> = {};
+    if (petId) params.petId = String(petId);
+    if (keyword) params.keyword = keyword;
+    const response = await apiClient.get('/care', { params: Object.keys(params).length ? params : undefined });
     let records: CareRecord[] = (response.data || []).map(mapListItem);
 
     if (filters.type && filters.type !== 'ALL') {
@@ -110,10 +113,6 @@ export const careApi = {
     }
     if (filters.recordTypeId) {
       records = records.filter(r => r.recordTypeId === filters.recordTypeId);
-    }
-    if (filters.keyword?.trim()) {
-      const kw = filters.keyword.trim().toLowerCase();
-      records = records.filter(r => r.title?.toLowerCase().includes(kw) || r.note?.toLowerCase().includes(kw));
     }
     if (filters.startDate) {
       records = records.filter(r => r.recordDate >= filters.startDate!);

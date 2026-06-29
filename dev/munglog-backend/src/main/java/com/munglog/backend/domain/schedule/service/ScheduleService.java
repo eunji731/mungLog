@@ -46,10 +46,18 @@ public class ScheduleService {
     private final InventoryItemRepository inventoryItemRepository;
 
     @Transactional(readOnly = true)
-    public List<ScheduleResponse> getSchedules(UUID userId, UUID petId) {
-        List<Schedule> schedules = petId != null
-                ? scheduleRepository.findByUserIdAndPetId(userId, petId)
-                : scheduleRepository.findByUserId(userId);
+    public List<ScheduleResponse> getSchedules(UUID userId, UUID petId, String keyword) {
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        List<Schedule> schedules;
+        if (kw != null && petId != null) {
+            schedules = scheduleRepository.findByUserIdAndPetIdAndKeyword(userId, petId, kw);
+        } else if (kw != null) {
+            schedules = scheduleRepository.findByUserIdAndKeyword(userId, kw);
+        } else if (petId != null) {
+            schedules = scheduleRepository.findByUserIdAndPetId(userId, petId);
+        } else {
+            schedules = scheduleRepository.findByUserId(userId);
+        }
         return schedules.stream().map(this::toResponse).toList();
     }
 

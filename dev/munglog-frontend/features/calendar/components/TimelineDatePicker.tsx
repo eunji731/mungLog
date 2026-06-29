@@ -367,6 +367,7 @@ export default function TimelineDatePicker({ value, onChange, label, variant = '
           {mounted && coords && createPortal(
             <div
               ref={pickerRef}
+              data-date-picker-portal="true"
               className="hidden lg:block fixed z-[1000] bg-background rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-border p-4 w-[300px] animate-in zoom-in-95 duration-200"
               style={getDesktopStyle()}
             >

@@ -28,8 +28,9 @@ public class CareController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<CareRecordListResponse>>> getRecords(
             @AuthenticationPrincipal User user,
-            @RequestParam(required = false) UUID petId) {
-        return ResponseEntity.ok(ApiResponse.success(careService.getRecords(uuid(user), petId)));
+            @RequestParam(required = false) UUID petId,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(ApiResponse.success(careService.getRecords(uuid(user), petId, keyword)));
     }
 
     @Operation(summary = "케어 기록 상세 조회")

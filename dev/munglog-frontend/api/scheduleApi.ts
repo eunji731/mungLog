@@ -51,18 +51,17 @@ function mapSchedule(raw: BackendScheduleResponse): Schedule {
 }
 
 export const scheduleApi = {
-  // 백엔드는 petId 필터만 지원하므로, 나머지(type/keyword/날짜)는 프런트에서 필터링합니다.
   getSchedules: async (filters: ScheduleFilters): Promise<Schedule[]> => {
     const petId = filters.petId ?? filters.dogId;
-    const response = await apiClient.get('/schedules', { params: petId ? { petId } : undefined });
+    const keyword = filters.keyword?.trim() || undefined;
+    const params: Record<string, string> = {};
+    if (petId) params.petId = String(petId);
+    if (keyword) params.keyword = keyword;
+    const response = await apiClient.get('/schedules', { params: Object.keys(params).length ? params : undefined });
     let schedules: Schedule[] = (response.data || []).map(mapSchedule);
 
     if (filters.type && filters.type !== 'ALL') {
       schedules = schedules.filter(s => s.scheduleTypeCode === filters.type || s.scheduleTypeId === filters.type);
-    }
-    if (filters.keyword?.trim()) {
-      const kw = filters.keyword.trim().toLowerCase();
-      schedules = schedules.filter(s => s.title?.toLowerCase().includes(kw) || s.memo?.toLowerCase().includes(kw));
     }
     if (filters.startDate) {
       schedules = schedules.filter(s => s.scheduleDate >= filters.startDate!);
