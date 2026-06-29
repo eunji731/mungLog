@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Sparkles, MessageCircle } from 'lucide-react';
@@ -234,7 +234,7 @@ export default function CalendarGrid({
                   const dateStr = localDate.toISOString().split('T')[0];
                   const dayCares = careRecords.filter(r => r.recordDate === dateStr);
                   if (dayCares.length > 0) {
-                    const displayCount = 2;
+                    const displayCount = 1;
                     return (
                       <div className="flex flex-col gap-1 w-full px-1">
                         {/* Desktop View: Styled Pills with Icons and Titles */}
@@ -261,7 +261,7 @@ export default function CalendarGrid({
 
                         {/* Mobile View: Small colored circle badges with emoji */}
                         <div className="flex lg:hidden flex-wrap justify-center gap-0.5 max-w-full">
-                          {dayCares.slice(0, 3).map((care) => {
+                          {dayCares.slice(0, 1).map((care) => {
                             const meta = getRecordTypeMeta(care);
                             return (
                               <span
@@ -273,9 +273,9 @@ export default function CalendarGrid({
                               </span>
                             );
                           })}
-                          {dayCares.length > 3 && (
+                          {dayCares.length > 1 && (
                             <span className="text-[8px] font-black text-text-sub flex items-center pl-0.5">
-                              +{dayCares.length - 3}
+                              +{dayCares.length - 1}
                             </span>
                           )}
                         </div>
@@ -291,7 +291,7 @@ export default function CalendarGrid({
                   const dateStr = localDate.toISOString().split('T')[0];
                   const daySchedules = schedules.filter(s => s.scheduleDate.startsWith(dateStr));
                   if (daySchedules.length > 0) {
-                    const displayCount = 2;
+                    const displayCount = 1;
                     return (
                       <div className="flex flex-col gap-1 w-full px-1">
                         {/* Desktop View: Styled Pills with Icons and Titles */}
@@ -318,7 +318,7 @@ export default function CalendarGrid({
 
                         {/* Mobile View: Small colored circle badges with emoji */}
                         <div className="flex lg:hidden flex-wrap justify-center gap-0.5 max-w-full">
-                          {daySchedules.slice(0, 3).map((sch) => {
+                          {daySchedules.slice(0, 1).map((sch) => {
                             const meta = getScheduleTypeMeta(sch);
                             return (
                               <span
@@ -330,9 +330,9 @@ export default function CalendarGrid({
                               </span>
                             );
                           })}
-                          {daySchedules.length > 3 && (
+                          {daySchedules.length > 1 && (
                             <span className="text-[8px] font-black text-text-sub flex items-center pl-0.5">
-                              +{daySchedules.length - 3}
+                              +{daySchedules.length - 1}
                             </span>
                           )}
                         </div>
