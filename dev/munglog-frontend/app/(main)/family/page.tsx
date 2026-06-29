@@ -45,11 +45,13 @@ export default function FamilyPage() {
     setNewLikes(pet.likes || '');
     setNewDislikes(pet.dislikes || '');
     setNewDiaryTone(pet.diaryTone || '');
+    
+    const photoFileName = pet.photo ? (pet.photo.split('/').pop() || 'profile.jpg') : 'profile.jpg';
     profilePhoto.setInitialFiles(
       pet.photo ? [{
         id: `existing-${pet.id}`,
-        originalFileName: '프로필 사진',
-        storedFileName: '프로필 사진',
+        originalFileName: photoFileName,
+        storedFileName: photoFileName,
         fileUrl: pet.photo,
         fileSize: 0,
         fileType: 'image/jpeg',

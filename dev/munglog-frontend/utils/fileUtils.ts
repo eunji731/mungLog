@@ -8,15 +8,17 @@ export const isImageFile = (url: string, fileName?: string): boolean => {
   const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
 
   // blob URL은 확장자가 없으므로 반드시 fileName으로 판단
-  // 일반 URL은 파일명이 없으면 URL 자체 경로에서 추출
-  const nameToCheck = fileName || (url.startsWith('blob:') ? '' : url);
+  // 일반 URL은 파일명이 없거나 파일명에 확장자가 없으면 URL 자체 경로에서 추출
+  const hasExtension = fileName && fileName.includes('.');
+  const nameToCheck = hasExtension ? fileName : (url.startsWith('blob:') ? '' : url);
   const extension = nameToCheck.split('.').pop()?.toLowerCase();
 
   return extension ? imageExtensions.includes(extension) : false;
 };
 
 export const getFileExtension = (url: string, fileName?: string): string => {
-  const nameToCheck = fileName || url;
+  const hasExtension = fileName && fileName.includes('.');
+  const nameToCheck = hasExtension ? fileName : url;
   if (!nameToCheck) return '';
   return nameToCheck.split('.').pop()?.toLowerCase() || '';
 };
