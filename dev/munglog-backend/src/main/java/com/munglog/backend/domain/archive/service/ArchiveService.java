@@ -3,6 +3,7 @@ package com.munglog.backend.domain.archive.service;
 import com.munglog.backend.common.file.service.FileStorageService;
 import com.munglog.backend.domain.archive.dto.ArchivePhotoResponse;
 import com.munglog.backend.domain.archive.dto.ThemeTabResponse;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.memory.domain.Photo;
 import com.munglog.backend.domain.memory.domain.PhotoThemeTag;
 import com.munglog.backend.domain.memory.repository.PhotoRepository;
@@ -22,14 +23,17 @@ public class ArchiveService {
     private final PhotoThemeTagRepository photoThemeTagRepository;
     private final PhotoRepository photoRepository;
     private final FileStorageService fileStorageService;
+    private final FamilyGroupService familyGroupService;
 
     @Transactional(readOnly = true)
     public List<ThemeTabResponse> getThemes(UUID userId) {
-        return photoThemeTagRepository.findTopTags(userId).stream()
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoThemeTagRepository.findTopTagsByGroup(groupId).stream()
                 .map(row -> {
                     String tag = (String) row[0];
                     long count = ((Number) row[1]).longValue();
-                    List<PhotoThemeTag> photos = photoThemeTagRepository.findPhotosByTag(userId, tag);
+                    List<PhotoThemeTag> photos = photoThemeTagRepository.findPhotosByTagAndGroup(groupId, tag);
                     String repUrl = photos.isEmpty() ? null
                             : resolveUrl(photos.get(0).getPhoto().getPathThumb300() != null
                             ? photos.get(0).getPhoto().getPathThumb300()
@@ -41,7 +45,9 @@ public class ArchiveService {
 
     @Transactional(readOnly = true)
     public List<ArchivePhotoResponse> getBestPhotos(UUID userId) {
-        return photoRepository.findBestPhotos(userId).stream()
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoRepository.findBestPhotosByGroup(groupId).stream()
                 .map(photo -> {
                     List<String> tags = photo.getThemeTags().stream()
                             .map(PhotoThemeTag::getTag).toList();
@@ -53,7 +59,9 @@ public class ArchiveService {
 
     @Transactional(readOnly = true)
     public List<ArchivePhotoResponse> getPhotosByTheme(UUID userId, String tag) {
-        return photoThemeTagRepository.findPhotosByTag(userId, tag).stream()
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoThemeTagRepository.findPhotosByTagAndGroup(groupId, tag).stream()
                 .map(pt -> {
                     Photo photo = pt.getPhoto();
                     List<String> tags = photo.getThemeTags().stream()
@@ -66,12 +74,16 @@ public class ArchiveService {
 
     @Transactional(readOnly = true)
     public List<String> suggestTags(UUID userId, String prefix) {
-        return photoThemeTagRepository.suggestTags(userId, prefix);
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoThemeTagRepository.suggestTagsByGroup(groupId, prefix);
     }
 
     @Transactional(readOnly = true)
     public List<ArchivePhotoResponse> searchByTheme(UUID userId, String keyword) {
-        return photoThemeTagRepository.searchThemesByKeyword(userId, keyword).stream()
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoThemeTagRepository.searchThemesByKeywordAndGroup(groupId, keyword).stream()
                 .map(pt -> {
                     Photo photo = pt.getPhoto();
                     List<String> tags = photo.getThemeTags().stream()

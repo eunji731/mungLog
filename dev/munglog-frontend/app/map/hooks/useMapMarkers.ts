@@ -47,6 +47,7 @@ export function useMapMarkers() {
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const { selectedPetId } = usePetStore();
+  const groupVersion = usePetStore((s) => s.groupVersion);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchMarkers = useCallback((bbox: BBox, zoom?: number) => {
@@ -68,12 +69,12 @@ export function useMapMarkers() {
         const res = await apiClient.get<MapMarker[]>('/map/markers', { params });
         setMarkers(res.data ?? []);
       } catch {
-        // 네트워크 오류 시 기존 마커 유지
+        setMarkers([]);
       } finally {
         setLoading(false);
       }
     }, DEBOUNCE_MS);
-  }, [selectedPetId]);
+  }, [selectedPetId, groupVersion]);
 
   const searchMarkers = useCallback(async (keyword: string): Promise<MapMemoryDetail[]> => {
     setLoading(true);

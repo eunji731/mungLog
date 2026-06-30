@@ -41,9 +41,11 @@ public class SymptomSnapService {
 
     @Transactional(readOnly = true)
     public List<SymptomSnapResponse> getSnaps(UUID userId, UUID petId, LocalDate startDate, LocalDate endDate) {
-        return symptomSnapRepository.search(userId, petId, startDate, endDate).stream()
-                .map(this::toResponse)
-                .toList();
+        return familyGroupService.findGroupIdByUserId(userId)
+                .map(groupId -> symptomSnapRepository.searchByGroup(groupId, petId, startDate, endDate).stream()
+                        .map(this::toResponse)
+                        .toList())
+                .orElse(List.of());
     }
 
     @Transactional
@@ -71,7 +73,7 @@ public class SymptomSnapService {
 
     @Transactional
     public SymptomSnapResponse updateSnap(UUID snapId, UUID userId, SymptomSnapRequest request, MultipartFile symptomImage) {
-        SymptomSnap snap = findByIdAndUserId(snapId, userId);
+        SymptomSnap snap = findByIdAndGroupId(snapId, userId);
 
         snap.update(request.getDate(), request.getTime(), request.getMemo());
         symptomService.syncSymptomSnapSymptoms(snap.getId(), request.getSymptomTags());
@@ -85,7 +87,7 @@ public class SymptomSnapService {
 
     @Transactional
     public void deleteSnap(UUID snapId, UUID userId) {
-        SymptomSnap snap = findByIdAndUserId(snapId, userId);
+        SymptomSnap snap = findByIdAndGroupId(snapId, userId);
         symptomService.deleteSymptomSnapSymptoms(snapId);
         attachedFileService.deleteAllByParent(ParentDomainType.SYMPTOM_SNAP, snapId);
         symptomSnapRepository.delete(snap);
@@ -93,8 +95,8 @@ public class SymptomSnapService {
 
     @Transactional
     public SymptomSnapResponse linkRecord(UUID snapId, UUID userId, UUID resolvedRecordId) {
-        SymptomSnap snap = findByIdAndUserId(snapId, userId);
         UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        SymptomSnap snap = findByIdAndGroupId(snapId, userId);
         careRecordRepository.findByIdAndGroupId(resolvedRecordId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("케어 기록을 찾을 수 없습니다."));
         snap.link(resolvedRecordId);
@@ -103,14 +105,14 @@ public class SymptomSnapService {
 
     @Transactional
     public SymptomSnapResponse unlinkRecord(UUID snapId, UUID userId) {
-        SymptomSnap snap = findByIdAndUserId(snapId, userId);
+        SymptomSnap snap = findByIdAndGroupId(snapId, userId);
         snap.unlink();
         return toResponse(snap);
     }
 
     @Transactional
     public SymptomSnapResponse linkSchedule(UUID snapId, UUID userId, UUID linkedScheduleId) {
-        SymptomSnap snap = findByIdAndUserId(snapId, userId);
+        SymptomSnap snap = findByIdAndGroupId(snapId, userId);
         scheduleRepository.findById(linkedScheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("일정을 찾을 수 없습니다."));
         snap.linkSchedule(linkedScheduleId);
@@ -119,7 +121,7 @@ public class SymptomSnapService {
 
     @Transactional
     public SymptomSnapResponse unlinkSchedule(UUID snapId, UUID userId) {
-        SymptomSnap snap = findByIdAndUserId(snapId, userId);
+        SymptomSnap snap = findByIdAndGroupId(snapId, userId);
         snap.unlinkSchedule();
         return toResponse(snap);
     }
@@ -155,8 +157,9 @@ public class SymptomSnapService {
         return SymptomSnapResponse.from(snap, symptomTags, photoUrl, resolvedRecordTitle, linkedScheduleTitle);
     }
 
-    private SymptomSnap findByIdAndUserId(UUID snapId, UUID userId) {
-        return symptomSnapRepository.findByIdAndUser_Id(snapId, userId)
+    private SymptomSnap findByIdAndGroupId(UUID snapId, UUID userId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        return symptomSnapRepository.findByIdAndGroupId(snapId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("증상 스냅을 찾을 수 없습니다."));
     }
 }

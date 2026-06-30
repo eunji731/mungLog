@@ -57,7 +57,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       set({ items: res.data ?? [], loading: false });
     } catch (err: any) {
       console.error('인벤토리 조회 실패', err);
-      set({ error: err.message, loading: false });
+      set({ items: [], error: err.message, loading: false });
     }
   },
 

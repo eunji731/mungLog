@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { familyGroupApi, type FamilyGroupInfo } from '@/api/familyGroupApi';
+import { usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
+import { useInventoryStore } from '@/features/inventory/hooks/useInventory';
+import { useDiaryStore } from '@/features/diary/hooks/useDiary';
 
 export const useFamilyGroup = () => {
   const [group, setGroup] = useState<FamilyGroupInfo | null>(null);
@@ -56,8 +59,11 @@ export const useFamilyGroup = () => {
   };
 
   const leaveGroup = async () => {
-    await familyGroupApi.leaveGroup();
-    setGroup(null);
+    const res = await familyGroupApi.leaveGroup();
+    setGroup(res.data);
+    usePetStore.setState((s) => ({ pets: [], selectedPetId: ALL_PETS_ID, groupVersion: s.groupVersion + 1 }));
+    useInventoryStore.setState({ items: [] });
+    useDiaryStore.setState({ dailyLogs: {} });
   };
 
   return {

@@ -9,6 +9,7 @@ import com.munglog.backend.domain.ai.repository.AiDiaryUsageRepository;
 import com.munglog.backend.domain.dashboard.domain.DashboardReport;
 import com.munglog.backend.domain.dashboard.dto.AiReportResponse;
 import com.munglog.backend.domain.dashboard.repository.DashboardReportRepository;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
 import com.munglog.backend.domain.memory.domain.Memory;
@@ -47,6 +48,7 @@ public class AiDashboardService {
     private final MemoryRepository memoryRepository;
     private final DashboardReportRepository dashboardReportRepository;
     private final AiDiaryUsageRepository aiDiaryUsageRepository;
+    private final FamilyGroupService familyGroupService;
 
     @Transactional(readOnly = true)
     public AiReportResponse getReport(UUID userId, UUID petId, String yearMonth) {
@@ -161,7 +163,8 @@ public class AiDashboardService {
     private String buildContext(UUID userId, UUID petId, String yearMonth) {
         LocalDate start = LocalDate.parse(yearMonth + "-01");
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
-        List<Memory> memories = memoryRepository.findWithMomentsByUserAndDateRange(userId, start, end);
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        List<Memory> memories = memoryRepository.findWithMomentsByGroupAndDateRange(groupId, start, end);
 
         // 실제 통계 계산
         List<String> allLocations = new ArrayList<>();
@@ -220,10 +223,11 @@ public class AiDashboardService {
         try {
             LocalDate start = LocalDate.parse(yearMonth + "-01");
             LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+            UUID groupId = familyGroupService.getGroupIdByUserId(userId);
             if (petId != null) {
-                return (int) memoryRepository.countByUserAndDateRangeAndPet(userId, petId, start, end);
+                return (int) memoryRepository.countByGroupAndDateRangeAndPet(groupId, petId, start, end);
             }
-            return memoryRepository.findByUser_IdAndMemoryDateBetweenOrderByMemoryDateDesc(userId, start, end).size();
+            return memoryRepository.findByGroupIdAndMemoryDateBetween(groupId, start, end).size();
         } catch (Exception e) {
             return 0;
         }

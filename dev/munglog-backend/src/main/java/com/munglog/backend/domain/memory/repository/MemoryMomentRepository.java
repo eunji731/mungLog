@@ -11,6 +11,19 @@ import java.util.UUID;
 
 public interface MemoryMomentRepository extends JpaRepository<MemoryMoment, UUID> {
 
+    @Query("SELECT mm.locationName, COUNT(mm) as cnt FROM MemoryMoment mm WHERE mm.memory.group.id = :groupId AND mm.locationName IS NOT NULL GROUP BY mm.locationName ORDER BY cnt DESC")
+    List<Object[]> findFavoritePlacesByGroup(@Param("groupId") UUID groupId);
+
+    @Query("SELECT mm.locationName, COUNT(mm) as cnt FROM MemoryMoment mm JOIN mm.memory m JOIN m.memoryDogs md WHERE m.group.id = :groupId AND md.dog.id = :petId AND mm.locationName IS NOT NULL GROUP BY mm.locationName ORDER BY cnt DESC")
+    List<Object[]> findFavoritePlacesByGroupAndPet(@Param("groupId") UUID groupId, @Param("petId") UUID petId);
+
+    @Query("SELECT COUNT(DISTINCT mm.locationName) FROM MemoryMoment mm WHERE mm.memory.group.id = :groupId AND mm.locationName IS NOT NULL AND mm.memory.memoryDate BETWEEN :start AND :end")
+    long countDistinctVisitedPlacesByGroup(@Param("groupId") UUID groupId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT COUNT(DISTINCT mm.locationName) FROM MemoryMoment mm JOIN mm.memory m JOIN m.memoryDogs md WHERE m.group.id = :groupId AND md.dog.id = :petId AND mm.locationName IS NOT NULL AND m.memoryDate BETWEEN :start AND :end")
+    long countDistinctVisitedPlacesByGroupAndPet(@Param("groupId") UUID groupId, @Param("petId") UUID petId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    // 기존 user-based 쿼리 (하위 호환)
     @Query("SELECT mm.locationName, COUNT(mm) as cnt FROM MemoryMoment mm WHERE mm.memory.user.id = :userId AND mm.locationName IS NOT NULL GROUP BY mm.locationName ORDER BY cnt DESC")
     List<Object[]> findFavoritePlaces(@Param("userId") UUID userId);
 

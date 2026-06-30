@@ -29,10 +29,11 @@ public class PetService {
 
     @Transactional(readOnly = true)
     public List<PetResponse> getPets(UUID userId) {
-        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
-        return petRepository.findByGroupIdAndIsActiveTrue(groupId).stream()
-                .map(pet -> PetResponse.from(pet, resolvePhotoUrl(pet)))
-                .toList();
+        return familyGroupService.findGroupIdByUserId(userId)
+                .map(groupId -> petRepository.findByGroupIdAndIsActiveTrue(groupId).stream()
+                        .map(pet -> PetResponse.from(pet, resolvePhotoUrl(pet)))
+                        .toList())
+                .orElse(List.of());
     }
 
     @Transactional(readOnly = true)

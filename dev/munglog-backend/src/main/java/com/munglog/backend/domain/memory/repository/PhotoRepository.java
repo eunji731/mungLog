@@ -11,6 +11,28 @@ import java.util.UUID;
 
 public interface PhotoRepository extends JpaRepository<Photo, UUID> {
 
+    @Query("SELECT p FROM Photo p WHERE p.memory.group.id = :groupId AND p.gpsLat IS NOT NULL AND p.gpsLng IS NOT NULL ORDER BY p.takenAt DESC")
+    List<Photo> findMapMemoriesByGroup(@Param("groupId") UUID groupId);
+
+    @Query("SELECT p FROM Photo p LEFT JOIN p.moment m WHERE p.memory.group.id = :groupId AND p.gpsLat IS NOT NULL AND (" +
+           "p.aiCaption LIKE %:keyword% OR p.memory.location LIKE %:keyword% OR " +
+           "p.memory.aiTitle LIKE %:keyword% OR m.locationName LIKE %:keyword% OR m.aiTitle LIKE %:keyword%" +
+           ") ORDER BY p.takenAt DESC")
+    List<Photo> findMapMemoriesByGroupAndKeyword(@Param("groupId") UUID groupId, @Param("keyword") String keyword);
+
+    @Query("SELECT p FROM Photo p WHERE p.memory.group.id = :groupId AND p.gpsLat IS NOT NULL ORDER BY p.takenAt DESC")
+    List<Photo> findMapMarkersByGroup(@Param("groupId") UUID groupId);
+
+    @Query("SELECT p FROM Photo p WHERE p.memory.group.id = :groupId AND p.isBest = true ORDER BY p.vibeScore DESC")
+    List<Photo> findBestPhotosByGroup(@Param("groupId") UUID groupId);
+
+    @Query("SELECT p FROM Photo p JOIN p.memory m JOIN m.memoryDogs md WHERE m.group.id = :groupId AND md.dog.id = :petId AND p.isBest = true ORDER BY p.vibeScore DESC")
+    List<Photo> findBestPhotosByGroupAndPet(@Param("groupId") UUID groupId, @Param("petId") UUID petId);
+
+    @Query("SELECT DISTINCT p.aiCaption FROM Photo p WHERE p.memory.group.id = :groupId AND p.aiCaption IS NOT NULL")
+    List<String> findDistinctAiTitlesByGroup(@Param("groupId") UUID groupId);
+
+    // 기존 user-based 쿼리 (하위 호환)
     @Query("SELECT p FROM Photo p WHERE p.memory.user.id = :userId AND p.gpsLat IS NOT NULL AND p.gpsLng IS NOT NULL ORDER BY p.takenAt DESC")
     List<Photo> findMapMemories(@Param("userId") UUID userId);
 

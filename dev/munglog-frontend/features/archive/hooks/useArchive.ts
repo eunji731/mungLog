@@ -46,6 +46,7 @@ export const useArchive = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingThemes, setIsLoadingThemes] = useState(false);
   const { selectedPetId } = usePetStore();
+  const groupVersion = usePetStore((s) => s.groupVersion);
   const prevPetId = useRef(selectedPetId);
 
   const fetchThemePage = useCallback(async (pageNum: number, petId: string | null) => {
@@ -70,6 +71,7 @@ export const useArchive = () => {
       setHasMore(data.length === PAGE_SIZE);
     } catch (e) {
       console.error('테마 로딩 실패:', e);
+      setArchiveThemes([]);
     } finally {
       setIsLoadingThemes(false);
     }
@@ -80,13 +82,11 @@ export const useArchive = () => {
 
     if (prevPetId.current !== selectedPetId) {
       prevPetId.current = selectedPetId;
-      setPage(0);
-      setHasMore(true);
-      fetchThemePage(0, validPetId);
-    } else {
-      fetchThemePage(0, validPetId);
     }
-  }, [selectedPetId, fetchThemePage]);
+    setPage(0);
+    setHasMore(true);
+    fetchThemePage(0, validPetId);
+  }, [selectedPetId, groupVersion, fetchThemePage]);
 
   const loadMoreThemes = useCallback(() => {
     if (isLoadingThemes || !hasMore) return;

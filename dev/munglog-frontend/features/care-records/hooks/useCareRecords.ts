@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { careApi } from '@/api/careApi';
-import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
+import { usePet, usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import type { CareRecord, CareRecordsFilter } from '@/types/care';
 
 export const useCareRecords = () => {
   const { selectedPetId } = usePet();
+  const groupVersion = usePetStore((s) => s.groupVersion);
   const [records, setRecords] = useState<CareRecord[]>([]);
   const [calendarRecords, setCalendarRecords] = useState<CareRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +33,7 @@ export const useCareRecords = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, selectedPetId]);
+  }, [filters, selectedPetId, groupVersion]);
 
   useEffect(() => {
     fetchRecords();

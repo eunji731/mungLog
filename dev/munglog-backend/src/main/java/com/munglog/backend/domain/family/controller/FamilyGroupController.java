@@ -71,10 +71,10 @@ public class FamilyGroupController {
     }
 
     @DeleteMapping("/leave")
-    public ResponseEntity<ApiResponse<Void>> leaveGroup(
+    public ResponseEntity<ApiResponse<FamilyGroupResponse>> leaveGroup(
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
-        familyGroupService.leaveGroup(userId);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        FamilyGroupResponse newGroup = familyGroupService.leaveGroup(userId);
+        return ResponseEntity.ok(ApiResponse.success(newGroup));
     }
 }

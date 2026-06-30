@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, RefreshCw, LogOut, UserPlus, Users, Crown, Check, ArrowRight, Pencil, X } from 'lucide-react';
+import { Copy, RefreshCw, LogOut, UserPlus, Users, Crown, Check, ArrowRight, Pencil, X, Info } from 'lucide-react';
 import { useFamilyGroup } from '@/hooks/useFamilyGroup';
 import { useToast } from '@/app/common/hooks/useToast';
 
@@ -104,7 +104,7 @@ export default function FamilyMembersSection() {
     setIsBusy(true);
     try {
       await leaveGroup();
-      success('그룹에서 나왔습니다.');
+      success('개인 그룹으로 이동했습니다.');
     } catch {
       toastError('그룹 나가기에 실패했습니다.');
     } finally {
@@ -119,7 +119,7 @@ export default function FamilyMembersSection() {
       await transferOwner(selectedNewOwner);
       success('관리자 권한을 위임했습니다.');
       await leaveGroup();
-      success('그룹에서 나왔습니다.');
+      success('개인 그룹으로 이동했습니다.');
       setShowTransferModal(false);
     } catch {
       toastError('위임에 실패했습니다.');
@@ -223,8 +223,33 @@ export default function FamilyMembersSection() {
     );
   }
 
+  const isPersonalGroup = group?.members?.length === 1;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+
+      {/* 그룹 개념 안내 배너 */}
+      <div className="flex gap-3 p-4 bg-main-green/5 border border-main-green/20 rounded-2xl">
+        <Info className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          {isPersonalGroup ? (
+            <>
+              <p className="text-xs font-black text-main-green">현재 개인 그룹으로 이용 중이에요</p>
+              <p className="text-[11px] font-medium text-text-sub leading-relaxed">
+                뭉로그는 그룹이 기본 단위예요. 혼자라면 개인 그룹, 가족과 함께라면 가족 그룹으로 모든 기록을 공유해요.
+                아래 초대 코드를 가족과 공유해 함께 시작해보세요!
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-xs font-black text-main-green">가족 그룹으로 이용 중이에요</p>
+              <p className="text-[11px] font-medium text-text-sub leading-relaxed">
+                뭉로그는 그룹이 기본 단위예요. 같은 그룹 안에서 반려동물 기록을 함께 보고 관리할 수 있어요.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* 초대 코드 카드 */}
       <div className="bg-background border border-border/80 rounded-2xl p-6 space-y-3">

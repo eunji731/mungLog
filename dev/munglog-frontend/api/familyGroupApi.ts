@@ -24,5 +24,5 @@ export const familyGroupApi = {
     apiClient.patch<FamilyGroupInfo>('/family/name', { name }),
   transferOwner: (newOwnerUserId: string) =>
     apiClient.post<FamilyGroupInfo>('/family/transfer-owner', { newOwnerUserId }),
-  leaveGroup: () => apiClient.delete('/family/leave'),
+  leaveGroup: () => apiClient.delete<FamilyGroupInfo>('/family/leave'),
 };

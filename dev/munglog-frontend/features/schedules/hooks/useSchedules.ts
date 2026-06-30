@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { scheduleApi } from '@/api/scheduleApi';
-import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
+import { usePet, usePetStore, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import type { Schedule, ScheduleFilters } from '@/types/schedule';
 
 export const useSchedules = () => {
   const { selectedPetId } = usePet();
+  const groupVersion = usePetStore((s) => s.groupVersion);
   const searchParams = useSearchParams();
   const initialType = searchParams?.get('type') || 'ALL';
 
@@ -34,7 +35,7 @@ export const useSchedules = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, selectedPetId]);
+  }, [filters, selectedPetId, groupVersion]);
 
   useEffect(() => {
     fetchSchedules();

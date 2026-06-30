@@ -1,6 +1,7 @@
 package com.munglog.backend.domain.map.service;
 
 import com.munglog.backend.common.file.service.FileStorageService;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.map.dto.MapMarkerResponse;
 import com.munglog.backend.domain.map.dto.MapMemoryResponse;
 import com.munglog.backend.domain.memory.domain.Photo;
@@ -18,17 +19,22 @@ public class MapService {
 
     private final PhotoRepository photoRepository;
     private final FileStorageService fileStorageService;
+    private final FamilyGroupService familyGroupService;
 
     @Transactional(readOnly = true)
     public List<MapMemoryResponse> getMapMemories(UUID userId) {
-        return photoRepository.findMapMemories(userId).stream()
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoRepository.findMapMemoriesByGroup(groupId).stream()
                 .map(this::toMemoryResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<MapMarkerResponse> getMapMarkers(UUID userId) {
-        return photoRepository.findMapMarkers(userId).stream()
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoRepository.findMapMarkersByGroup(groupId).stream()
                 .map(p -> MapMarkerResponse.builder()
                         .id(p.getId())
                         .lat(p.getGpsLat())
@@ -42,20 +48,25 @@ public class MapService {
 
     @Transactional(readOnly = true)
     public List<String> getSearchSuggestions(UUID userId) {
-        return photoRepository.findDistinctAiTitles(userId);
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoRepository.findDistinctAiTitlesByGroup(groupId);
     }
 
     @Transactional(readOnly = true)
     public List<MapMemoryResponse> searchMapMemories(UUID userId, String keyword) {
-        return photoRepository.findMapMemoriesByKeyword(userId, keyword).stream()
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
+        return photoRepository.findMapMemoriesByGroupAndKeyword(groupId, keyword).stream()
                 .map(this::toMemoryResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public MapMemoryResponse getMemoryDetail(UUID userId, UUID photoId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
         return photoRepository.findById(photoId)
-                .filter(p -> p.getMemory().getUser().getId().equals(userId))
+                .filter(p -> p.getMemory().getGroup() != null && p.getMemory().getGroup().getId().equals(groupId))
                 .map(this::toMemoryResponse)
                 .orElseThrow(() -> new IllegalArgumentException("사진 정보를 찾을 수 없습니다."));
     }

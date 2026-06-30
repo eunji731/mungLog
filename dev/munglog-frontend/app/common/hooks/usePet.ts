@@ -55,6 +55,7 @@ export const ALL_PETS_ID = 'ALL';
 interface PetState {
   pets: PetProfile[];
   selectedPetId: string | typeof ALL_PETS_ID | null;
+  groupVersion: number;
   loading: boolean;
   error: string | null;
   fetchPets: () => Promise<void>;
@@ -69,6 +70,7 @@ export const usePetStore = create<PetState>()(
     (set, get) => ({
       pets: [],
       selectedPetId: ALL_PETS_ID, // 기본값을 'ALL'로 변경
+      groupVersion: 0,
       loading: false,
       error: null,
 
@@ -79,13 +81,13 @@ export const usePetStore = create<PetState>()(
           const pets = res.data.map(mapPetResponse);
           set({ pets, loading: false });
           
-          // 만약 선택된 펫이 'ALL'이 아니고 목록에도 없으면 'ALL'로 전환
+          // selectedPetId가 null이거나, ALL이 아닌데 목록에도 없으면 ALL로 초기화
           const currentId = get().selectedPetId;
-          if (pets.length > 0 && currentId !== ALL_PETS_ID && !pets.find(p => p.id === currentId)) {
+          if (!currentId || (currentId !== ALL_PETS_ID && !pets.find(p => p.id === currentId))) {
             set({ selectedPetId: ALL_PETS_ID });
           }
         } catch (err: any) {
-          set({ error: err.response?.data?.message || err.message, loading: false });
+          set({ pets: [], error: err.response?.data?.message || err.message, loading: false });
         }
       },
 
@@ -101,7 +103,6 @@ export const usePetStore = create<PetState>()(
           );
           const pet = mapPetResponse(res.data);
           set((state) => ({ pets: [...state.pets, pet], loading: false }));
-          if (!get().selectedPetId) set({ selectedPetId: pet.id });
           return pet;
         } catch (err: any) {
           set({ error: err.response?.data?.message || err.message, loading: false });

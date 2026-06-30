@@ -80,12 +80,13 @@ public class InventoryItemService {
 
     @Transactional(readOnly = true)
     public List<InventoryItemResponse> getItems(UUID userId) {
-        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
-        return inventoryItemRepository.findAllByGroupIdOrderByCreatedAtDesc(groupId).stream()
-                .map(item -> InventoryItemResponse.from(item,
-                        attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId()),
-                        fromIngredientsJson(item.getIngredients())))
-                .toList();
+        return familyGroupService.findGroupIdByUserId(userId)
+                .map(groupId -> inventoryItemRepository.findAllByGroupIdOrderByCreatedAtDesc(groupId).stream()
+                        .map(item -> InventoryItemResponse.from(item,
+                                attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId()),
+                                fromIngredientsJson(item.getIngredients())))
+                        .toList())
+                .orElse(List.of());
     }
 
     @Transactional(readOnly = true)

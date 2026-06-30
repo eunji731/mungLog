@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -139,7 +140,7 @@ public class FamilyGroupService {
     }
 
     @Transactional
-    public void leaveGroup(UUID userId) {
+    public FamilyGroupResponse leaveGroup(UUID userId) {
         GroupMember gm = groupMemberRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalStateException("소속된 가족 그룹이 없습니다."));
 
@@ -152,11 +153,19 @@ public class FamilyGroupService {
         if (groupMemberRepository.countByGroupId(gm.getGroup().getId()) == 0) {
             familyGroupRepository.delete(gm.getGroup());
         }
+
+        // 탈퇴 후 개인 그룹 자동 생성
+        Member member = findMember(userId);
+        return createGroupForNewMember(member);
     }
 
     public UUID getGroupIdByUserId(UUID userId) {
         return groupMemberRepository.findGroupIdByUserId(userId)
                 .orElseThrow(() -> new IllegalStateException("소속된 가족 그룹이 없습니다."));
+    }
+
+    public Optional<UUID> findGroupIdByUserId(UUID userId) {
+        return groupMemberRepository.findGroupIdByUserId(userId);
     }
 
     public FamilyGroup getGroupByUserId(UUID userId) {

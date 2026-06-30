@@ -54,7 +54,8 @@ public class ScheduleService {
 
     @Transactional(readOnly = true)
     public List<ScheduleResponse> getSchedules(UUID userId, UUID petId, String keyword) {
-        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) return List.of();
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         List<Schedule> schedules;
         if (kw != null && petId != null) {

@@ -2,6 +2,7 @@ package com.munglog.backend.domain.dashboard.service;
 
 import com.munglog.backend.common.file.service.FileStorageService;
 import com.munglog.backend.domain.dashboard.dto.DashboardSummaryResponse;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.memory.domain.Photo;
 import com.munglog.backend.domain.memory.repository.MemoryMomentRepository;
 import com.munglog.backend.domain.memory.repository.MemoryRepository;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,9 +28,19 @@ public class DashboardService {
     private final MemoryMomentRepository memoryMomentRepository;
     private final PhotoRepository photoRepository;
     private final FileStorageService fileStorageService;
+    private final FamilyGroupService familyGroupService;
 
     @Transactional(readOnly = true)
     public DashboardSummaryResponse getSummary(UUID userId, UUID petId, String yearMonth) {
+        UUID groupId = familyGroupService.findGroupIdByUserId(userId).orElse(null);
+        if (groupId == null) {
+            return DashboardSummaryResponse.builder()
+                    .monthlyStats(DashboardSummaryResponse.MonthlyStats.builder().recordedDays(0).visitedPlaces(0).bestPhotosCount(0).build())
+                    .bestPhotos(List.of())
+                    .favoritePlaces(List.of())
+                    .streak(DashboardSummaryResponse.StreakInfo.builder().current(0).longest(0).build())
+                    .build();
+        }
         Pet pet = petId != null ? petRepository.findById(petId).orElse(null) : null;
 
         LocalDate now = LocalDate.now();
@@ -46,16 +56,16 @@ public class DashboardService {
         }
 
         long memoryCount = pet != null
-                ? memoryRepository.countByUserAndDateRangeAndPet(userId, pet.getId(), startOfMonth, endOfMonth)
-                : memoryRepository.findByUser_IdAndMemoryDateBetweenOrderByMemoryDateDesc(userId, startOfMonth, endOfMonth).size();
+                ? memoryRepository.countByGroupAndDateRangeAndPet(groupId, pet.getId(), startOfMonth, endOfMonth)
+                : memoryRepository.findByGroupIdAndMemoryDateBetween(groupId, startOfMonth, endOfMonth).size();
 
         long visitedPlaceCount = pet != null
-                ? memoryMomentRepository.countDistinctVisitedPlacesByPet(userId, pet.getId(), startOfMonth, endOfMonth)
-                : memoryMomentRepository.countDistinctVisitedPlaces(userId, startOfMonth, endOfMonth);
+                ? memoryMomentRepository.countDistinctVisitedPlacesByGroupAndPet(groupId, pet.getId(), startOfMonth, endOfMonth)
+                : memoryMomentRepository.countDistinctVisitedPlacesByGroup(groupId, startOfMonth, endOfMonth);
 
         List<Photo> bestPhotos = pet != null
-                ? photoRepository.findBestPhotosByPet(userId, pet.getId())
-                : photoRepository.findBestPhotos(userId);
+                ? photoRepository.findBestPhotosByGroupAndPet(groupId, pet.getId())
+                : photoRepository.findBestPhotosByGroup(groupId);
         List<DashboardSummaryResponse.BestPhotoItem> bestPhotoItems = bestPhotos.stream()
                 .limit(5)
                 .map(p -> DashboardSummaryResponse.BestPhotoItem.builder()
@@ -68,8 +78,8 @@ public class DashboardService {
                 .toList();
 
         List<Object[]> favoriteRows = pet != null
-                ? memoryMomentRepository.findFavoritePlacesByPet(userId, pet.getId())
-                : memoryMomentRepository.findFavoritePlaces(userId);
+                ? memoryMomentRepository.findFavoritePlacesByGroupAndPet(groupId, pet.getId())
+                : memoryMomentRepository.findFavoritePlacesByGroup(groupId);
         List<DashboardSummaryResponse.FavoritePlaceItem> favoritePlaces = favoriteRows.stream()
                 .limit(5)
                 .map(row -> DashboardSummaryResponse.FavoritePlaceItem.builder()
@@ -79,8 +89,8 @@ public class DashboardService {
                 .toList();
 
         List<LocalDate> dates = pet != null
-                ? memoryRepository.findAllMemoryDatesByUserIdAndPetOrderByDesc(userId, pet.getId())
-                : memoryRepository.findAllMemoryDatesByUserIdOrderByDesc(userId);
+                ? memoryRepository.findAllMemoryDatesByGroupIdAndPetOrderByDesc(groupId, pet.getId())
+                : memoryRepository.findAllMemoryDatesByGroupIdOrderByDesc(groupId);
         int currentStreak = calculateCurrentStreak(dates, now);
         int longestStreak = calculateLongestStreak(dates);
 

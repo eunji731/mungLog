@@ -14,6 +14,8 @@ import com.munglog.backend.common.file.service.FileStorageService;
 import com.munglog.backend.domain.ai.domain.AiDiaryUsage;
 import com.munglog.backend.domain.ai.dto.*;
 import com.munglog.backend.domain.ai.repository.AiDiaryUsageRepository;
+import com.munglog.backend.domain.family.domain.FamilyGroup;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
 import com.munglog.backend.domain.memory.domain.*;
@@ -53,6 +55,7 @@ public class AiDiaryService {
     private final AiDiaryUsageRepository aiDiaryUsageRepository;
     private final AttachedFileService attachedFileService;
     private final FileStorageService fileStorageService;
+    private final FamilyGroupService familyGroupService;
     private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
@@ -141,6 +144,7 @@ public class AiDiaryService {
     public UUID saveDiary(UUID userId, SaveDiaryRequest request) {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        FamilyGroup group = familyGroupService.getGroupByUserId(userId);
 
         // 재분석 저장 시 기존 Memory 교체 (중복 생성 방지)
         if (request.getOldMemoryId() != null) {
@@ -153,6 +157,7 @@ public class AiDiaryService {
 
         Memory memory = memoryRepository.save(Memory.builder()
                 .user(member)
+                .group(group)
                 .memoryDate(request.getTargetDate())
                 .aiTitle(request.getAiResult().aiTitle())
                 .summary(request.getAiResult().aiSummary())

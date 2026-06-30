@@ -1,6 +1,7 @@
 package com.munglog.backend.domain.memory.domain;
 
 import com.munglog.backend.common.domain.BaseTimeEntity;
+import com.munglog.backend.domain.family.domain.FamilyGroup;
 import com.munglog.backend.domain.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +28,10 @@ public class Memory extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Member user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private FamilyGroup group;
 
     @Column(name = "memory_date", nullable = false)
     private LocalDate memoryDate;
