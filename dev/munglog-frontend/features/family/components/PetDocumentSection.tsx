@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Paperclip, Upload, X } from 'lucide-react';
 import { fileApi } from '@/api/fileApi';
 import { Spinner } from '@/components/common/Spinner';
-import { isImageFile, getFileExtension, getFileIcon } from '@/utils/fileUtils';
+import { isImageFile, getFileExtension, getFileIcon, downloadFile } from '@/utils/fileUtils';
 import { getImagePath } from '@/lib/clientApi';
 import type { FileItem } from '@/types/file';
 
@@ -17,6 +18,12 @@ const PetDocumentSection: React.FC<PetDocumentSectionProps> = ({ petId }) => {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fileApi.getFiles('PET_DOC', petId)
@@ -47,6 +54,15 @@ const PetDocumentSection: React.FC<PetDocumentSectionProps> = ({ petId }) => {
       setFiles(remaining);
     } catch {
       // 실패 시 조용히 무시
+    }
+  };
+
+  const handleFileClick = (file: FileItem) => {
+    const isImage = isImageFile(file.fileUrl, file.originalFileName);
+    if (isImage) {
+      setSelectedFile(file);
+    } else {
+      window.open(getImagePath(file.fileUrl), '_blank');
     }
   };
 
@@ -103,6 +119,7 @@ const PetDocumentSection: React.FC<PetDocumentSectionProps> = ({ petId }) => {
             <PetDocFileThumb
               key={file.id}
               file={file}
+              onClick={() => handleFileClick(file)}
               onDelete={() => handleDelete(file.id)}
             />
           ))}
@@ -117,16 +134,56 @@ const PetDocumentSection: React.FC<PetDocumentSectionProps> = ({ petId }) => {
           </button>
         </div>
       )}
+
+      {/* Image Viewer Modal */}
+      {selectedFile && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-xl animate-in fade-in duration-300"
+          onClick={() => setSelectedFile(null)}
+        >
+          <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
+            <button
+              className="absolute -top-16 right-0 text-white/40 hover:text-white transition-colors text-3xl cursor-pointer"
+              onClick={() => setSelectedFile(null)}
+            >
+              ✕
+            </button>
+
+            <img
+              src={getImagePath(selectedFile.fileUrl)}
+              alt={selectedFile.originalFileName}
+              className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl"
+            />
+
+            <div className="mt-8 flex flex-col items-center gap-2">
+              <p className="text-white/80 text-[14px] font-black tracking-tight">{selectedFile.originalFileName}</p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadFile(getImagePath(selectedFile.fileUrl), selectedFile.originalFileName);
+                }}
+                className="text-[11px] font-black text-main-green bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-full uppercase tracking-widest hover:bg-light-green transition-colors cursor-pointer"
+              >
+                Download Image
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
 
-const PetDocFileThumb: React.FC<{ file: FileItem; onDelete: () => void }> = ({ file, onDelete }) => {
+const PetDocFileThumb: React.FC<{ file: FileItem; onClick: () => void; onDelete: () => void }> = ({ file, onClick, onDelete }) => {
   const isImage = isImageFile(file.fileUrl, file.originalFileName);
   const ext     = getFileExtension(file.fileUrl, file.originalFileName);
 
   return (
-    <div className="relative aspect-square rounded-xl overflow-hidden border border-border/60 bg-white group">
+    <div 
+      onClick={onClick}
+      className="relative aspect-square rounded-xl overflow-hidden border border-border/60 bg-white group cursor-pointer"
+    >
       {isImage ? (
         <img
           src={getImagePath(file.fileUrl)}
@@ -154,17 +211,6 @@ const PetDocFileThumb: React.FC<{ file: FileItem; onDelete: () => void }> = ({ f
       >
         <X className="w-2.5 h-2.5" />
       </button>
-
-      {/* 이미지: 클릭 시 원본 열기 */}
-      {isImage && (
-        <a
-          href={getImagePath(file.fileUrl)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute inset-0 z-0"
-          onClick={e => e.stopPropagation()}
-        />
-      )}
     </div>
   );
 };
