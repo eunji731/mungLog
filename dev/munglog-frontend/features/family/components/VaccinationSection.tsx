@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Syringe, Plus, ChevronDown, ChevronUp,
-  Paperclip, X, Check, Upload,
+  Paperclip, X, Check, Upload, ClipboardList,
 } from 'lucide-react';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import { useVaccinationRecords, VaccinationFormData } from '@/features/family/hooks/useVaccinationRecords';
@@ -316,6 +317,16 @@ const VaccinationRecordItem: React.FC<{ record: CareRecord }> = ({ record }) => 
           {!record.clinicName && !record.note && !record.vaccinationIntervalDays && (
             <p className="text-xs text-text-sub/60 font-medium">추가 정보가 없습니다.</p>
           )}
+
+          <div className="flex justify-end pt-1">
+            <Link
+              href={`/care-records/${record.id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/80 bg-white hover:border-main-green hover:text-main-green text-text-sub text-[10px] font-black transition-all active:scale-[0.98]"
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              <span>접종 케어기록 상세보기</span>
+            </Link>
+          </div>
 
           {/* 첨부파일 */}
           <div className="space-y-2">
