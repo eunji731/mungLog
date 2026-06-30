@@ -19,6 +19,9 @@ interface BackendScheduleResponse {
   inventoryItemName?: string;
   inventoryItemStock?: number;
   convertedCareRecordId?: string | null;
+  vaccinationTypeId?: number | null;
+  vaccinationTypeName?: string | null;
+  vaccinationIntervalDays?: number | null;
 }
 
 const scheduleTypeIdOf = (code?: string) => SCHEDULE_TYPE_CODES.find(c => c.code === code)?.id;
@@ -47,6 +50,9 @@ function mapSchedule(raw: BackendScheduleResponse): Schedule {
     inventoryItemName: raw.inventoryItemName,
     inventoryItemStock: raw.inventoryItemStock,
     convertedCareRecordId: raw.convertedCareRecordId,
+    vaccinationTypeId: raw.vaccinationTypeId ?? null,
+    vaccinationTypeName: raw.vaccinationTypeName ?? null,
+    vaccinationIntervalDays: raw.vaccinationIntervalDays ?? null,
   };
 }
 
@@ -120,5 +126,6 @@ function toSchedulePayload(payload: ScheduleCreateRequest) {
     location: payload.location,
     symptomTags: payload.symptomTags,
     inventoryItemId: payload.inventoryItemId,
+    vaccinationTypeId: payload.vaccinationTypeId ?? null,
   };
 }

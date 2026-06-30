@@ -28,7 +28,10 @@ public record ScheduleResponse(
         UUID inventoryItemId,
         String inventoryItemName,
         Integer inventoryItemStock,
-        UUID convertedCareRecordId
+        UUID convertedCareRecordId,
+        Long vaccinationTypeId,
+        String vaccinationTypeName,
+        Integer vaccinationIntervalDays
 ) {
     public static ScheduleResponse of(Schedule schedule, List<FileResponse> attachments, List<String> symptomTags,
                                        UUID convertedCareRecordId) {
@@ -36,6 +39,7 @@ public record ScheduleResponse(
                 ? ChronoUnit.DAYS.between(LocalDateTime.now(), schedule.getScheduleDate())
                 : 0;
         var linkedItem = schedule.getLinkedInventoryItem();
+        var vt = schedule.getVaccinationType();
         return ScheduleResponse.builder()
                 .id(schedule.getId())
                 .petId(schedule.getPet().getId())
@@ -54,6 +58,9 @@ public record ScheduleResponse(
                 .inventoryItemName(linkedItem != null ? linkedItem.getName() : null)
                 .inventoryItemStock(linkedItem != null ? linkedItem.getStock() : null)
                 .convertedCareRecordId(convertedCareRecordId)
+                .vaccinationTypeId(vt != null ? vt.getId() : null)
+                .vaccinationTypeName(vt != null ? vt.getName() : null)
+                .vaccinationIntervalDays(vt != null ? vt.getIntervalDays() : null)
                 .build();
     }
 }

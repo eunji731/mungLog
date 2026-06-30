@@ -33,4 +33,6 @@ public interface CareRecordRepository extends JpaRepository<CareRecord, UUID> {
     List<CareRecord> findMedicalCandidates(@Param("userId") UUID userId, @Param("petId") UUID petId,
                                             @Param("recordType") CareRecordType recordType,
                                             @Param("from") LocalDate from);
+
+    List<CareRecord> findByVaccinationTypeId(Long vaccinationTypeId);
 }

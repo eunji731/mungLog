@@ -32,7 +32,8 @@ export const useScheduleForm = (
     memo: '',
     symptomTags: [] as string[],
     inventoryItemId: '',
-    linkedSymptomSnapId: ''
+    linkedSymptomSnapId: '',
+    vaccinationTypeId: null as number | null,
   });
 
   useEffect(() => {
@@ -94,7 +95,8 @@ export const useScheduleForm = (
           memo: data.memo || '',
           symptomTags: data.symptomTags || [],
           inventoryItemId: data.inventoryItemId || '',
-          linkedSymptomSnapId: linkedSnapId
+          linkedSymptomSnapId: linkedSnapId,
+          vaccinationTypeId: data.vaccinationTypeId ?? null,
         });
 
         if (!fileLoadedRef.current) {
@@ -131,6 +133,7 @@ export const useScheduleForm = (
         memo: formData.memo.trim() || undefined,
         symptomTags: formData.symptomTags,
         inventoryItemId: formData.inventoryItemId || undefined,
+        vaccinationTypeId: formData.vaccinationTypeId ?? null,
       };
 
       const saved = id

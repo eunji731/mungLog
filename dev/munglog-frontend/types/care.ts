@@ -30,6 +30,10 @@ export interface CareRecord {
   relatedMedicalRecord?: { id: string; title: string; recordDate: string; clinicName?: string } | null;
   // Common
   attachmentCount: number;
+  // Vaccination
+  vaccinationTypeId?: number | null;
+  vaccinationTypeName?: string | null;
+  vaccinationIntervalDays?: number | null;
 }
 
 export interface CareRecordsFilter {
@@ -72,6 +76,7 @@ export interface CareRecordCreateRequest {
   note?: string;
   fileIds?: Array<string | number>;
   sourceScheduleId?: string | null;
+  vaccinationTypeId?: number | null;
   medicalDetails?: MedicalDetailRequest | null;
   expenseDetails?: ExpenseDetailRequest | null;
   medicalDetail?: MedicalDetailRequest | null;

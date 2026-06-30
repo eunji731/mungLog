@@ -3,6 +3,7 @@ package com.munglog.backend.domain.care.domain;
 import com.munglog.backend.common.domain.BaseTimeEntity;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.pet.domain.Pet;
+import com.munglog.backend.domain.vaccination.domain.VaccinationType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -47,17 +48,27 @@ public class CareRecord extends BaseTimeEntity {
     @Column(name = "source_schedule_id", columnDefinition = "uuid")
     private UUID sourceScheduleId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vaccination_type_id")
+    private VaccinationType vaccinationType;
+
     @OneToOne(mappedBy = "careRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private MedicalDetail medicalDetail;
 
     @OneToOne(mappedBy = "careRecord", cascade = CascadeType.ALL, orphanRemoval = true)
     private ExpenseDetail expenseDetail;
 
-    public void update(Pet pet, CareRecordType recordType, LocalDate recordDate, String title, String note) {
+    public void update(Pet pet, CareRecordType recordType, LocalDate recordDate, String title, String note,
+                       VaccinationType vaccinationType) {
         this.pet = pet;
         this.recordType = recordType;
         this.recordDate = recordDate;
         this.title = title;
         this.note = note;
+        this.vaccinationType = vaccinationType;
+    }
+
+    public void updateVaccinationType(VaccinationType vaccinationType) {
+        this.vaccinationType = vaccinationType;
     }
 }

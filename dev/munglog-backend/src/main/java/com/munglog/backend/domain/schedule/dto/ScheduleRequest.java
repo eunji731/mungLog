@@ -19,4 +19,5 @@ public class ScheduleRequest {
     private List<String> symptomTags;
     private List<UUID> fileIds;
     private UUID inventoryItemId;
+    private Long vaccinationTypeId;
 }

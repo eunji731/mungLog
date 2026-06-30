@@ -22,6 +22,8 @@ import com.munglog.backend.domain.schedule.dto.ScheduleStreakResponse;
 import com.munglog.backend.domain.schedule.repository.ScheduleRepository;
 import com.munglog.backend.domain.symptom.service.SymptomService;
 import com.munglog.backend.domain.symptomsnap.service.SymptomSnapService;
+import com.munglog.backend.domain.vaccination.domain.VaccinationType;
+import com.munglog.backend.domain.vaccination.repository.VaccinationTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,7 @@ public class ScheduleService {
     private final SymptomService symptomService;
     private final SymptomSnapService symptomSnapService;
     private final InventoryItemRepository inventoryItemRepository;
+    private final VaccinationTypeRepository vaccinationTypeRepository;
 
     @Transactional(readOnly = true)
     public List<ScheduleResponse> getSchedules(UUID userId, UUID petId, String keyword) {
@@ -76,6 +79,7 @@ public class ScheduleService {
         Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
         InventoryItem linkedItem = resolveInventoryItem(request.getInventoryItemId(), userId);
+        VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
 
         Schedule schedule = scheduleRepository.save(Schedule.builder()
                 .pet(pet).user(member)
@@ -84,6 +88,7 @@ public class ScheduleService {
                 .title(request.getTitle()).memo(request.getMemo())
                 .location(request.getLocation())
                 .linkedInventoryItem(linkedItem)
+                .vaccinationType(vaccinationType)
                 .build());
 
         if (request.getSymptomTags() != null && !request.getSymptomTags().isEmpty()) {
@@ -99,9 +104,10 @@ public class ScheduleService {
         Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
         InventoryItem linkedItem = resolveInventoryItem(request.getInventoryItemId(), userId);
+        VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
 
         schedule.update(pet, ScheduleType.valueOf(request.getScheduleType()), request.getScheduleDate(),
-                request.getTitle(), request.getMemo(), request.getLocation(), linkedItem);
+                request.getTitle(), request.getMemo(), request.getLocation(), linkedItem, vaccinationType);
 
         if (request.getSymptomTags() != null) {
             symptomService.syncScheduleSymptoms(schedule.getId(), request.getSymptomTags());
@@ -144,13 +150,17 @@ public class ScheduleService {
             schedule.toggleCompletion();
         }
 
+        CareRecordType careRecordType = schedule.getScheduleType() == ScheduleType.VACCINATION
+                ? CareRecordType.VACCINATION : CareRecordType.HOSPITAL;
+
         CareRecord careRecord = careRecordRepository.save(CareRecord.builder()
                 .pet(schedule.getPet()).user(schedule.getUser())
-                .recordType(CareRecordType.HOSPITAL)
+                .recordType(careRecordType)
                 .recordDate(schedule.getScheduleDate() != null
                         ? schedule.getScheduleDate().toLocalDate() : null)
                 .title(schedule.getTitle()).note(schedule.getMemo())
                 .sourceScheduleId(schedule.getId())
+                .vaccinationType(schedule.getVaccinationType())
                 .build());
 
         medicalDetailRepository.save(MedicalDetail.builder()
@@ -259,6 +269,12 @@ public class ScheduleService {
         if (inventoryItemId == null) return null;
         return inventoryItemRepository.findByIdAndUserId(inventoryItemId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("재고 아이템을 찾을 수 없습니다."));
+    }
+
+    private VaccinationType resolveVaccinationType(Long vaccinationTypeId) {
+        if (vaccinationTypeId == null) return null;
+        return vaccinationTypeRepository.findById(vaccinationTypeId)
+                .orElseThrow(() -> new IllegalArgumentException("접종종류를 찾을 수 없습니다: " + vaccinationTypeId));
     }
 
     private Schedule findByIdAndUserId(UUID scheduleId, UUID userId) {

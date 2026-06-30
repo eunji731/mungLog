@@ -4,6 +4,7 @@ import com.munglog.backend.common.domain.BaseTimeEntity;
 import com.munglog.backend.domain.inventory.domain.InventoryItem;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.pet.domain.Pet;
+import com.munglog.backend.domain.vaccination.domain.VaccinationType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -56,8 +57,13 @@ public class Schedule extends BaseTimeEntity {
     @JoinColumn(name = "inventory_item_id")
     private InventoryItem linkedInventoryItem;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vaccination_type_id")
+    private VaccinationType vaccinationType;
+
     public void update(Pet pet, ScheduleType scheduleType, LocalDateTime scheduleDate,
-                       String title, String memo, String location, InventoryItem linkedInventoryItem) {
+                       String title, String memo, String location, InventoryItem linkedInventoryItem,
+                       VaccinationType vaccinationType) {
         this.pet = pet;
         this.scheduleType = scheduleType;
         this.scheduleDate = scheduleDate;
@@ -65,6 +71,7 @@ public class Schedule extends BaseTimeEntity {
         this.memo = memo;
         this.location = location;
         this.linkedInventoryItem = linkedInventoryItem;
+        this.vaccinationType = vaccinationType;
     }
 
     public void toggleCompletion() {

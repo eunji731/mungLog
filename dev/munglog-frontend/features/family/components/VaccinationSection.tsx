@@ -7,12 +7,17 @@ import {
 } from 'lucide-react';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import { useVaccinationRecords, VaccinationFormData } from '@/features/family/hooks/useVaccinationRecords';
+import { useVaccinationTypes } from '@/features/family/hooks/useVaccinationTypes';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { FileUploader } from '@/components/common/FileUploader';
 import { fileApi } from '@/api/fileApi';
 import { Spinner } from '@/components/common/Spinner';
 import { isImageFile, getFileExtension, getFileIcon } from '@/utils/fileUtils';
 import { getImagePath } from '@/lib/clientApi';
+import VaccinationTypeSelector from './VaccinationTypeSelector';
+import VaccinationDDayBadge from './VaccinationDDayBadge';
+import VaccinationSummaryCard from './VaccinationSummaryCard';
+import { calcVaccinationDDay } from '@/utils/vaccinationDDay';
 import type { FileItem } from '@/types/file';
 import type { CareRecord } from '@/types/care';
 
@@ -25,10 +30,12 @@ const EMPTY_FORM: VaccinationFormData = {
   recordDate: '',
   clinicName: '',
   note: '',
+  vaccinationTypeId: null,
 };
 
 const VaccinationSection: React.FC<VaccinationSectionProps> = ({ petId }) => {
-  const { records, isLoading, createVaccination } = useVaccinationRecords(petId);
+  const { records, summary, isLoading, createVaccination } = useVaccinationRecords(petId);
+  const { types, createType } = useVaccinationTypes();
   const fileUploader = useFileUpload('CARE_RECORD');
 
   const [showForm, setShowForm] = useState(false);
@@ -82,6 +89,11 @@ const VaccinationSection: React.FC<VaccinationSectionProps> = ({ petId }) => {
         )}
       </div>
 
+      {/* D-day 요약 카드 */}
+      {summary.length > 0 && !showForm && (
+        <VaccinationSummaryCard petId={petId} summary={summary} />
+      )}
+
       {/* 인라인 등록 폼 */}
       {showForm && (
         <div className="bg-zinc-50 border border-border rounded-2xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -92,17 +104,17 @@ const VaccinationSection: React.FC<VaccinationSectionProps> = ({ petId }) => {
             </button>
           </div>
 
-          {/* 접종명 */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-text-sub uppercase tracking-widest">접종명 *</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="예: 종합백신 5종, 광견병"
-              className="w-full px-3 py-2.5 bg-background border border-border/80 rounded-xl text-sm font-medium text-foreground placeholder:text-text-sub/40 focus:border-main-green focus:ring-2 focus:ring-main-green/10 outline-none transition-all"
-            />
-          </div>
+          {/* 접종종류 선택기 */}
+          <VaccinationTypeSelector
+            types={types}
+            value={form.vaccinationTypeId ?? null}
+            inputTitle={form.title}
+            onChange={(typeId, typeName) =>
+              setForm(f => ({ ...f, vaccinationTypeId: typeId, title: typeName || f.title }))
+            }
+            onInputTitleChange={title => setForm(f => ({ ...f, title }))}
+            onCreateType={createType}
+          />
 
           {/* 접종일 */}
           <TimelineDatePicker
@@ -132,7 +144,7 @@ const VaccinationSection: React.FC<VaccinationSectionProps> = ({ petId }) => {
               rows={2}
               value={form.note}
               onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-              placeholder="특이사항, 다음 접종 예정 등"
+              placeholder="특이사항 등"
               className="w-full px-3 py-2.5 bg-background border border-border/80 rounded-xl text-sm font-medium text-foreground placeholder:text-text-sub/40 focus:border-main-green focus:ring-2 focus:ring-main-green/10 outline-none transition-all resize-none"
             />
           </div>
@@ -241,9 +253,14 @@ const VaccinationRecordItem: React.FC<{ record: CareRecord }> = ({ record }) => 
     }
   };
 
+  // 이 레코드의 D-day 계산 (접종 주기 있는 경우만)
+  const dDayInfo = record.vaccinationIntervalDays
+    ? calcVaccinationDDay(record.recordDate, record.vaccinationIntervalDays)
+    : null;
+
   return (
     <div className="bg-zinc-50 border border-border/60 rounded-xl overflow-hidden">
-      {/* 헤더 (클릭 → 펼치기) */}
+      {/* 헤더 */}
       <button
         onClick={() => setExpanded(v => !v)}
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-100 transition-all text-left"
@@ -253,7 +270,12 @@ const VaccinationRecordItem: React.FC<{ record: CareRecord }> = ({ record }) => 
             <Syringe className="w-3.5 h-3.5 text-main-green" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-black text-foreground truncate">{record.title}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-black text-foreground truncate">
+                {record.vaccinationTypeName || record.title}
+              </p>
+              {dDayInfo && <VaccinationDDayBadge dDayInfo={dDayInfo} size="xs" />}
+            </div>
             <p className="text-[11px] text-text-sub font-medium mt-0.5">{record.recordDate}</p>
           </div>
         </div>
@@ -274,10 +296,24 @@ const VaccinationRecordItem: React.FC<{ record: CareRecord }> = ({ record }) => 
       {/* 펼침 내용 */}
       {expanded && (
         <div className="px-4 pb-4 space-y-3 border-t border-border/40 pt-3 animate-in fade-in duration-150">
-          {/* 텍스트 상세 */}
+          {/* 접종종류 정보 */}
+          {record.vaccinationTypeName && record.vaccinationTypeName !== record.title && (
+            <DetailRow label="입력명" value={record.title} />
+          )}
+          {record.vaccinationIntervalDays && (
+            <DetailRow
+              label="접종주기"
+              value={record.vaccinationIntervalDays >= 365
+                ? `${record.vaccinationIntervalDays / 365}년마다`
+                : `${record.vaccinationIntervalDays}일마다`}
+            />
+          )}
+          {dDayInfo?.nextDueDate && (
+            <DetailRow label="다음 접종" value={dDayInfo.nextDueDate} />
+          )}
           {record.clinicName && <DetailRow label="동물병원" value={record.clinicName} />}
           {record.note        && <DetailRow label="메모"     value={record.note} />}
-          {!record.clinicName && !record.note && (
+          {!record.clinicName && !record.note && !record.vaccinationIntervalDays && (
             <p className="text-xs text-text-sub/60 font-medium">추가 정보가 없습니다.</p>
           )}
 
@@ -354,8 +390,6 @@ const FileThumb: React.FC<{ file: FileItem; onDelete: () => void }> = ({ file, o
           </span>
         </div>
       )}
-
-      {/* 삭제 버튼 */}
       <button
         onClick={e => { e.stopPropagation(); onDelete(); }}
         className="absolute top-1 right-1 w-5 h-5 bg-stone-900/75 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 z-10"
@@ -363,8 +397,6 @@ const FileThumb: React.FC<{ file: FileItem; onDelete: () => void }> = ({ file, o
       >
         <X className="w-2.5 h-2.5" />
       </button>
-
-      {/* 이미지: 클릭 시 새 탭 열기 */}
       {isImage && (
         <a
           href={getImagePath(file.fileUrl)}

@@ -12,6 +12,8 @@ import { useCareRecordForm } from '../hooks/useCareRecordForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { symptomSnapApi } from '@/api/symptomSnapApi';
+import { useVaccinationTypes } from '@/features/family/hooks/useVaccinationTypes';
+import VaccinationTypeSelector from '@/features/family/components/VaccinationTypeSelector';
 import type { SymptomSnap } from '../components/SymptomSnapboard';
 
 interface CareRecordFormPageProps {
@@ -35,6 +37,7 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
 
   const {
     recordTypeId, setRecordTypeId,
+    vaccinationTypeId, setVaccinationTypeId,
     commonData, setCommonData,
     medicalData, setMedicalData,
     expenseData, setExpenseData,
@@ -45,14 +48,17 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
     pendingSnapId, setPendingSnapId
   } = useCareRecordForm(id, { prefillDate, onSaveSuccess });
 
+  const { types: vaccinationTypes, createType: createVaccinationType } = useVaccinationTypes();
+
   const { codes: allRecordTypes } = useCommonCodes('RECORD_TYPE');
   const recordTypes = allRecordTypes.filter(t => t.code !== 'MEMO');
 
-  const isMedicalSelected = React.useMemo(() => {
-    const activeType = recordTypes.find(t => t.id === recordTypeId);
-    if (!activeType) return true;
-    return isMedicalRecordType(activeType.code);
-  }, [recordTypeId, recordTypes]);
+  const activeTypeCode = React.useMemo(
+    () => recordTypes.find(t => t.id === recordTypeId)?.code ?? null,
+    [recordTypeId, recordTypes]
+  );
+  const isMedicalSelected = activeTypeCode ? isMedicalRecordType(activeTypeCode) : true;
+  const isVaccinationSelected = activeTypeCode === 'VACCINATION';
 
   // 증상 스냅 연동 상태
   const [linkedSnap, setLinkedSnap] = useState<SymptomSnap | null>(null);
@@ -187,6 +193,23 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
 
           {/* 공통 정보 */}
           <CommonInfoForm data={commonData} onChange={setCommonData} isEmbedded={isEmbedded} />
+
+          {/* 예방접종 종류 선택 (VACCINATION 선택 시만) */}
+          {isVaccinationSelected && (
+            <Section title="접종종류" description="어떤 예방접종인지 선택하거나 추가해 주세요." variant={isEmbedded ? 'flat' : 'default'} overflowVisible={true}>
+              <VaccinationTypeSelector
+                types={vaccinationTypes}
+                value={vaccinationTypeId}
+                inputTitle={commonData.title}
+                onChange={(typeId, typeName) => {
+                  setVaccinationTypeId(typeId);
+                  if (typeName) setCommonData(prev => ({ ...prev, title: typeName }));
+                }}
+                onInputTitleChange={title => setCommonData(prev => ({ ...prev, title }))}
+                onCreateType={createVaccinationType}
+              />
+            </Section>
+          )}
 
           {/* 조건부 상세 폼 (평면 구조 유지) */}
           <div className={`border-t border-border ${isEmbedded ? 'pt-3' : 'pt-6'}`}>

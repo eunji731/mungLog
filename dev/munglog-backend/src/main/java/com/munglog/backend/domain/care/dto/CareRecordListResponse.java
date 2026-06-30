@@ -20,7 +20,10 @@ public record CareRecordListResponse(
         int attachmentCount,
         BigDecimal amount,
         UUID relatedMedicalRecordId,
-        String medicationStatus
+        String medicationStatus,
+        Long vaccinationTypeId,
+        String vaccinationTypeName,
+        Integer vaccinationIntervalDays
 ) {
     public static CareRecordListResponse from(CareRecord record, int attachmentCount) {
         BigDecimal amount = null;
@@ -29,7 +32,7 @@ public record CareRecordListResponse(
 
         if (record.getMedicalDetail() != null) {
             amount = record.getMedicalDetail().getAmount();
-            if (record.getMedicalDetail().getMedicationStartDate() != null || 
+            if (record.getMedicalDetail().getMedicationStartDate() != null ||
                 (record.getMedicalDetail().getMedicationDays() != null && record.getMedicalDetail().getMedicationDays() > 0)) {
                 medicationStatus = Boolean.TRUE.equals(record.getMedicalDetail().getIsMedicationCompleted())
                         ? "COMPLETED" : "IN_PROGRESS";
@@ -40,6 +43,7 @@ public record CareRecordListResponse(
             relatedMedicalRecordId = record.getExpenseDetail().getRelatedMedicalRecordId();
         }
 
+        var vt = record.getVaccinationType();
         return CareRecordListResponse.builder()
                 .id(record.getId())
                 .petId(record.getPet().getId())
@@ -52,6 +56,9 @@ public record CareRecordListResponse(
                 .amount(amount)
                 .relatedMedicalRecordId(relatedMedicalRecordId)
                 .medicationStatus(medicationStatus)
+                .vaccinationTypeId(vt != null ? vt.getId() : null)
+                .vaccinationTypeName(vt != null ? vt.getName() : null)
+                .vaccinationIntervalDays(vt != null ? vt.getIntervalDays() : null)
                 .build();
     }
 }

@@ -18,6 +18,7 @@ public class CareRecordCreateRequest {
     private String note;
     private UUID sourceScheduleId;
     private List<UUID> fileIds;
+    private Long vaccinationTypeId;
     private MedicalDetailRequest medicalDetail;
     private ExpenseDetailRequest expenseDetail;
 

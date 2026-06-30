@@ -18,6 +18,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
   const { codes: recordTypes } = useCommonCodes('RECORD_TYPE');
 
   const [recordTypeId, setRecordTypeId] = useState<number>(0);
+  const [vaccinationTypeId, setVaccinationTypeId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(!!id);
   const [fromScheduleId, setFromScheduleId] = useState<string | null>(null);
@@ -69,6 +70,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
         if (!record) return;
 
         setRecordTypeId(record.recordTypeId || 0);
+        setVaccinationTypeId(record.vaccinationTypeId ?? null);
         setCommonData({
           dogId: (record.dogId || '').toString(),
           recordDate: record.recordDate || new Date().toISOString().split('T')[0],
@@ -164,6 +166,10 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
         fileUploader.setInitialFiles(prefillData.files);
       }
 
+      if (prefillData.vaccinationTypeId) {
+        setVaccinationTypeId(Number(prefillData.vaccinationTypeId));
+      }
+
       if (prefillData.fromScheduleId) {
         setFromScheduleId(String(prefillData.fromScheduleId));
       }
@@ -212,6 +218,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
         title: commonData.title.trim(),
         note: commonData.note.trim() || undefined,
         sourceScheduleId: fromScheduleId,
+        vaccinationTypeId: vaccinationTypeId ?? null,
         medicalDetails: isMedical ? {
           clinicName: medicalData.clinicName.trim() || undefined,
           symptoms: medicalData.symptoms.trim() || undefined,
@@ -273,6 +280,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
 
   return {
     recordTypeId, setRecordTypeId,
+    vaccinationTypeId, setVaccinationTypeId,
     commonData, setCommonData,
     medicalData, setMedicalData,
     expenseData, setExpenseData,

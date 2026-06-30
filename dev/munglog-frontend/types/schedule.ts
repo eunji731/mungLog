@@ -21,6 +21,9 @@ export interface Schedule {
   inventoryItemName?: string;
   inventoryItemStock?: number;
   convertedCareRecordId?: string | null;
+  vaccinationTypeId?: number | null;
+  vaccinationTypeName?: string | null;
+  vaccinationIntervalDays?: number | null;
 }
 
 export interface ScheduleFilters {
@@ -67,4 +70,5 @@ export interface ScheduleCreateRequest {
   symptomTags?: string[];
   fileIds?: Array<string | number>;
   inventoryItemId?: string;
+  vaccinationTypeId?: number | null;
 }

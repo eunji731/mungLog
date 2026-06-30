@@ -16,6 +16,8 @@ import com.munglog.backend.domain.pet.domain.Pet;
 import com.munglog.backend.domain.pet.repository.PetRepository;
 import com.munglog.backend.domain.symptom.service.SymptomService;
 import com.munglog.backend.domain.symptomsnap.service.SymptomSnapService;
+import com.munglog.backend.domain.vaccination.domain.VaccinationType;
+import com.munglog.backend.domain.vaccination.repository.VaccinationTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,7 @@ public class CareService {
     private final AttachedFileService attachedFileService;
     private final SymptomService symptomService;
     private final SymptomSnapService symptomSnapService;
+    private final VaccinationTypeRepository vaccinationTypeRepository;
 
     @Transactional(readOnly = true)
     public List<CareRecordListResponse> getRecords(UUID userId, UUID petId, String keyword) {
@@ -88,12 +91,15 @@ public class CareService {
         Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
 
+        VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
+
         CareRecord record = careRecordRepository.save(CareRecord.builder()
                 .pet(pet).user(member)
                 .recordType(CareRecordType.valueOf(request.getRecordType()))
                 .recordDate(request.getRecordDate())
                 .title(request.getTitle()).note(request.getNote())
                 .sourceScheduleId(request.getSourceScheduleId())
+                .vaccinationType(vaccinationType)
                 .build());
 
         saveMedicalDetail(record, request);
@@ -115,8 +121,9 @@ public class CareService {
         Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
 
+        VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
         record.update(pet, CareRecordType.valueOf(request.getRecordType()), request.getRecordDate(),
-                request.getTitle(), request.getNote());
+                request.getTitle(), request.getNote(), vaccinationType);
 
         saveMedicalDetail(record, request);
         saveExpenseDetail(record, request);
@@ -169,6 +176,12 @@ public class CareService {
                     .relatedMedicalRecordId(req.getRelatedMedicalRecordId())
                     .build());
         }
+    }
+
+    private VaccinationType resolveVaccinationType(Long vaccinationTypeId) {
+        if (vaccinationTypeId == null) return null;
+        return vaccinationTypeRepository.findById(vaccinationTypeId)
+                .orElseThrow(() -> new IllegalArgumentException("접종종류를 찾을 수 없습니다: " + vaccinationTypeId));
     }
 
     private CareRecord findByIdAndUserId(UUID recordId, UUID userId) {

@@ -12,6 +12,9 @@ import { useScheduleForm } from '../hooks/useScheduleForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { FileUploader } from '@/components/common/FileUploader';
 import { symptomSnapApi } from '@/api/symptomSnapApi';
+import { useVaccinationTypes } from '@/features/family/hooks/useVaccinationTypes';
+import VaccinationTypeSelector from '@/features/family/components/VaccinationTypeSelector';
+import { SCHEDULE_TYPE_CODES } from '@/lib/codeGroups';
 import type { SymptomSnap } from '@/features/care-records/components/SymptomSnapboard';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import TimelineTimePicker from '@/features/care-records/components/TimelineTimePicker';
@@ -50,6 +53,10 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
   } = useScheduleForm(id, { prefillDate, onSaveSuccess });
 
   const { codes: scheduleTypes } = useCommonCodes('SCHEDULE_TYPE');
+  const { types: vaccinationTypes, createType: createVaccinationType } = useVaccinationTypes();
+
+  const VACCINATION_SCHEDULE_TYPE_ID = SCHEDULE_TYPE_CODES.find(c => c.code === 'VACCINATION')?.id ?? 3;
+  const isVaccinationSelected = formData.scheduleTypeId === VACCINATION_SCHEDULE_TYPE_ID;
 
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const titleFieldRef = useRef<HTMLDivElement>(null);
@@ -147,6 +154,26 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
               />
             </div>
           </Section>
+
+          {/* 예방접종 종류 선택 (VACCINATION 선택 시만) */}
+          {isVaccinationSelected && (
+            <Section title="접종종류" description="어떤 예방접종 일정인지 선택하거나 추가해 주세요." overflowVisible={true}>
+              <VaccinationTypeSelector
+                types={vaccinationTypes}
+                value={formData.vaccinationTypeId}
+                inputTitle={formData.title}
+                onChange={(typeId, typeName) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    vaccinationTypeId: typeId,
+                    title: typeName || prev.title,
+                  }));
+                }}
+                onInputTitleChange={title => setFormData(prev => ({ ...prev, title }))}
+                onCreateType={createVaccinationType}
+              />
+            </Section>
+          )}
 
           <Section title="상세 일정" description="언제, 어디서, 어떤 활동을 계획하시나요?" overflowVisible={true}>
             <div className="space-y-4">

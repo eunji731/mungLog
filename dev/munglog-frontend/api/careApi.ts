@@ -14,6 +14,9 @@ interface BackendCareListItem {
   amount?: number | null;
   relatedMedicalRecordId?: string | null;
   medicationStatus?: 'COMPLETED' | 'IN_PROGRESS' | null;
+  vaccinationTypeId?: number | null;
+  vaccinationTypeName?: string | null;
+  vaccinationIntervalDays?: number | null;
 }
 
 interface BackendCareDetail extends Omit<BackendCareListItem, 'attachmentCount' | 'amount' | 'relatedMedicalRecordId' | 'medicationStatus'> {
@@ -63,6 +66,9 @@ function mapListItem(raw: BackendCareListItem): CareRecord {
     relatedMedicalRecordId: raw.relatedMedicalRecordId ?? null,
     medicationStatus: raw.medicationStatus === 'IN_PROGRESS' ? 'ACTIVE' : raw.medicationStatus === 'COMPLETED' ? 'COMPLETED' : 'NONE',
     attachmentCount: raw.attachmentCount,
+    vaccinationTypeId: raw.vaccinationTypeId ?? null,
+    vaccinationTypeName: raw.vaccinationTypeName ?? null,
+    vaccinationIntervalDays: raw.vaccinationIntervalDays ?? null,
   };
 }
 
@@ -95,6 +101,9 @@ function mapDetail(raw: BackendCareDetail): CareRecord {
     relatedMedicalRecordId: exp?.relatedMedicalRecordId ?? null,
     relatedMedicalRecord: exp?.relatedMedicalRecord || (exp as any)?.related_medical_record || (raw as any).relatedMedicalRecord || (raw as any).related_medical_record || null,
     attachmentCount: raw.attachments?.length || 0,
+    vaccinationTypeId: (raw as any).vaccinationTypeId ?? null,
+    vaccinationTypeName: (raw as any).vaccinationTypeName ?? null,
+    vaccinationIntervalDays: (raw as any).vaccinationIntervalDays ?? null,
   };
 }
 
@@ -190,5 +199,6 @@ function toCarePayload(payload: CareRecordCreateRequest) {
       memo: expense.memo,
       relatedMedicalRecordId: expense.relatedMedicalRecordId || null,
     } : null,
+    vaccinationTypeId: payload.vaccinationTypeId ?? null,
   };
 }

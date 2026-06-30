@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { careApi } from '@/api/careApi';
 import { RECORD_TYPE_CODES } from '@/lib/codeGroups';
+import { buildVaccinationSummary } from '@/utils/vaccinationDDay';
 import type { CareRecord, CareRecordCreateRequest } from '@/types/care';
+import type { VaccinationSummaryItem } from '@/types/vaccination';
 
 const VACCINATION_TYPE_ID = RECORD_TYPE_CODES.find(c => c.code === 'VACCINATION')?.id ?? 4;
 
@@ -10,6 +12,7 @@ export interface VaccinationFormData {
   recordDate: string;
   clinicName: string;
   note: string;
+  vaccinationTypeId?: number | null;
 }
 
 export const useVaccinationRecords = (petId: string) => {
@@ -23,7 +26,7 @@ export const useVaccinationRecords = (petId: string) => {
       const list = await careApi.getRecords({ petId, type: 'VACCINATION' });
       const sorted = [...list].sort((a, b) => b.recordDate.localeCompare(a.recordDate));
 
-      // clinicName은 상세 API에서만 제공되므로 병렬로 가져옴
+      // clinicName은 상세 API에서만 제공
       const detailed = await Promise.all(
         sorted.map(r => careApi.getRecordDetail(r.id).catch(() => r))
       );
@@ -40,6 +43,8 @@ export const useVaccinationRecords = (petId: string) => {
     fetchRecords();
   }, [fetchRecords]);
 
+  const summary: VaccinationSummaryItem[] = buildVaccinationSummary(records);
+
   const createVaccination = async (data: VaccinationFormData): Promise<CareRecord> => {
     const payload: CareRecordCreateRequest = {
       petId,
@@ -47,6 +52,7 @@ export const useVaccinationRecords = (petId: string) => {
       recordDate: data.recordDate,
       title: data.title.trim(),
       note: data.note.trim() || undefined,
+      vaccinationTypeId: data.vaccinationTypeId ?? null,
       medicalDetails: data.clinicName.trim()
         ? { clinicName: data.clinicName.trim() }
         : null,
@@ -56,5 +62,5 @@ export const useVaccinationRecords = (petId: string) => {
     return saved;
   };
 
-  return { records, isLoading, refetch: fetchRecords, createVaccination };
+  return { records, summary, isLoading, refetch: fetchRecords, createVaccination };
 };

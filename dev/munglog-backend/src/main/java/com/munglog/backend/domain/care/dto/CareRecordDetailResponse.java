@@ -19,6 +19,9 @@ public record CareRecordDetailResponse(
         LocalDate recordDate,
         String title,
         String note,
+        Long vaccinationTypeId,
+        String vaccinationTypeName,
+        Integer vaccinationIntervalDays,
         MedicalDetailDto medicalDetail,
         ExpenseDetailDto expenseDetail,
         List<FileResponse> attachments
@@ -91,10 +94,14 @@ public record CareRecordDetailResponse(
                     .build();
         }
 
+        var vt = record.getVaccinationType();
         return CareRecordDetailResponse.builder()
                 .id(record.getId()).petId(record.getPet().getId())
                 .petName(record.getPet().getName()).recordType(record.getRecordType())
                 .recordDate(record.getRecordDate()).title(record.getTitle()).note(record.getNote())
+                .vaccinationTypeId(vt != null ? vt.getId() : null)
+                .vaccinationTypeName(vt != null ? vt.getName() : null)
+                .vaccinationIntervalDays(vt != null ? vt.getIntervalDays() : null)
                 .medicalDetail(medDto).expenseDetail(expDto).attachments(attachments)
                 .build();
     }
