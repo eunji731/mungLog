@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -170,7 +170,7 @@ export default function InventoryListPage() {
                     )}
 
                     {/* Status Badges */}
-                    <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    <div className="absolute top-4 left-4 flex flex-col items-start gap-2">
                       <span className={`px-3 py-1.5 bg-background/90 backdrop-blur-md text-[10px] font-black rounded-full shadow-sm ${
                         item.category === 'FOOD' ? 'text-orange-500' :
                         item.category === 'SNACK' ? 'text-amber-500' :
