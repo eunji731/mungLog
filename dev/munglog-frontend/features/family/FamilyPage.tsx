@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp, FileText } from 'lucide-react';
+import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp, IdCard, ShieldCheck } from 'lucide-react';
 import { usePet, PetProfile, PetFormData } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/lib/clientApi';
 import { useToast } from '@/app/common/hooks/useToast';
@@ -404,9 +404,9 @@ export default function FamilyPage() {
                 <div className="grid grid-cols-3 sm:flex gap-2.5 w-full sm:w-auto self-stretch sm:self-auto shrink-0">
                   <button
                     onClick={(e) => handleOpenRegistrationModal(e, viewingPet.id)}
-                    className="px-4 py-2.5 bg-zinc-50 hover:bg-zinc-100 text-text-sub border border-border/80 font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs shadow-sm hover:border-main-green hover:text-main-green"
+                    className="px-4 py-2.5 bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-100/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/30 font-black rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs shadow-sm active:scale-95"
                   >
-                    <FileText className="w-3.5 h-3.5" /> 동물등록증
+                    <IdCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> 동물등록증
                   </button>
                   <button
                     onClick={(e) => handleEditClick(e, viewingPet)}
@@ -466,7 +466,7 @@ export default function FamilyPage() {
                       </div>
                       <button
                         onClick={(e) => handleOpenRegistrationModal(e, viewingPet.id)}
-                        className="px-3 py-1.5 rounded-lg border border-border/80 bg-white hover:border-main-green hover:text-main-green text-text-sub text-[11px] font-bold transition-all shadow-sm shrink-0"
+                        className="px-3 py-1.5 rounded-lg border border-emerald-200/60 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-700 text-[11px] font-black transition-all shadow-sm shrink-0 active:scale-95"
                       >
                         등록증 보기
                       </button>
@@ -523,52 +523,65 @@ export default function FamilyPage() {
                     setViewingPet(pet);
                     setIsAdding(false);
                   }}
-                  className="group bg-background rounded-2xl border border-border/80 p-6 flex items-center gap-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                  className="group bg-background rounded-2xl border border-border/80 p-6 flex items-start gap-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                 >
+                  {/* 프로필 이미지 */}
                   <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-md shrink-0 bg-zinc-100">
                     <Image src={getImagePath(pet.photo, 'profiles')} alt={pet.name} fill className="object-cover" />
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
+                  {/* 본문 전체 영역 (가로 꽉 차게 w-full flex-1) */}
+                  <div className="flex-1 min-w-0 w-full space-y-3">
+                    {/* 첫째 줄: 이름/성별/액션(좌)과 동물등록증 버튼(우측 끝 정렬) */}
+                    <div className="flex items-center justify-between gap-4 mb-1">
                       <div className="flex items-center gap-2 min-w-0">
                         <h3 className="text-xl font-black text-text-main truncate">{pet.name}</h3>
                         <span className={`shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black text-white ${pet.gender === 'MALE' ? 'bg-blue-500' : 'bg-pink-500'}`}>
                           {pet.gender === 'MALE' ? '남아' : '여아'}
                         </span>
+                        
+                        {/* 수정 / 삭제 미니 버튼 그룹 (성별 뱃지 바로 옆으로 이동, 호버 시 은은하게 노출) */}
+                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 shrink-0 ml-1">
+                          <button
+                            onClick={(e) => handleRemovePet(e, pet.id, pet.name)}
+                            className="p-1.5 text-text-sub hover:text-red-500 hover:bg-zinc-50 rounded-lg shrink-0 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => handleEditClick(e, pet)}
+                            className="p-1.5 text-text-sub hover:text-main-green hover:bg-zinc-50 rounded-lg shrink-0 transition-colors"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* 동물등록증 버튼 (우측 상단 끝 정렬) */}
                         <button
-                          onClick={(e) => handleEditClick(e, pet)}
-                          className="p-2 text-text-sub hover:text-main-green opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-zinc-50 rounded-lg"
+                          onClick={(e) => handleOpenRegistrationModal(e, pet.id)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-emerald-200/60 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50 text-emerald-700 dark:text-emerald-400 text-[11px] font-black tracking-tight transition-all shadow-sm hover:shadow active:scale-95 shrink-0"
                         >
-                          <Sparkles className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => handleRemovePet(e, pet.id, pet.name)}
-                          className="p-2 text-text-sub hover:text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-zinc-50 rounded-lg"
-                        >
-                          <Trash2 className="w-4 h-4" />
+                          <IdCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span className="hidden sm:inline">동물등록증</span>
+                          {pet.registrationNumber ? (
+                            <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          ) : (
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+                          )}
                         </button>
                       </div>
                     </div>
-                    <div className="text-xs font-bold text-text-sub mb-3">
+
+                    {/* 둘째 줄: 품종 및 생년월일 */}
+                    <div className="text-xs font-bold text-text-sub">
                       {pet.breed} · {calculateAge(pet.birthDate)} ({pet.birthDate})
                       {pet.weightKg && ` · ${pet.weightKg}kg`}
                     </div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <button
-                        onClick={(e) => handleOpenRegistrationModal(e, pet.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-zinc-50 hover:border-main-green hover:text-main-green text-text-sub text-[11px] font-bold transition-all"
-                      >
-                        <FileText className="w-3.5 h-3.5 shrink-0" />
-                        동물등록증
-                        {pet.registrationNumber && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-main-green shrink-0" />
-                        )}
-                      </button>
-                    </div>
-                    <div className="bg-zinc-50 p-3 rounded-xl border border-border/60">
+
+                    {/* 셋째 줄: 특징 (우측 정렬선과 완벽히 맞추어 꽉 참) */}
+                    <div className="bg-zinc-50 p-3 rounded-xl border border-border/60 w-full">
                       <p className="text-[11px] text-text-sub font-medium line-clamp-2 italic leading-relaxed">
                         &quot;{pet.traits || '등록된 특징이 없습니다. AI를 위해 입력해 주세요!'}&quot;
                       </p>
