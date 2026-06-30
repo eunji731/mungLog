@@ -245,7 +245,16 @@ export default function InventoryEditPage() {
       });
 
       if (res.data) {
-        updateItem(res.data);
+        let finalItem = res.data;
+        if (isFeeding !== res.data.isFeeding) {
+          try {
+            const toggleRes = await apiClient.patch(`/inventory/${id}/feeding`);
+            if (toggleRes.data) {
+              finalItem = { ...finalItem, isFeeding: toggleRes.data.isFeeding };
+            }
+          } catch {}
+        }
+        updateItem(finalItem);
       }
 
       success('수정이 완료되었습니다! ✨');

@@ -192,7 +192,16 @@ export default function InventoryRegisterPage() {
 
       const createdItem = res.data;
       if (createdItem) {
-        addItem(createdItem);
+        if (isFeeding !== createdItem.isFeeding) {
+          try {
+            await apiClient.patch(`/inventory/${createdItem.id}/feeding`);
+            addItem({ ...createdItem, isFeeding });
+          } catch {
+            addItem(createdItem);
+          }
+        } else {
+          addItem(createdItem);
+        }
       } else {
         const newItem: InventoryItem = {
           id: Date.now().toString(36) + Math.random().toString(36).substring(2),
