@@ -65,6 +65,9 @@ public class Pet extends BaseTimeEntity {
     @Column(name = "diary_tone")
     private String diaryTone;
 
+    @Column(name = "registration_number", length = 20)
+    private String registrationNumber;
+
     @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -81,7 +84,8 @@ public class Pet extends BaseTimeEntity {
 
     public void updateAll(String name, String breed, LocalDate birthDate, LocalDate adoptionDate,
                           Gender gender, BigDecimal weightKg, String profileImagePath,
-                          String personality, String appearance, String likes, String dislikes, String diaryTone) {
+                          String personality, String appearance, String likes, String dislikes,
+                          String diaryTone, String registrationNumber) {
         update(name, breed, birthDate, adoptionDate, gender, weightKg);
         if (profileImagePath != null) this.profileImagePath = profileImagePath;
         this.personality = personality;
@@ -89,6 +93,8 @@ public class Pet extends BaseTimeEntity {
         this.likes = likes;
         this.dislikes = dislikes;
         this.diaryTone = diaryTone;
+        this.registrationNumber = (registrationNumber != null && !registrationNumber.isBlank())
+                ? registrationNumber.trim() : null;
     }
 
     public void delete() {

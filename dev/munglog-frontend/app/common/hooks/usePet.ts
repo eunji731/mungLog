@@ -18,6 +18,7 @@ export interface PetProfile {
   likes?: string;
   dislikes?: string;
   diaryTone?: string;
+  registrationNumber?: string;
   isActive: boolean;
   addedAt: string;
 }

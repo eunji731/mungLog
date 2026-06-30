@@ -45,6 +45,9 @@ public class PetService {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        String regNum = (request.getRegistrationNumber() != null && !request.getRegistrationNumber().isBlank())
+                ? request.getRegistrationNumber().trim() : null;
+
         Pet pet = Pet.builder()
                 .user(member)
                 .name(request.getName())
@@ -58,6 +61,7 @@ public class PetService {
                 .likes(request.getLikes())
                 .dislikes(request.getDislikes())
                 .diaryTone(request.getDiaryTone())
+                .registrationNumber(regNum)
                 .build();
 
         pet = petRepository.save(pet);
@@ -82,7 +86,8 @@ public class PetService {
         pet.updateAll(request.getName(), request.getBreed(), request.getBirthDate(),
                 request.getAdoptionDate(), request.getGender(), request.getWeightKg(),
                 profileImagePath, request.getTraits(), request.getAppearance(),
-                request.getLikes(), request.getDislikes(), request.getDiaryTone());
+                request.getLikes(), request.getDislikes(), request.getDiaryTone(),
+                request.getRegistrationNumber());
 
         petRepository.save(pet);
         return PetResponse.from(pet, resolvePhotoUrl(pet));

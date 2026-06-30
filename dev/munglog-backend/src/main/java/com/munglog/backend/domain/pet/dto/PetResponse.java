@@ -22,7 +22,8 @@ public record PetResponse(
         String appearance,
         String likes,
         String dislikes,
-        String diaryTone
+        String diaryTone,
+        String registrationNumber
 ) {
     public static PetResponse from(Pet pet, String photoUrl) {
         return PetResponse.builder()
@@ -39,6 +40,7 @@ public record PetResponse(
                 .likes(pet.getLikes())
                 .dislikes(pet.getDislikes())
                 .diaryTone(pet.getDiaryTone())
+                .registrationNumber(pet.getRegistrationNumber())
                 .build();
     }
 }

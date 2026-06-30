@@ -21,4 +21,5 @@ public class PetRequest {
     private String likes;
     private String dislikes;
     private String diaryTone;
+    private String registrationNumber;
 }
