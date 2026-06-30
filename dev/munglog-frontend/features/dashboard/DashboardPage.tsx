@@ -17,6 +17,7 @@ import AiLocationCard from './components/AiLocationCard';
 import CareHubCard from './components/CareHubCard';
 import AssetHubCard from './components/AssetHubCard';
 import InventoryAlertCard from './components/InventoryAlertCard';
+import VaccinationCard from './components/VaccinationCard';
 import StreaksCard from './components/StreaksCard';
 import Skeleton from './components/Skeleton';
 
@@ -123,6 +124,10 @@ export default function DashboardPage() {
                   <InventoryAlertCard />
                 </div>
               </div>
+            </div>
+
+            <div className="w-full">
+              <VaccinationCard />
             </div>
 
             <div className="w-full">

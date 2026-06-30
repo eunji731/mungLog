@@ -515,7 +515,16 @@ export default function FamilyPage() {
 
           {/* 3) Pet List */}
           {!isAdding && !viewingPet && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+            <div className="space-y-6 animate-in fade-in duration-300">
+              {/* 안내 문구 */}
+              <div className="flex items-start gap-2.5 p-4 bg-background dark:bg-zinc-900 border border-border/80 rounded-[20px] select-none shadow-sm">
+                <Info className="w-4.5 h-4.5 text-main-green shrink-0 mt-0.5" />
+                <div className="text-[11.5px] sm:text-xs font-semibold text-text-sub leading-relaxed">
+                  예방접종 일정 및 접종 주기는 <span className="text-main-green font-black">케어기록</span>을 등록하거나, 각 반려동물의 <span className="text-main-green font-black">동물등록증</span> 뒷면(카드를 클릭해 회전)에서 확인하고 등록/수정하실 수 있습니다.
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {pets.map(pet => (
                 <div
                   key={pet.id}
@@ -599,6 +608,7 @@ export default function FamilyPage() {
                   <p className="text-text-sub mt-2 font-medium">우리 아이의 정보를 먼저 등록해 주세요!</p>
                 </div>
               )}
+              </div>
             </div>
           )}
 
