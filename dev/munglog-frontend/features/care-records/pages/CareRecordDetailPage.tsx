@@ -41,8 +41,9 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
       const snaps = await symptomSnapApi.getSnaps(petId ? { petId } : {});
       const linked = snaps.find(s => s.resolvedRecordId === recordId);
       setLinkedSnap(linked || null);
-      const available = snaps.filter(
-        s => s.status === 'MONITORING' && s.resolvedRecordId !== recordId
+      // 케어기록 연동 기준으로 필터 (일정 연동 여부와 무관)
+      const available = snaps.filter(s =>
+        !s.resolvedRecordId || s.resolvedRecordId === recordId
       );
       setAvailableSnaps(available);
     } catch (e) {
@@ -387,7 +388,15 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
                   <ArrowLeft className="w-3.5 h-3.5" /> 목록으로
                 </button>
 
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 flex-wrap justify-end">
+                  {linkedSnap?.linkedScheduleId && (
+                    <button
+                      onClick={() => router.push(`/schedules/${linkedSnap.linkedScheduleId}`)}
+                      className="px-5 h-[48px] rounded-full border border-main-green/30 text-main-green hover:bg-main-green/5 hover:border-main-green/60 transition-all font-black text-[13px] active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      📅 연동된 일정 보기
+                    </button>
+                  )}
                   <button
                     onClick={() => setIsDeleteModalOpen(true)}
                     className="px-5 h-[48px] rounded-full border border-border text-text-sub hover:text-red-500 hover:border-red-200/50 hover:bg-red-500/5 transition-all font-black text-[13px] active:scale-95 flex items-center gap-1.5 cursor-pointer"

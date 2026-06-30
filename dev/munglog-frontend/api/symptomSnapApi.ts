@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
+import { getImagePath } from '@/lib/clientApi';
 
 export interface SymptomSnapDto {
   id: string;
@@ -93,7 +94,7 @@ function mapSnap(raw: any): SymptomSnapDto {
     time: typeof raw.time === 'string' ? raw.time.slice(0, 5) : raw.time,
     symptomTags: raw.symptomTags || [],
     memo: raw.memo || '',
-    photoUrl: raw.photoUrl || undefined,
+    photoUrl: raw.photoUrl ? getImagePath(raw.photoUrl) : undefined,
     status: raw.status || 'MONITORING',
     resolvedRecordId: raw.resolvedRecordId ? String(raw.resolvedRecordId) : undefined,
     resolvedRecordTitle: raw.resolvedRecordTitle || undefined,

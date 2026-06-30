@@ -174,6 +174,14 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
       alert('기록 대상 아이를 선택해 주세요.');
       return;
     }
+    if (!registerDate) {
+      alert('발생 날짜를 선택해 주세요.');
+      return;
+    }
+    if (!registerTime) {
+      alert('발생 시간을 선택해 주세요.');
+      return;
+    }
 
     const finalTags = tags.length > 0 ? tags : ['기타'];
     const requestData = {
@@ -193,9 +201,10 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
       }
       await loadSnaps();
       handleCloseRegister();
-    } catch (e) {
-      console.error('Failed to save snap:', e);
-      alert('저장에 실패했습니다. 다시 시도해주세요.');
+    } catch (err: any) {
+      console.error('Failed to save snap:', err);
+      const serverMessage = err?.response?.data?.message || err?.response?.data?.error?.message;
+      alert(serverMessage ? `저장 실패: ${serverMessage}` : '저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
@@ -301,6 +310,7 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
   const hasDateFilter = period !== 'ALL';
   const selectedPet = pets.find(p => p.id === selectedPetId);
   const selectedRegisterPet = pets.find(p => p.id === registerPetId);
+  const viewingPet = viewingSnap ? pets.find(p => p.id === viewingSnap.petId) : null;
 
   return (
     <div className="bg-background rounded-[32px] border border-border p-5 md:p-6 shadow-sm flex flex-col gap-5">
@@ -858,12 +868,16 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
               {/* Pet Info & Time */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-surface-green border border-border flex items-center justify-center text-xs">
-                    🐶
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-green border border-border flex items-center justify-center shrink-0 shadow-sm">
+                    {viewingPet?.photo ? (
+                      <img src={getImagePath(viewingPet.photo, 'profiles')} alt={viewingPet.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs">🐶</span>
+                    )}
                   </div>
                   <div>
                     <span className="text-xs font-black text-text-main">
-                      {pets.find(p => p.id === viewingSnap.petId)?.name || '아이'}
+                      {viewingPet?.name || '아이'}
                     </span>
                     <p className="text-[10px] text-text-sub font-bold mt-0.5">
                       {viewingSnap.date} {viewingSnap.time} 발생

@@ -59,16 +59,14 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
   const [availableSnaps, setAvailableSnaps] = useState<SymptomSnap[]>([]);
 
   useEffect(() => {
-    if (!formData.dogId) {
-      setAvailableSnaps([]);
-      return;
-    }
-    symptomSnapApi.getSnaps({ petId: formData.dogId })
+    const params = formData.dogId ? { petId: formData.dogId } : {};
+    symptomSnapApi.getSnaps(params)
       .then(snaps => {
-        // 관찰 중이거나 현재 일정에 연동된 것만 표시
-        const filtered = snaps.filter(
-          s => s.status === 'MONITORING' || (id && s.linkedScheduleId === String(id))
-        );
+        // 일정 연동 기준으로 필터 (케어기록 연동 여부와 무관)
+        const filtered = snaps.filter(s => {
+          if (id) return !s.linkedScheduleId || s.linkedScheduleId === String(id);
+          return !s.linkedScheduleId;
+        });
         setAvailableSnaps(filtered);
       })
       .catch(e => console.error('Failed to load snaps in ScheduleFormPage', e));
@@ -236,11 +234,7 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
                   증상 스냅보드 연동 (선택)
                 </label>
                 
-                {!formData.dogId ? (
-                  <div className="p-4 border border-dashed border-border rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 text-center text-xs font-bold text-text-sub">
-                    반려견을 먼저 선택하시면 관찰 중인 이상 증상 스냅을 연동할 수 있습니다.
-                  </div>
-                ) : availableSnaps.length === 0 ? (
+                {availableSnaps.length === 0 ? (
                   <div className="p-4 border border-dashed border-border rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 text-center text-xs font-bold text-text-sub">
                     현재 관찰 중인 반려견의 이상 증상(스냅)이 없습니다.
                   </div>

@@ -40,6 +40,13 @@ export const useScheduleForm = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Zustand persist 재수화 후 selectedPetId가 늦게 반영되는 경우 동기화 (신규 등록 시만)
+  useEffect(() => {
+    if (!id && selectedPetId && selectedPetId !== 'ALL') {
+      setFormData(prev => prev.dogId ? prev : { ...prev, dogId: selectedPetId.toString() });
+    }
+  }, [selectedPetId, id]);
+
   const fileUploader = useFileUpload('SCHEDULE');
   const fileLoadedRef = useRef(false);
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);

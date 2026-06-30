@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/common/Button';
 import { Spinner } from '@/components/common/Spinner';
@@ -67,9 +68,11 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
       } else {
         setLinkedSnap(null);
       }
-      const available = snaps.filter(
-        s => s.status === 'MONITORING' && s.resolvedRecordId !== recordId
-      );
+      // 케어기록 연동 기준으로 필터 (일정 연동 여부와 무관)
+      const available = snaps.filter(s => {
+        if (recordId) return !s.resolvedRecordId || s.resolvedRecordId === recordId;
+        return !s.resolvedRecordId;
+      });
       setAvailableSnaps(available);
     } catch (e) {
       console.error('Failed to load snaps in care record form:', e);
@@ -200,76 +203,84 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
           </div>
 
           {/* 증상 스냅 연동 */}
-          {(linkedSnap || availableSnaps.length > 0) && (
-            <Section title="증상 스냅 연동" description="이 케어기록과 관련된 이상 증상 관찰 기록을 연동하세요.">
-              {linkedSnap ? (
-                <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-amber-600 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> 연동된 증상 스냅
-                    </span>
-                    <button type="button" onClick={handleUnlinkSnap} className="text-[10px] font-black text-text-sub hover:text-red-500 transition-colors">
-                      연동 해제
-                    </button>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    {linkedSnap.photoUrl && (
-                      <div className="w-12 h-12 rounded-xl overflow-hidden border border-border shrink-0 bg-stone-100">
-                        <img src={linkedSnap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap gap-1 mb-1">
-                        {linkedSnap.symptomTags?.map(tag => (
-                          <span key={tag} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">#{tag}</span>
-                        ))}
-                        <span className="text-[9px] text-text-sub font-bold">{linkedSnap.date} {linkedSnap.time}</span>
-                      </div>
-                      <p className="text-xs font-bold text-text-main truncate">{linkedSnap.memo || '이상 증상 관찰됨'}</p>
-                    </div>
-                  </div>
+          <Section title="증상 스냅 연동" description="이 케어기록과 관련된 이상 증상 관찰 기록을 연동하세요.">
+            {linkedSnap ? (
+              <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-amber-600 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" /> 연동된 증상 스냅
+                  </span>
+                  <button type="button" onClick={handleUnlinkSnap} className="text-[10px] font-black text-text-sub hover:text-red-500 transition-colors">
+                    연동 해제
+                  </button>
                 </div>
-              ) : availableSnaps.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-text-sub">관찰 중인 증상 스냅이 있습니다.</p>
-                    <button type="button" onClick={() => setShowSnapLink(v => !v)} className="text-[11px] font-black text-main-green hover:underline">
-                      {showSnapLink ? '접기' : `${availableSnaps.length}개 · 연동하기`}
-                    </button>
-                  </div>
-                  {showSnapLink && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto no-scrollbar pr-1">
-                      {availableSnaps.map(snap => (
-                        <button
-                          key={snap.id}
-                          type="button"
-                          onClick={() => handleLinkSnap(snap)}
-                          className="p-3 border border-border rounded-xl text-left hover:border-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all flex gap-3 items-start"
-                        >
-                          {snap.photoUrl && (
-                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-border shrink-0 bg-stone-100">
-                              <img src={snap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap gap-1 mb-0.5">
-                              {snap.symptomTags?.map(tag => (
-                                <span key={tag} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">#{tag}</span>
-                              ))}
-                            </div>
-                            <p className="text-[11px] font-bold text-text-main truncate">{snap.memo || '이상 증상 관찰됨'}</p>
-                            <p className="text-[9px] text-text-sub mt-0.5">{snap.date} {snap.time}</p>
-                          </div>
-                        </button>
-                      ))}
+                <div className="flex gap-3 items-start">
+                  {linkedSnap.photoUrl && (
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-border shrink-0 bg-stone-100">
+                      <img src={linkedSnap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
                     </div>
                   )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap gap-1 mb-1">
+                      {linkedSnap.symptomTags?.map(tag => (
+                        <span key={tag} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">#{tag}</span>
+                      ))}
+                      <span className="text-[9px] text-text-sub font-bold">{linkedSnap.date} {linkedSnap.time}</span>
+                    </div>
+                    <p className="text-xs font-bold text-text-main truncate">{linkedSnap.memo || '이상 증상 관찰됨'}</p>
+                  </div>
                 </div>
-              ) : (
-                <p className="text-xs font-bold text-text-sub py-2">관찰 중인 이상 증상 스냅이 없습니다.</p>
-              )}
-            </Section>
-          )}
+                {linkedSnap.linkedScheduleId && (
+                  <div className="pt-2 border-t border-amber-500/10">
+                    <Link
+                      href={`/schedules/${linkedSnap.linkedScheduleId}`}
+                      className="text-[10px] font-black text-main-green hover:underline flex items-center gap-1"
+                    >
+                      📅 연동된 예약 일정: {linkedSnap.linkedScheduleTitle || '일정 보기'}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : availableSnaps.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-text-sub">관찰 중인 증상 스냅이 있습니다.</p>
+                  <button type="button" onClick={() => setShowSnapLink(v => !v)} className="text-[11px] font-black text-main-green hover:underline">
+                    {showSnapLink ? '접기' : `${availableSnaps.length}개 · 연동하기`}
+                  </button>
+                </div>
+                {showSnapLink && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto no-scrollbar pr-1">
+                    {availableSnaps.map(snap => (
+                      <button
+                        key={snap.id}
+                        type="button"
+                        onClick={() => handleLinkSnap(snap)}
+                        className="p-3 border border-border rounded-xl text-left hover:border-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all flex gap-3 items-start"
+                      >
+                        {snap.photoUrl && (
+                          <div className="w-10 h-10 rounded-lg overflow-hidden border border-border shrink-0 bg-stone-100">
+                            <img src={snap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap gap-1 mb-0.5">
+                            {snap.symptomTags?.map(tag => (
+                              <span key={tag} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">#{tag}</span>
+                            ))}
+                          </div>
+                          <p className="text-[11px] font-bold text-text-main truncate">{snap.memo || '이상 증상 관찰됨'}</p>
+                          <p className="text-[9px] text-text-sub mt-0.5">{snap.date} {snap.time}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs font-bold text-text-sub py-2">관찰 중인 이상 증상 스냅이 없습니다.</p>
+            )}
+          </Section>
 
           {/* 첨부 파일 */}
           <Section title="첨부 파일" description="사진이나 영수증을 첨부하세요.">
