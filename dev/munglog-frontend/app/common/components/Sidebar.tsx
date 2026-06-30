@@ -16,7 +16,8 @@ import {
   X,
   LogOut,
   Users,
-  Plus
+  Plus,
+  BookOpen
 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '../hooks/useToast';
@@ -35,6 +36,7 @@ const navItems = [
   { name: '일정/예약', href: '/schedules', icon: ClipboardList },
   { name: '인벤토리', href: '/inventory', icon: Package },
   { name: '설정', href: '/settings', icon: Settings },
+  { name: '서비스 가이드', href: '/guide', icon: BookOpen },
 ];
 
 interface SidebarContentProps {

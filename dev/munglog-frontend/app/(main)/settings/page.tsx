@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Bot, Save, Sun, Moon, Monitor, UserX } from 'lucide-react';
+import { Bot, Save, Sun, Moon, Monitor, UserX, BookOpen } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/app/common/hooks/useToast';
