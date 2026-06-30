@@ -14,6 +14,10 @@ public interface SymptomSnapRepository extends JpaRepository<SymptomSnap, UUID> 
 
     Optional<SymptomSnap> findByIdAndUser_Id(UUID id, UUID userId);
 
+    List<SymptomSnap> findByLinkedScheduleId(UUID linkedScheduleId);
+
+    List<SymptomSnap> findByResolvedRecordId(UUID resolvedRecordId);
+
     @Query("SELECT s FROM SymptomSnap s WHERE s.user.id = :userId " +
             "AND (:petId IS NULL OR s.pet.id = :petId) " +
             "AND (:startDate IS NULL OR s.date >= :startDate) " +

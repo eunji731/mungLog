@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { careApi } from '@/api/careApi';
 import { fileApi } from '@/api/fileApi';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { isMedicalRecordType } from '@/lib/codeGroups';
@@ -20,6 +21,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(!!id);
   const [fromScheduleId, setFromScheduleId] = useState<string | null>(null);
+  const [pendingSnapId, setPendingSnapId] = useState<string>('');
 
   const [commonData, setCommonData] = useState({
     dogId: selectedPetId && selectedPetId !== 'ALL' ? selectedPetId.toString() : '',
@@ -233,6 +235,15 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
         ? await careApi.updateRecord(id, payload)
         : await careApi.createRecord(payload);
 
+      // 증상 스냅 연동 (신규 등록 시 저장 후 처리)
+      if (!id && pendingSnapId) {
+        try {
+          await symptomSnapApi.linkRecord(pendingSnapId, String(savedRecord.id));
+        } catch (e) {
+          console.error('Failed to link snap after save:', e);
+        }
+      }
+
       if (fileUploader.localFiles.length > 0) {
         await fileUploader.syncToServer(savedRecord.id);
       }
@@ -268,6 +279,7 @@ export const useCareRecordForm = (id?: string, options?: { prefillDate?: string;
     fileUploader,
     handleSave,
     isLoading,
-    isFetching
+    isFetching,
+    pendingSnapId, setPendingSnapId
   };
 };

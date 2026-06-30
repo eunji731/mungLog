@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ConfirmModal } from '@/components/common/ConfirmModal';
 import { useToast } from '@/app/common/hooks/useToast';
@@ -8,10 +10,13 @@ import { CareRecordDetailHeader } from '../components/CareRecordDetailHeader';
 import { CareRecordInfoSections } from '../components/CareRecordInfoSections';
 import { CareRecordAttachmentGallery } from '../components/CareRecordAttachmentGallery';
 import { careApi } from '@/api/careApi';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
 import { isMedicalRecordType } from '@/lib/codeGroups';
 import { FileText, Edit3, Trash2, ArrowLeft } from 'lucide-react';
 import { Spinner } from '@/components/common/Spinner';
 import { EmptyState } from '@/components/common/EmptyState';
+import { downloadFile } from '@/utils/fileUtils';
+import type { SymptomSnap } from '../components/SymptomSnapboard';
 
 interface CareRecordDetailPageProps {
   id?: string;
@@ -23,12 +28,63 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
   const { record, files, isLoading, error } = useCareRecordDetail(id);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [linkedSnap, setLinkedSnap] = useState<SymptomSnap | null>(null);
+  const [availableSnaps, setAvailableSnaps] = useState<SymptomSnap[]>([]);
+  const [showSnapLink, setShowSnapLink] = useState(false);
+  const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
+
+  const loadSnaps = async (petId?: string, recordId?: string) => {
+    try {
+      const snaps = await symptomSnapApi.getSnaps(petId ? { petId } : {});
+      const linked = snaps.find(s => s.resolvedRecordId === recordId);
+      setLinkedSnap(linked || null);
+      const available = snaps.filter(
+        s => s.status === 'MONITORING' && s.resolvedRecordId !== recordId
+      );
+      setAvailableSnaps(available);
+    } catch (e) {
+      console.error('Failed to load snaps in care record detail:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (!id || !record) return;
+    const petId = (record.dogId || record.petId)?.toString();
+    loadSnaps(petId, id);
+  }, [id, record]);
+
+  const handleLinkSnap = async (snap: SymptomSnap) => {
+    if (!id || !record) return;
+    try {
+      await symptomSnapApi.linkRecord(snap.id, id);
+      const petId = (record.dogId || record.petId)?.toString();
+      await loadSnaps(petId, id);
+      setShowSnapLink(false);
+    } catch (e) {
+      console.error('Failed to link snap to care record:', e);
+    }
+  };
+
+  const handleUnlinkSnap = async () => {
+    if (!id || !linkedSnap) return;
+    try {
+      await symptomSnapApi.unlinkRecord(linkedSnap.id);
+      const petId = (record?.dogId || record?.petId)?.toString();
+      await loadSnaps(petId, id);
+    } catch (e) {
+      console.error('Failed to unlink snap from care record:', e);
+    }
+  };
 
   const handleDelete = async () => {
     if (!id) return;
     try {
       setIsDeleting(true);
       await careApi.deleteRecord(id);
+      // 백엔드에서 cascade로 snap 연동 해제 처리
       setIsDeleteModalOpen(false);
       success('기록이 삭제되었습니다.');
       router.push('/care-records');
@@ -137,6 +193,103 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
 
 
                 <div className="flex flex-col gap-6">
+                  {/* Linked Symptom Snap */}
+                  {linkedSnap ? (
+                    <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 p-5 rounded-2xl space-y-2.5 transition-all duration-300">
+                      <div className="flex items-center justify-between">
+                        <h4 className="flex items-center gap-2 text-[11px] font-black text-amber-600 uppercase tracking-widest">
+                          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                          연동된 이상 증상 관찰 기록 (Symptom Snap)
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={handleUnlinkSnap}
+                          className="text-[10px] font-black text-text-sub hover:text-red-500 transition-colors"
+                        >
+                          연동 해제
+                        </button>
+                      </div>
+                      <div className="flex gap-4">
+                        {linkedSnap.photoUrl && (
+                          <div
+                            onClick={() => setFullscreenPhoto(linkedSnap.photoUrl!)}
+                            className="w-16 h-16 rounded-xl overflow-hidden border border-border shrink-0 bg-stone-100 cursor-zoom-in hover:opacity-85 hover:border-amber-300 transition-all"
+                          >
+                            <img src={linkedSnap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {linkedSnap.symptomTags?.map((tag) => (
+                              <span key={tag} className="text-[9px] font-black px-2 py-0.5 rounded bg-amber-500/10 text-amber-600">
+                                #{tag}
+                              </span>
+                            ))}
+                            <span className="text-[10px] text-text-sub font-bold">
+                              {linkedSnap.date} {linkedSnap.time} 발생
+                            </span>
+                          </div>
+                          <p className="text-[13px] font-bold text-text-main leading-relaxed mt-1">
+                            {linkedSnap.memo}
+                          </p>
+                        </div>
+                      </div>
+                      {linkedSnap.linkedScheduleId && (
+                        <div className="pt-1.5 border-t border-amber-500/10">
+                          <Link
+                            href={`/schedules/${linkedSnap.linkedScheduleId}`}
+                            className="text-[10px] font-black text-main-green hover:underline flex items-center gap-1"
+                          >
+                            📅 원본 예약 일정: {linkedSnap.linkedScheduleTitle || '일정 보기'}
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  ) : availableSnaps.length > 0 && (
+                    <div className="border border-dashed border-amber-200 dark:border-amber-800/30 rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-[11px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
+                          연동할 증상 스냅 (Symptom Snap)
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => setShowSnapLink(v => !v)}
+                          className="text-[10px] font-black text-main-green hover:underline"
+                        >
+                          {showSnapLink ? '접기' : `${availableSnaps.length}개 관찰 중 · 연동하기`}
+                        </button>
+                      </div>
+                      {showSnapLink && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto no-scrollbar pr-1">
+                          {availableSnaps.map(snap => (
+                            <button
+                              key={snap.id}
+                              type="button"
+                              onClick={() => handleLinkSnap(snap)}
+                              className="p-3 border border-border rounded-xl text-left hover:border-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all flex gap-3 items-start group"
+                            >
+                              {snap.photoUrl && (
+                                <div className="w-10 h-10 rounded-lg overflow-hidden border border-border shrink-0 bg-stone-100">
+                                  <img src={snap.photoUrl} alt="symptom" className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap gap-1 mb-0.5">
+                                  {snap.symptomTags?.map(tag => (
+                                    <span key={tag} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">#{tag}</span>
+                                  ))}
+                                </div>
+                                <p className="text-[11px] font-bold text-text-main truncate">{snap.memo || '이상 증상 관찰됨'}</p>
+                                <p className="text-[9px] text-text-sub mt-0.5">{snap.date} {snap.time}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Symptom Tags */}
                   {record.symptomTags && record.symptomTags.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
@@ -254,6 +407,39 @@ const CareRecordDetailPage: React.FC<CareRecordDetailPageProps> = ({ id }) => {
 
         </div>
       </PageLayout>
+
+      {fullscreenPhoto && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-xl animate-in fade-in duration-300"
+          onClick={() => setFullscreenPhoto(null)}
+        >
+          <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
+            <button
+              className="absolute -top-16 right-0 text-white/40 hover:text-white transition-colors text-3xl cursor-pointer"
+              onClick={() => setFullscreenPhoto(null)}
+            >
+              ✕
+            </button>
+            <img
+              src={fullscreenPhoto}
+              alt="Enlarged view"
+              className="max-w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl"
+            />
+            <div className="mt-8">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadFile(fullscreenPhoto, 'symptom_snap_enlarged.png');
+                }}
+                className="text-[11px] font-black text-main-green bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-full uppercase tracking-widest hover:bg-light-green transition-colors cursor-pointer"
+              >
+                Download Image
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       <ConfirmModal
         open={isDeleteModalOpen}

@@ -7,11 +7,13 @@ import { ScheduleDetailHeader } from '../components/ScheduleDetailHeader';
 import { ScheduleDetailInfo } from '../components/ScheduleDetailInfo';
 import { CareRecordAttachmentGallery } from '@/features/care-records/components/CareRecordAttachmentGallery';
 import { scheduleApi } from '@/api/scheduleApi';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
 import { useToast } from '@/app/common/hooks/useToast';
 import { useConfirm } from '@/app/common/hooks/useConfirm';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { Spinner } from '@/components/common/Spinner';
 import { EmptyState } from '@/components/common/EmptyState';
+import type { SymptomSnap } from '@/features/care-records/components/SymptomSnapboard';
 
 interface ScheduleDetailPageProps {
   id?: string;
@@ -25,20 +27,16 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
-  const [linkedSnap, setLinkedSnap] = useState<any>(null);
+  const [linkedSnap, setLinkedSnap] = useState<SymptomSnap | null>(null);
 
   useEffect(() => {
     if (!schedule?.id) return;
-    try {
-      const snapData = localStorage.getItem('munglog_symptom_snaps');
-      if (snapData) {
-        const snaps = JSON.parse(snapData);
-        const found = snaps.find((s: any) => String(s.linkedScheduleId) === String(schedule.id));
+    symptomSnapApi.getSnaps()
+      .then(snaps => {
+        const found = snaps.find(s => s.linkedScheduleId === String(schedule.id));
         setLinkedSnap(found || null);
-      }
-    } catch (e) {
-      console.error('Failed to load linked snap in detail page:', e);
-    }
+      })
+      .catch(e => console.error('Failed to load linked snap:', e));
   }, [schedule?.id]);
 
   const handleDelete = async () => {
@@ -46,6 +44,7 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
     try {
       setIsDeleting(true);
       await scheduleApi.deleteSchedule(id);
+      // 백엔드에서 cascade로 snap 연동 해제 처리
       setIsDeleteModalOpen(false);
       router.push('/schedules');
     } catch (err) {
@@ -76,29 +75,16 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
       setIsConverting(true);
       const newRecordId = await scheduleApi.convertToCareRecord(id);
 
-      // --- 증상 스냅 자동 해결 처리 ---
+      // 이 일정에 연동된 스냅 중 케어기록 미연동인 것들을 케어기록에 연결
       try {
-        const snapData = localStorage.getItem('munglog_symptom_snaps');
-        if (snapData) {
-          const snaps = JSON.parse(snapData);
-          const updated = snaps.map((s: any) => {
-            if (String(s.linkedScheduleId) === String(id)) {
-              return {
-                ...s,
-                status: 'RESOLVED' as const,
-                resolvedRecordId: String(newRecordId),
-                resolvedRecordTitle: schedule?.title || '병원 진료',
-              };
-            }
-            return s;
-          });
-          localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
-          window.dispatchEvent(new Event('symptom_snaps_updated'));
-        }
+        const snaps = await symptomSnapApi.getSnaps();
+        const toLink = snaps.filter(
+          s => s.linkedScheduleId === String(id) && !s.resolvedRecordId
+        );
+        await Promise.all(toLink.map(s => symptomSnapApi.linkRecord(s.id, String(newRecordId))));
       } catch (e) {
-        console.error('Failed to update linked symptom snap to resolved:', e);
+        console.error('Failed to link snaps to converted care record:', e);
       }
-      // ---------------------------------
 
       success('케어기록으로 전환되었습니다! ✨');
       router.push(`/care-records/edit/${newRecordId}`);
@@ -220,7 +206,7 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
                   {linkedSnap && (
                     <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 p-5 rounded-2xl space-y-2.5 transition-all duration-300">
                       <h4 className="flex items-center gap-2 text-[11px] font-black text-amber-600 uppercase tracking-widest">
-                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" /> 
+                        <span className={`w-1.5 h-1.5 rounded-full ${linkedSnap.status === 'RESOLVED' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
                         연동된 이상 증상 관찰 기록 (Symptom Snap)
                       </h4>
                       <div className="flex gap-4">
@@ -245,6 +231,16 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
                           </p>
                         </div>
                       </div>
+                      {linkedSnap.resolvedRecordId && (
+                        <div className="pt-2 border-t border-amber-500/10">
+                          <a
+                            href={`/care-records/${linkedSnap.resolvedRecordId}`}
+                            className="text-[10px] font-black text-emerald-600 hover:underline flex items-center gap-1"
+                          >
+                            ✅ 케어기록으로 전환됨: {linkedSnap.resolvedRecordTitle || '케어기록 보기'}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -293,6 +289,13 @@ const ScheduleDetailPage: React.FC<ScheduleDetailPageProps> = ({ id }) => {
                       className="px-8 h-[48px] bg-emerald-500/10 text-emerald-600 border-2 border-emerald-500/20 rounded-full font-black text-[13px] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       ✅ 전환된 케어기록 보기
+                    </button>
+                  ) : linkedSnap?.resolvedRecordId ? (
+                    <button
+                      onClick={() => router.push(`/care-records/${linkedSnap.resolvedRecordId}`)}
+                      className="px-8 h-[48px] bg-emerald-500/10 text-emerald-600 border-2 border-emerald-500/20 rounded-full font-black text-[13px] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      🔗 연동된 케어기록 보기
                     </button>
                   ) : (
                     <button

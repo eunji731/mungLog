@@ -11,7 +11,8 @@ import { TagInput } from '@/components/common/TagInput';
 import { useScheduleForm } from '../hooks/useScheduleForm';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
 import { FileUploader } from '@/components/common/FileUploader';
-import { SymptomSnap } from '@/features/care-records/components/SymptomSnapboard';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
+import type { SymptomSnap } from '@/features/care-records/components/SymptomSnapboard';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import TimelineTimePicker from '@/features/care-records/components/TimelineTimePicker';
 
@@ -62,23 +63,15 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
       setAvailableSnaps([]);
       return;
     }
-
-    try {
-      const snapData = localStorage.getItem('munglog_symptom_snaps');
-      if (snapData) {
-        const parsed: SymptomSnap[] = JSON.parse(snapData);
-        // 해당 강아지의 스냅 중 (관찰 중이거나, 현재 일정에 연동되어 있는 것) 필터링
-        const filtered = parsed.filter(s => 
-          String(s.petId) === String(formData.dogId) && 
-          (s.status === 'MONITORING' || (id && String(s.linkedScheduleId) === String(id)))
+    symptomSnapApi.getSnaps({ petId: formData.dogId })
+      .then(snaps => {
+        // 관찰 중이거나 현재 일정에 연동된 것만 표시
+        const filtered = snaps.filter(
+          s => s.status === 'MONITORING' || (id && s.linkedScheduleId === String(id))
         );
         setAvailableSnaps(filtered);
-      } else {
-        setAvailableSnaps([]);
-      }
-    } catch (e) {
-      console.error('Failed to load snaps in ScheduleFormPage', e);
-    }
+      })
+      .catch(e => console.error('Failed to load snaps in ScheduleFormPage', e));
   }, [formData.dogId, id]);
 
   useEffect(() => {

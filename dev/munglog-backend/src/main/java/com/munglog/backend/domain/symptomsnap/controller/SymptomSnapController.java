@@ -2,6 +2,7 @@ package com.munglog.backend.domain.symptomsnap.controller;
 
 import com.munglog.backend.common.dto.ApiResponse;
 import com.munglog.backend.domain.symptomsnap.dto.SymptomSnapLinkRequest;
+import com.munglog.backend.domain.symptomsnap.dto.SymptomSnapLinkScheduleRequest;
 import com.munglog.backend.domain.symptomsnap.dto.SymptomSnapRequest;
 import com.munglog.backend.domain.symptomsnap.dto.SymptomSnapResponse;
 import com.munglog.backend.domain.symptomsnap.service.SymptomSnapService;
@@ -82,6 +83,24 @@ public class SymptomSnapController {
             @AuthenticationPrincipal User user,
             @PathVariable UUID snapId) {
         return ResponseEntity.ok(ApiResponse.success(symptomSnapService.unlinkRecord(snapId, uuid(user))));
+    }
+
+    @Operation(summary = "일정 연동")
+    @PatchMapping("/{snapId}/link-schedule")
+    public ResponseEntity<ApiResponse<SymptomSnapResponse>> linkSchedule(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID snapId,
+            @RequestBody SymptomSnapLinkScheduleRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                symptomSnapService.linkSchedule(snapId, uuid(user), request.getLinkedScheduleId())));
+    }
+
+    @Operation(summary = "일정 연동 해제")
+    @PatchMapping("/{snapId}/unlink-schedule")
+    public ResponseEntity<ApiResponse<SymptomSnapResponse>> unlinkSchedule(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID snapId) {
+        return ResponseEntity.ok(ApiResponse.success(symptomSnapService.unlinkSchedule(snapId, uuid(user))));
     }
 
     private UUID uuid(User user) {

@@ -4,6 +4,7 @@ import { CheckCircle2, Circle } from 'lucide-react';
 import type { Schedule } from '@/types/schedule';
 import { calculateDDay } from '@/utils/dateUtils';
 import { useCommonCodes } from '@/hooks/useCommonCodes';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
 
 interface ScheduleListProps {
   schedules: Schedule[];
@@ -19,28 +20,15 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, activeIds
   const [snapMap, setSnapMap] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    const loadSnaps = () => {
-      try {
-        const snapData = localStorage.getItem('munglog_symptom_snaps');
-        if (snapData) {
-          const snaps = JSON.parse(snapData);
-          const map: Record<string, any> = {};
-          snaps.forEach((s: any) => {
-            if (s.linkedScheduleId) {
-              map[String(s.linkedScheduleId)] = s;
-            }
-          });
-          setSnapMap(map);
-        }
-      } catch (e) {
-        console.error('Failed to load snaps in ScheduleList:', e);
-      }
-    };
-
-    loadSnaps();
-
-    window.addEventListener('symptom_snaps_updated', loadSnaps);
-    return () => window.removeEventListener('symptom_snaps_updated', loadSnaps);
+    symptomSnapApi.getSnaps()
+      .then(snaps => {
+        const map: Record<string, any> = {};
+        snaps.forEach(s => {
+          if (s.linkedScheduleId) map[s.linkedScheduleId] = s;
+        });
+        setSnapMap(map);
+      })
+      .catch(e => console.error('Failed to load snaps in ScheduleList:', e));
   }, []);
 
   const getTypeIcon = (type: string) => {

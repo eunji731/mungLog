@@ -9,6 +9,7 @@ import { isMedicalRecordType } from '@/lib/codeGroups';
 import { usePet } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/lib/clientApi';
 import { careApi } from '@/api/careApi';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
 import { downloadFile } from '@/utils/fileUtils';
 import { X, AlertCircle } from 'lucide-react';
 
@@ -27,23 +28,13 @@ export const TimelineItem: React.FC<{ record: CareRecord }> = ({ record }) => {
   const recordTypeCode = String(record.recordType || '');
   const isMedical = isMedicalRecordType(recordTypeCode);
 
-  const loadLinkedSnap = () => {
-    try {
-      const data = localStorage.getItem('munglog_symptom_snaps');
-      if (data) {
-        const snaps = JSON.parse(data);
-        const found = snaps.find((s: any) => s.resolvedRecordId === String(record.id));
-        setLinkedSnap(found || null);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   useEffect(() => {
-    loadLinkedSnap();
-    window.addEventListener('symptom_snaps_updated', loadLinkedSnap);
-    return () => window.removeEventListener('symptom_snaps_updated', loadLinkedSnap);
+    symptomSnapApi.getSnaps()
+      .then(snaps => {
+        const found = snaps.find(s => s.resolvedRecordId === String(record.id));
+        setLinkedSnap(found || null);
+      })
+      .catch(e => console.error('Failed to load linked snap in TimelineItem:', e));
   }, [record.id]);
 
   // 리스트의 복약 뱃지 오표시 방지를 위한 상세정보 추가 페치

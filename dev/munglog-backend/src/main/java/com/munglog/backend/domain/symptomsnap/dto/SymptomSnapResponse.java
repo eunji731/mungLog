@@ -21,10 +21,13 @@ public record SymptomSnapResponse(
         String photoUrl,
         SymptomSnapStatus status,
         UUID resolvedRecordId,
-        String resolvedRecordTitle
+        String resolvedRecordTitle,
+        UUID linkedScheduleId,
+        String linkedScheduleTitle
 ) {
     public static SymptomSnapResponse from(SymptomSnap snap, List<String> symptomTags,
-                                            String photoUrl, String resolvedRecordTitle) {
+                                            String photoUrl, String resolvedRecordTitle,
+                                            String linkedScheduleTitle) {
         return SymptomSnapResponse.builder()
                 .id(snap.getId())
                 .petId(snap.getPet().getId())
@@ -36,6 +39,8 @@ public record SymptomSnapResponse(
                 .status(snap.getStatus())
                 .resolvedRecordId(snap.getResolvedRecordId())
                 .resolvedRecordTitle(resolvedRecordTitle)
+                .linkedScheduleId(snap.getLinkedScheduleId())
+                .linkedScheduleTitle(linkedScheduleTitle)
                 .build();
     }
 }

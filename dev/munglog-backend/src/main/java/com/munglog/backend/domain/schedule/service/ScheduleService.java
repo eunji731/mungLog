@@ -21,6 +21,7 @@ import com.munglog.backend.domain.schedule.dto.ScheduleResponse;
 import com.munglog.backend.domain.schedule.dto.ScheduleStreakResponse;
 import com.munglog.backend.domain.schedule.repository.ScheduleRepository;
 import com.munglog.backend.domain.symptom.service.SymptomService;
+import com.munglog.backend.domain.symptomsnap.service.SymptomSnapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ public class ScheduleService {
     private final PetRepository petRepository;
     private final AttachedFileService attachedFileService;
     private final SymptomService symptomService;
+    private final SymptomSnapService symptomSnapService;
     private final InventoryItemRepository inventoryItemRepository;
 
     @Transactional(readOnly = true)
@@ -111,6 +113,7 @@ public class ScheduleService {
     @Transactional
     public void deleteSchedule(UUID scheduleId, UUID userId) {
         Schedule schedule = findByIdAndUserId(scheduleId, userId);
+        symptomSnapService.unlinkAllBySchedule(scheduleId);
         symptomService.deleteScheduleSymptoms(scheduleId);
         attachedFileService.deleteAllByParent(ParentDomainType.SCHEDULE, scheduleId);
         scheduleRepository.delete(schedule);

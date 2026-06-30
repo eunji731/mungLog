@@ -195,7 +195,7 @@ const CareRecordListPage = ({ showHeader = true }: CareRecordListPageProps) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left Column: Symptom Snapboard */}
             <div className="lg:col-span-4 lg:sticky lg:top-24">
-              <SymptomSnapboard timelineRecords={records} onSnapLinked={refetch} />
+              <SymptomSnapboard onSnapLinked={refetch} />
             </div>
 
             {/* Right Column: Timeline list */}

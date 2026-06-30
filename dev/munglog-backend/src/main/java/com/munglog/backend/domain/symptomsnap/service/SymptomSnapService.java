@@ -9,6 +9,8 @@ import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
 import com.munglog.backend.domain.pet.domain.Pet;
 import com.munglog.backend.domain.pet.repository.PetRepository;
+import com.munglog.backend.domain.schedule.domain.Schedule;
+import com.munglog.backend.domain.schedule.repository.ScheduleRepository;
 import com.munglog.backend.domain.symptom.service.SymptomService;
 import com.munglog.backend.domain.symptomsnap.domain.SymptomSnap;
 import com.munglog.backend.domain.symptomsnap.dto.SymptomSnapRequest;
@@ -31,6 +33,7 @@ public class SymptomSnapService {
     private final MemberRepository memberRepository;
     private final PetRepository petRepository;
     private final CareRecordRepository careRecordRepository;
+    private final ScheduleRepository scheduleRepository;
     private final AttachedFileService attachedFileService;
     private final SymptomService symptomService;
 
@@ -101,6 +104,34 @@ public class SymptomSnapService {
         return toResponse(snap);
     }
 
+    @Transactional
+    public SymptomSnapResponse linkSchedule(UUID snapId, UUID userId, UUID linkedScheduleId) {
+        SymptomSnap snap = findByIdAndUserId(snapId, userId);
+        scheduleRepository.findById(linkedScheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("일정을 찾을 수 없습니다."));
+        snap.linkSchedule(linkedScheduleId);
+        return toResponse(snap);
+    }
+
+    @Transactional
+    public SymptomSnapResponse unlinkSchedule(UUID snapId, UUID userId) {
+        SymptomSnap snap = findByIdAndUserId(snapId, userId);
+        snap.unlinkSchedule();
+        return toResponse(snap);
+    }
+
+    @Transactional
+    public void unlinkAllBySchedule(UUID scheduleId) {
+        symptomSnapRepository.findByLinkedScheduleId(scheduleId)
+                .forEach(SymptomSnap::unlinkSchedule);
+    }
+
+    @Transactional
+    public void unlinkAllByRecord(UUID recordId) {
+        symptomSnapRepository.findByResolvedRecordId(recordId)
+                .forEach(SymptomSnap::unlink);
+    }
+
     private SymptomSnapResponse toResponse(SymptomSnap snap) {
         List<String> symptomTags = symptomService.getSymptomTagsBySymptomSnap(snap.getId());
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.SYMPTOM_SNAP, snap.getId());
@@ -111,7 +142,13 @@ public class SymptomSnapService {
                     .map(CareRecord::getTitle)
                     .orElse(null);
         }
-        return SymptomSnapResponse.from(snap, symptomTags, photoUrl, resolvedRecordTitle);
+        String linkedScheduleTitle = null;
+        if (snap.getLinkedScheduleId() != null) {
+            linkedScheduleTitle = scheduleRepository.findById(snap.getLinkedScheduleId())
+                    .map(Schedule::getTitle)
+                    .orElse(null);
+        }
+        return SymptomSnapResponse.from(snap, symptomTags, photoUrl, resolvedRecordTitle, linkedScheduleTitle);
     }
 
     private SymptomSnap findByIdAndUserId(UUID snapId, UUID userId) {

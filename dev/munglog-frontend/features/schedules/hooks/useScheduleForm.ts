@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { scheduleApi } from '@/api/scheduleApi';
 import { fileApi } from '@/api/fileApi';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet } from '@/app/common/hooks/usePet';
@@ -69,14 +70,9 @@ export const useScheduleForm = (
 
         let linkedSnapId = '';
         try {
-          const snapData = localStorage.getItem('munglog_symptom_snaps');
-          if (snapData) {
-            const snaps = JSON.parse(snapData);
-            const found = snaps.find((s: any) => String(s.linkedScheduleId) === String(id));
-            if (found) {
-              linkedSnapId = found.id;
-            }
-          }
+          const snaps = await symptomSnapApi.getSnaps();
+          const found = snaps.find(s => s.linkedScheduleId === String(id));
+          if (found) linkedSnapId = found.id;
         } catch (e) {
           console.error('Failed to load linked snap id', e);
         }
@@ -136,36 +132,23 @@ export const useScheduleForm = (
 
       // --- 증상 스냅 연동 처리 ---
       try {
-        const snapData = localStorage.getItem('munglog_symptom_snaps');
-        if (snapData) {
-          let snaps = JSON.parse(snapData);
-          const scheduleId = String(saved.id);
-          
-          // 1. 기존에 이 일정에 연동되어 있던 다른 스냅들은 연동 해제
-          snaps = snaps.map((s: any) => {
-            if (String(s.linkedScheduleId) === scheduleId) {
-              const { linkedScheduleId, linkedScheduleTitle, ...rest } = s;
-              return rest;
-            }
-            return s;
-          });
+        const scheduleId = String(saved.id);
+        const allSnaps = await symptomSnapApi.getSnaps();
+        const currentLinked = allSnaps.filter(s => s.linkedScheduleId === scheduleId);
 
-          // 2. 새로 선택된 스냅이 있다면 연동 설정
-          if (formData.linkedSymptomSnapId) {
-            snaps = snaps.map((s: any) => {
-              if (s.id === formData.linkedSymptomSnapId) {
-                return {
-                  ...s,
-                  linkedScheduleId: scheduleId,
-                  linkedScheduleTitle: saved.title,
-                };
-              }
-              return s;
-            });
+        // 1. 기존 연동 스냅 중 새로 선택된 것과 다른 스냅은 해제
+        for (const s of currentLinked) {
+          if (s.id !== formData.linkedSymptomSnapId) {
+            await symptomSnapApi.unlinkSchedule(s.id);
           }
+        }
 
-          localStorage.setItem('munglog_symptom_snaps', JSON.stringify(snaps));
-          window.dispatchEvent(new Event('symptom_snaps_updated'));
+        // 2. 새로 선택된 스냅이 있고 아직 연동 안 됐으면 연동
+        if (formData.linkedSymptomSnapId) {
+          const alreadyLinked = currentLinked.some(s => s.id === formData.linkedSymptomSnapId);
+          if (!alreadyLinked) {
+            await symptomSnapApi.linkSchedule(formData.linkedSymptomSnapId, scheduleId);
+          }
         }
       } catch (e) {
         console.error('Failed to link symptom snap to schedule:', e);

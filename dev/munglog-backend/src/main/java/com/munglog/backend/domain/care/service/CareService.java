@@ -15,6 +15,7 @@ import com.munglog.backend.domain.member.repository.MemberRepository;
 import com.munglog.backend.domain.pet.domain.Pet;
 import com.munglog.backend.domain.pet.repository.PetRepository;
 import com.munglog.backend.domain.symptom.service.SymptomService;
+import com.munglog.backend.domain.symptomsnap.service.SymptomSnapService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class CareService {
     private final PetRepository petRepository;
     private final AttachedFileService attachedFileService;
     private final SymptomService symptomService;
+    private final SymptomSnapService symptomSnapService;
 
     @Transactional(readOnly = true)
     public List<CareRecordListResponse> getRecords(UUID userId, UUID petId, String keyword) {
@@ -132,6 +134,7 @@ public class CareService {
     @Transactional
     public void deleteRecord(UUID recordId, UUID userId) {
         CareRecord record = findByIdAndUserId(recordId, userId);
+        symptomSnapService.unlinkAllByRecord(recordId);
         symptomService.deleteCareRecordSymptoms(recordId);
         attachedFileService.deleteAllByParent(ParentDomainType.CARE, recordId);
         careRecordRepository.delete(record);

@@ -49,6 +49,9 @@ public class SymptomSnap extends BaseTimeEntity {
     @Column(name = "resolved_record_id", columnDefinition = "uuid")
     private UUID resolvedRecordId;
 
+    @Column(name = "linked_schedule_id", columnDefinition = "uuid")
+    private UUID linkedScheduleId;
+
     public void update(LocalDate date, LocalTime time, String memo) {
         this.date = date;
         this.time = time;
@@ -63,5 +66,13 @@ public class SymptomSnap extends BaseTimeEntity {
     public void unlink() {
         this.resolvedRecordId = null;
         this.status = SymptomSnapStatus.MONITORING;
+    }
+
+    public void linkSchedule(UUID linkedScheduleId) {
+        this.linkedScheduleId = linkedScheduleId;
+    }
+
+    public void unlinkSchedule() {
+        this.linkedScheduleId = null;
     }
 }

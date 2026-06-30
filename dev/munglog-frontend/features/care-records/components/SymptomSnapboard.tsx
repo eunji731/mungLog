@@ -1,14 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Camera, Trash2, Link as LinkIcon, AlertCircle, CheckCircle2, X, ChevronDown, Check, Pencil } from 'lucide-react';
+import { Plus, Camera, Trash2, Link as LinkIcon, AlertCircle, CheckCircle2, X, ChevronDown, Check, Pencil, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { useConfirm } from '@/app/common/hooks/useConfirm';
+import { scheduleApi } from '@/api/scheduleApi';
+import { symptomSnapApi } from '@/api/symptomSnapApi';
+import type { SymptomSnapDto } from '@/api/symptomSnapApi';
+import type { Schedule } from '@/types/schedule';
 
 import { TagInput } from '@/components/common/TagInput';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
@@ -16,33 +20,21 @@ import TimelineTimePicker from './TimelineTimePicker';
 import { getImagePath } from '@/lib/clientApi';
 import { downloadFile } from '@/utils/fileUtils';
 
-export interface SymptomSnap {
-  id: string;
-  petId: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
-  symptomTags: string[];
-  memo: string;
-  photoUrl?: string; // base64 data URL
-  status: 'MONITORING' | 'RESOLVED';
-  resolvedRecordId?: string;
-  resolvedRecordTitle?: string;
-  linkedScheduleId?: string;
-  linkedScheduleTitle?: string;
-}
+// SymptomSnap 타입을 DTO와 동일하게 유지 (다른 파일들이 이 타입을 import)
+export type SymptomSnap = SymptomSnapDto;
 
 const SUGGESTED_SYMPTOMS = ['구토', '설사', '긁음', '눈물', '절뚝임', '기침', '콧물', '식욕부진', '발열', '피부염', '가려움'];
 
 interface SymptomSnapboardProps {
-  timelineRecords: any[];
   onSnapLinked?: () => void;
 }
 
-export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: SymptomSnapboardProps) {
+export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps) {
   const { selectedPetId, pets } = usePet();
   const { confirm } = useConfirm();
   const [snaps, setSnaps] = useState<SymptomSnap[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 필터 관련 상태
   const [period, setPeriod] = useState<'ALL' | 'TODAY' | 'WEEK' | 'MONTH' | 'CUSTOM'>('ALL');
@@ -57,7 +49,8 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   const [registerTime, setRegisterTime] = useState<string>(format(new Date(), 'HH:mm'));
   const [tags, setTags] = useState<string[]>([]);
   const [memo, setMemo] = useState('');
-  const [photoBase64, setPhotoBase64] = useState<string>('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>('');
   const [photoFileName, setPhotoFileName] = useState('');
   const [registerPetId, setRegisterPetId] = useState<string>('');
   const [petDropdownOpen, setPetDropdownOpen] = useState(false);
@@ -66,58 +59,35 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
   const [viewingSnap, setViewingSnap] = useState<SymptomSnap | null>(null);
   const [fullscreenPhoto, setFullscreenPhoto] = useState<string | null>(null);
 
-  // 연동 관련 상태
-
+  // 일정 연동 관련 상태
   const [activeLinkId, setActiveLinkId] = useState<string | null>(null);
+  const [linkableSchedules, setLinkableSchedules] = useState<Schedule[]>([]);
+  const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
 
-  // localStorage에서 스냅 로드
-  const loadSnaps = () => {
+  const loadSnaps = useCallback(async () => {
     try {
-      const data = localStorage.getItem('munglog_symptom_snaps');
-      if (data) {
-        const parsed = JSON.parse(data);
-        const migrated = parsed.map((s: any) => {
-          if (s.symptomTag && !s.symptomTags) {
-            return {
-              ...s,
-              symptomTags: [s.symptomTag],
-            };
-          }
-          if (!s.symptomTags) {
-            return {
-              ...s,
-              symptomTags: ['기타'],
-            };
-          }
-          return s;
-        });
-        setSnaps(migrated);
-      }
+      const data = await symptomSnapApi.getSnaps();
+      setSnaps(data);
     } catch (e) {
-      console.error('Failed to load snaps from localStorage', e);
+      console.error('Failed to load snaps', e);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadSnaps();
-    // 다른 창이나 탭에서의 업데이트 동기화
-    window.addEventListener('storage', loadSnaps);
-    return () => window.removeEventListener('storage', loadSnaps);
-  }, []);
+  }, [loadSnaps]);
 
   // 외부 클릭으로 팝업 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      // 데이트피커 포탈 영역 클릭 시 닫히는 현상 방지
       if (
-        target.closest('[class*="z-[100]"]') ||
         target.closest('[class*="z-[100]"]') ||
         target.closest('#root-portal')
       ) {
@@ -135,16 +105,14 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 사진 업로드 -> Base64 변환
+  // 사진 업로드 -> 프리뷰 생성
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    setPhotoFile(file);
     setPhotoFileName(file.name);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPhotoBase64(reader.result as string);
-    };
+    reader.onloadend = () => setPhotoPreview(reader.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -161,6 +129,10 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     setRegisterDate(format(new Date(), 'yyyy-MM-dd'));
     setRegisterTime(format(new Date(), 'HH:mm'));
     setTags([]);
+    setMemo('');
+    setPhotoFile(null);
+    setPhotoPreview('');
+    setPhotoFileName('');
     setPetDropdownOpen(false);
     setIsRegisterOpen(true);
   };
@@ -173,7 +145,8 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     setRegisterTime(snap.time);
     setTags(snap.symptomTags || []);
     setMemo(snap.memo || '');
-    setPhotoBase64(snap.photoUrl || '');
+    setPhotoFile(null);
+    setPhotoPreview(snap.photoUrl || '');
     setPhotoFileName(snap.photoUrl ? '기존 이미지' : '');
     setPetDropdownOpen(false);
     setIsRegisterOpen(true);
@@ -188,12 +161,13 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     setRegisterTime(format(new Date(), 'HH:mm'));
     setTags([]);
     setMemo('');
-    setPhotoBase64('');
+    setPhotoFile(null);
+    setPhotoPreview('');
     setPhotoFileName('');
   };
 
   // 스냅 등록/수정 제출
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!registerPetId) {
@@ -202,121 +176,100 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     }
 
     const finalTags = tags.length > 0 ? tags : ['기타'];
+    const requestData = {
+      petId: registerPetId,
+      date: registerDate,
+      time: registerTime,
+      symptomTags: finalTags,
+      memo: memo.trim(),
+    };
 
-    let updatedSnaps: SymptomSnap[];
-
-    if (editingSnapId) {
-      updatedSnaps = snaps.map(s => {
-        if (s.id === editingSnapId) {
-          return {
-            ...s,
-            petId: registerPetId,
-            date: registerDate,
-            time: registerTime,
-            symptomTags: finalTags,
-            memo: memo.trim(),
-            photoUrl: photoBase64 || undefined,
-          };
-        }
-        return s;
-      });
-    } else {
-      const newSnap: SymptomSnap = {
-        id: `snap_${Date.now()}`,
-        petId: registerPetId,
-        date: registerDate,
-        time: registerTime,
-        symptomTags: finalTags,
-        memo: memo.trim(),
-        photoUrl: photoBase64 || undefined,
-        status: 'MONITORING',
-      };
-      updatedSnaps = [newSnap, ...snaps];
+    try {
+      setIsSubmitting(true);
+      if (editingSnapId) {
+        await symptomSnapApi.updateSnap(editingSnapId, requestData, photoFile || undefined);
+      } else {
+        await symptomSnapApi.createSnap(requestData, photoFile || undefined);
+      }
+      await loadSnaps();
+      handleCloseRegister();
+    } catch (e) {
+      console.error('Failed to save snap:', e);
+      alert('저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setSnaps(updatedSnaps);
-    localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updatedSnaps));
-
-    handleCloseRegister();
-
-    // 이벤트 리스너 알림 (TimelineItem 갱신 목적)
-    window.dispatchEvent(new Event('symptom_snaps_updated'));
   };
 
   // 스냅 삭제
   const handleDeleteSnap = async (id: string) => {
     const isConfirmed = await confirm('기록된 증상 스냅을 삭제하시겠습니까?');
     if (!isConfirmed) return;
-    const updated = snaps.filter(s => s.id !== id);
-    setSnaps(updated);
-    localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
-    window.dispatchEvent(new Event('symptom_snaps_updated'));
+    try {
+      await symptomSnapApi.deleteSnap(id);
+      await loadSnaps();
+    } catch (e) {
+      console.error('Failed to delete snap:', e);
+    }
   };
 
-  // 스냅과 케어 기록 연동하기
-  const handleLinkRecord = (snapId: string, record: any) => {
-    const updated = snaps.map(s => {
-      if (s.id === snapId) {
-        return {
-          ...s,
-          status: 'RESOLVED' as const,
-          resolvedRecordId: String(record.id),
-          resolvedRecordTitle: record.title || '병원 진료',
-        };
-      }
-      return s;
-    });
-    setSnaps(updated);
-    localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
-    setActiveLinkId(null);
-    window.dispatchEvent(new Event('symptom_snaps_updated'));
-    if (onSnapLinked) onSnapLinked();
+  // 일정 연동 팝업 열기
+  const handleOpenLinkSchedule = async (snapId: string, petId: string) => {
+    setActiveLinkId(snapId);
+    setIsLoadingSchedules(true);
+    try {
+      const all = await scheduleApi.getSchedules({ petId });
+      const available = all.filter(s => !s.isCompleted && !s.convertedCareRecordId);
+      setLinkableSchedules(available);
+    } catch (e) {
+      console.error('Failed to fetch schedules for snap linking', e);
+      setLinkableSchedules([]);
+    } finally {
+      setIsLoadingSchedules(false);
+    }
   };
 
-  // 연동 해제하기
+  // 스냅과 일정 연동하기
+  const handleLinkSchedule = async (snapId: string, schedule: Schedule) => {
+    try {
+      await symptomSnapApi.linkSchedule(snapId, String(schedule.id));
+      setActiveLinkId(null);
+      await loadSnaps();
+      if (onSnapLinked) onSnapLinked();
+    } catch (e) {
+      console.error('Failed to link snap to schedule:', e);
+    }
+  };
+
+  // 케어기록 연동 해제하기
   const handleUnlinkRecord = async (snapId: string) => {
     const isConfirmed = await confirm('진료 연동을 해제하시겠습니까?');
     if (!isConfirmed) return;
-    const updated = snaps.map(s => {
-      if (s.id === snapId) {
-        return {
-          ...s,
-          status: 'MONITORING' as const,
-          resolvedRecordId: undefined,
-          resolvedRecordTitle: undefined,
-        };
-      }
-      return s;
-    });
-    setSnaps(updated);
-    localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
-    window.dispatchEvent(new Event('symptom_snaps_updated'));
-    if (onSnapLinked) onSnapLinked();
+    try {
+      await symptomSnapApi.unlinkRecord(snapId);
+      await loadSnaps();
+      if (onSnapLinked) onSnapLinked();
+    } catch (e) {
+      console.error('Failed to unlink record:', e);
+    }
   };
 
   // 일정 연동 해제하기
   const handleUnlinkSchedule = async (snapId: string) => {
     const isConfirmed = await confirm('예약 일정 연동을 해제하시겠습니까?');
     if (!isConfirmed) return;
-    const updated = snaps.map(s => {
-      if (s.id === snapId) {
-        return {
-          ...s,
-          linkedScheduleId: undefined,
-          linkedScheduleTitle: undefined,
-        };
-      }
-      return s;
-    });
-    setSnaps(updated);
-    localStorage.setItem('munglog_symptom_snaps', JSON.stringify(updated));
-    window.dispatchEvent(new Event('symptom_snaps_updated'));
-    if (onSnapLinked) onSnapLinked();
+    try {
+      await symptomSnapApi.unlinkSchedule(snapId);
+      await loadSnaps();
+      if (onSnapLinked) onSnapLinked();
+    } catch (e) {
+      console.error('Failed to unlink schedule:', e);
+    }
   };
 
   // 1차 필터링: 선택된 반려견 조건
   let filteredSnaps = snaps.filter(s => {
-    if (selectedPetId === ALL_PETS_ID) return true; // 전체가족
+    if (selectedPetId === ALL_PETS_ID) return true;
     return s.petId === selectedPetId;
   });
 
@@ -344,11 +297,6 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     }
     return true; // ALL
   });
-
-  // 연동 가능한 최근 병원/진료 기록들 필터링
-  const getLinkableRecords = () => {
-    return timelineRecords.filter(r => r.recordType === 'HOSPITAL');
-  };
 
   const hasDateFilter = period !== 'ALL';
   const selectedPet = pets.find(p => p.id === selectedPetId);
@@ -565,7 +513,7 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                           >
                             📅 {snap.linkedScheduleTitle || '예약 일정'} 연동됨
                           </Link>
-                          
+
                           <button
                             type="button"
                             onClick={() => handleUnlinkSchedule(snap.id)}
@@ -583,37 +531,47 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                           <div className="relative">
                             <button
                               type="button"
-                              onClick={() => setActiveLinkId(activeLinkId === snap.id ? null : snap.id)}
+                              onClick={() => {
+                                if (activeLinkId === snap.id) {
+                                  setActiveLinkId(null);
+                                } else {
+                                  handleOpenLinkSchedule(snap.id, snap.petId);
+                                }
+                              }}
                               className="flex items-center gap-1 font-black text-main-green hover:underline cursor-pointer bg-transparent border-none"
                             >
-                              <LinkIcon className="w-3 h-3" /> 진료 연동
+                              <Calendar className="w-3 h-3" /> 일정 연동
                             </button>
 
-                            {/* Linkable Records Popover */}
+                            {/* Linkable Schedules Popover */}
                             {activeLinkId === snap.id && (
                               <div className="absolute right-0 bottom-full mb-2 w-64 bg-background border border-border shadow-2xl rounded-2xl p-2 z-[60] max-h-52 overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-2">
                                 <div className="p-2 border-b border-border mb-1 flex items-center justify-between">
-                                  <span className="text-[10px] font-black text-text-sub">연동할 병원 기록 선택</span>
+                                  <span className="text-[10px] font-black text-text-sub">연동할 예약 일정 선택</span>
                                   <button type="button" onClick={() => setActiveLinkId(null)}>
                                     <X className="w-3 h-3 text-text-sub hover:text-red-500" />
                                   </button>
                                 </div>
 
-                                {getLinkableRecords().length === 0 ? (
+                                {isLoadingSchedules ? (
+                                  <p className="text-[10px] text-text-sub text-center py-4 font-bold">불러오는 중...</p>
+                                ) : linkableSchedules.length === 0 ? (
                                   <p className="text-[10px] text-text-sub text-center py-4 font-bold">
-                                    최근 등록된 병원 진료 기록이 없습니다.
+                                    예약된 일정이 없습니다.
                                   </p>
                                 ) : (
-                                  getLinkableRecords().map((record: any) => (
+                                  linkableSchedules.map((schedule) => (
                                     <button
                                       type="button"
-                                      key={record.id}
-                                      onClick={() => handleLinkRecord(snap.id, record)}
+                                      key={schedule.id}
+                                      onClick={() => handleLinkSchedule(snap.id, schedule)}
                                       className="w-full text-left p-2 hover:bg-surface-green rounded-xl transition-colors flex items-center gap-2"
                                     >
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-black text-text-main truncate">{record.title}</p>
-                                        <p className="text-[9px] text-text-sub font-bold mt-0.5">{record.recordDate} · {record.clinicName || '진료'}</p>
+                                        <p className="text-xs font-black text-text-main truncate">{schedule.title}</p>
+                                        <p className="text-[9px] text-text-sub font-bold mt-0.5">
+                                          {schedule.scheduleDate?.slice(0, 10)} · {schedule.scheduleType || '일정'}
+                                        </p>
                                       </div>
                                       <Check className="w-3.5 h-3.5 text-main-green shrink-0 opacity-0 hover:opacity-100" />
                                     </button>
@@ -626,19 +584,32 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                       )}
                     </>
                   ) : (
-                    <>
-                      <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-black flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-500" /> 진료 연동됨
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleUnlinkRecord(snap.id)}
-                        className="text-text-sub hover:text-red-500 hover:underline bg-transparent border-none"
-                        title={snap.resolvedRecordTitle}
-                      >
-                        연동 해제
-                      </button>
-                    </>
+                    <div className="w-full space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Link
+                          href={`/care-records/${snap.resolvedRecordId}`}
+                          className="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 px-2 py-0.5 rounded-full font-black flex items-center gap-1 hover:bg-emerald-100 transition-colors"
+                        >
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                          {snap.resolvedRecordTitle || '케어기록'} 연동됨
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleUnlinkRecord(snap.id)}
+                          className="text-text-sub hover:text-red-500 hover:underline bg-transparent border-none font-bold text-[10px]"
+                        >
+                          연동 해제
+                        </button>
+                      </div>
+                      {snap.linkedScheduleId && (
+                        <Link
+                          href={`/schedules/${snap.linkedScheduleId}`}
+                          className="text-main-green hover:underline font-black flex items-center gap-1 text-[10px]"
+                        >
+                          📅 {snap.linkedScheduleTitle || '예약 일정'} (원본 일정)
+                        </Link>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -808,12 +779,12 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                     </span>
                   )}
                 </div>
-                {photoBase64 && (
+                {photoPreview && (
                   <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-border mt-2 bg-stone-100">
-                    <img src={photoBase64} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       type="button"
-                      onClick={() => { setPhotoBase64(''); setPhotoFileName(''); }}
+                      onClick={() => { setPhotoFile(null); setPhotoPreview(''); setPhotoFileName(''); }}
                       className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 text-white"
                     >
                       <X className="w-3 h-3" />
@@ -847,9 +818,10 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                 <Button
                   type="submit"
                   variant="primary"
+                  disabled={isSubmitting}
                   className="flex-1 rounded-xl text-xs bg-main-yellow text-white border-main-yellow shadow-md shadow-main-yellow/10"
                 >
-                  {editingSnapId ? '수정 완료' : '기록 완료'}
+                  {isSubmitting ? '저장 중...' : (editingSnapId ? '수정 완료' : '기록 완료')}
                 </Button>
               </div>
             </form>
@@ -944,7 +916,6 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
                 </div>
               )}
 
-
               {/* Memo */}
               <div className="space-y-2">
                 <span className="text-[10px] font-black text-text-sub uppercase tracking-wider">증상 상세 내용</span>
@@ -1023,4 +994,3 @@ export default function SymptomSnapboard({ timelineRecords, onSnapLinked }: Symp
     </div>
   );
 }
-

@@ -56,6 +56,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(auth -> auth
+                                .authorizationRequestRepository(new com.munglog.backend.common.auth.CookieOAuth2AuthorizationRequestRepository()))
+                        .redirectionEndpoint(red -> red
+                                .baseUri("/login/oauth2/code/*"))
                         .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler)

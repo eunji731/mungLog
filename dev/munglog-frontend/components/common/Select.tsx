@@ -33,6 +33,7 @@ export const Select: React.FC<SelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<{ top: number; left: number; bottom: number; right: number; width: number; height: number } | null>(null);
 
   useEffect(() => {
@@ -57,7 +58,10 @@ export const Select: React.FC<SelectProps> = ({
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const inContainer = containerRef.current?.contains(target);
+      const inDropdown = dropdownRef.current?.contains(target);
+      if (!inContainer && !inDropdown) {
         setIsOpen(false);
       }
     };
@@ -206,7 +210,8 @@ export const Select: React.FC<SelectProps> = ({
         </button>
 
         {isOpen && !disabled && mounted && coords && createPortal(
-          <div 
+          <div
+            ref={dropdownRef}
             className="fixed bg-background rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-border overflow-hidden p-1.5 animate-in zoom-in-95 duration-200"
             style={getDropdownStyle()}
           >
