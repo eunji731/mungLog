@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp } from 'lucide-react';
+import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp, FileText } from 'lucide-react';
 import { usePet, PetProfile, PetFormData } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/lib/clientApi';
 import { useToast } from '@/app/common/hooks/useToast';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { FileUploader } from '@/components/common/FileUploader';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
+import RegistrationCardModal from '@/features/family/components/RegistrationCardModal';
 
 export default function FamilyPage() {
   const { pets, addPet, updatePet, removePet, loading } = usePet();
@@ -16,6 +17,7 @@ export default function FamilyPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingPetId, setEditingPetId] = useState<string | null>(null);
   const [viewingPet, setViewingPet] = useState<PetProfile | null>(null);
+  const [registrationModalPetId, setRegistrationModalPetId] = useState<string | null>(null);
 
   // New/Edit Pet Form State
   const [newName, setNewName] = useState('');
@@ -108,6 +110,11 @@ export default function FamilyPage() {
     } catch (err) {
       toastError(editingPetId ? '정보 수정에 실패했습니다.' : '반려동물 등록에 실패했습니다.');
     }
+  };
+
+  const handleOpenRegistrationModal = (e: React.MouseEvent, petId: string) => {
+    e.stopPropagation();
+    setRegistrationModalPetId(petId);
   };
 
   const handleRemovePet = async (e: React.MouseEvent, id: string, name: string) => {
@@ -529,6 +536,18 @@ export default function FamilyPage() {
                       {pet.breed} · {calculateAge(pet.birthDate)} ({pet.birthDate})
                       {pet.weightKg && ` · ${pet.weightKg}kg`}
                     </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <button
+                        onClick={(e) => handleOpenRegistrationModal(e, pet.id)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-zinc-50 hover:border-main-green hover:text-main-green text-text-sub text-[11px] font-bold transition-all"
+                      >
+                        <FileText className="w-3.5 h-3.5 shrink-0" />
+                        동물등록증
+                        {pet.registrationNumber && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-main-green shrink-0" />
+                        )}
+                      </button>
+                    </div>
                     <div className="bg-zinc-50 p-3 rounded-xl border border-border/60">
                       <p className="text-[11px] text-text-sub font-medium line-clamp-2 italic leading-relaxed">
                         &quot;{pet.traits || '등록된 특징이 없습니다. AI를 위해 입력해 주세요!'}&quot;
@@ -552,6 +571,19 @@ export default function FamilyPage() {
 
         </div>
       </div>
+
+      {/* 동물등록증 모달 */}
+      {registrationModalPetId && (() => {
+        const modalPet = pets.find(p => p.id === registrationModalPetId);
+        if (!modalPet) return null;
+        return (
+          <RegistrationCardModal
+            pet={modalPet}
+            onClose={() => setRegistrationModalPetId(null)}
+          />
+        );
+      })()}
+
     </div>
   );
 }
