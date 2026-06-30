@@ -65,4 +65,16 @@ export const fileApi = {
     });
     return response.data ? toFileItem(response.data, targetCode, parentId) : null;
   },
+
+  // 특정 파일 삭제 (백엔드 PUT sync에 deletedFileIds 전달)
+  deleteFiles: async (targetCode: string, parentId: string | number, fileIds: (string | number)[]): Promise<FileItem[]> => {
+    if (fileIds.length === 0) return [];
+    const parentType = toParentType(targetCode);
+    const response = await apiClient.put(
+      `/files/${parentType}/${parentId}/sync`,
+      { deletedFileIds: fileIds }
+    );
+    const result: BackendFileResponse[] = response.data || [];
+    return result.map(f => toFileItem(f, targetCode, parentId));
+  },
 };

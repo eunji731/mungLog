@@ -40,7 +40,7 @@ export const useVaccinationRecords = (petId: string) => {
     fetchRecords();
   }, [fetchRecords]);
 
-  const createVaccination = async (data: VaccinationFormData) => {
+  const createVaccination = async (data: VaccinationFormData): Promise<CareRecord> => {
     const payload: CareRecordCreateRequest = {
       petId,
       recordTypeId: VACCINATION_TYPE_ID,
@@ -51,8 +51,9 @@ export const useVaccinationRecords = (petId: string) => {
         ? { clinicName: data.clinicName.trim() }
         : null,
     };
-    await careApi.createRecord(payload);
+    const saved = await careApi.createRecord(payload);
     await fetchRecords();
+    return saved;
   };
 
   return { records, isLoading, refetch: fetchRecords, createVaccination };
