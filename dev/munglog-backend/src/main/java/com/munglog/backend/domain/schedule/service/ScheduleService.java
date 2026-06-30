@@ -8,6 +8,7 @@ import com.munglog.backend.domain.care.domain.CareRecordType;
 import com.munglog.backend.domain.care.domain.MedicalDetail;
 import com.munglog.backend.domain.care.repository.CareRecordRepository;
 import com.munglog.backend.domain.care.repository.MedicalDetailRepository;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.inventory.domain.InventoryItem;
 import com.munglog.backend.domain.inventory.repository.InventoryItemRepository;
 import com.munglog.backend.domain.member.domain.Member;
@@ -44,6 +45,7 @@ public class ScheduleService {
     private final MedicalDetailRepository medicalDetailRepository;
     private final MemberRepository memberRepository;
     private final PetRepository petRepository;
+    private final FamilyGroupService familyGroupService;
     private final AttachedFileService attachedFileService;
     private final SymptomService symptomService;
     private final SymptomSnapService symptomSnapService;
@@ -52,23 +54,24 @@ public class ScheduleService {
 
     @Transactional(readOnly = true)
     public List<ScheduleResponse> getSchedules(UUID userId, UUID petId, String keyword) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         List<Schedule> schedules;
         if (kw != null && petId != null) {
-            schedules = scheduleRepository.findByUserIdAndPetIdAndKeyword(userId, petId, kw);
+            schedules = scheduleRepository.findByGroupIdAndPetIdAndKeyword(groupId, petId, kw);
         } else if (kw != null) {
-            schedules = scheduleRepository.findByUserIdAndKeyword(userId, kw);
+            schedules = scheduleRepository.findByGroupIdAndKeyword(groupId, kw);
         } else if (petId != null) {
-            schedules = scheduleRepository.findByUserIdAndPetId(userId, petId);
+            schedules = scheduleRepository.findByGroupIdAndPetId(groupId, petId);
         } else {
-            schedules = scheduleRepository.findByUserId(userId);
+            schedules = scheduleRepository.findByGroupId(groupId);
         }
         return schedules.stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public ScheduleResponse getSchedule(UUID scheduleId, UUID userId) {
-        Schedule schedule = findByIdAndUserId(scheduleId, userId);
+        Schedule schedule = findByIdAndGroupId(scheduleId, userId);
         return toResponse(schedule);
     }
 
@@ -76,9 +79,10 @@ public class ScheduleService {
     public ScheduleResponse createSchedule(UUID userId, ScheduleRequest request) {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        Pet pet = petRepository.findByIdAndGroupId(request.getPetId(), groupId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
-        InventoryItem linkedItem = resolveInventoryItem(request.getInventoryItemId(), userId);
+        InventoryItem linkedItem = resolveInventoryItem(request.getInventoryItemId(), groupId);
         VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
 
         Schedule schedule = scheduleRepository.save(Schedule.builder()
@@ -100,10 +104,11 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleResponse updateSchedule(UUID scheduleId, UUID userId, ScheduleRequest request) {
-        Schedule schedule = findByIdAndUserId(scheduleId, userId);
-        Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
+        Schedule schedule = findByIdAndGroupId(scheduleId, userId);
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        Pet pet = petRepository.findByIdAndGroupId(request.getPetId(), groupId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
-        InventoryItem linkedItem = resolveInventoryItem(request.getInventoryItemId(), userId);
+        InventoryItem linkedItem = resolveInventoryItem(request.getInventoryItemId(), groupId);
         VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
 
         schedule.update(pet, ScheduleType.valueOf(request.getScheduleType()), request.getScheduleDate(),
@@ -118,7 +123,7 @@ public class ScheduleService {
 
     @Transactional
     public void deleteSchedule(UUID scheduleId, UUID userId) {
-        Schedule schedule = findByIdAndUserId(scheduleId, userId);
+        Schedule schedule = findByIdAndGroupId(scheduleId, userId);
         symptomSnapService.unlinkAllBySchedule(scheduleId);
         symptomService.deleteScheduleSymptoms(scheduleId);
         attachedFileService.deleteAllByParent(ParentDomainType.SCHEDULE, scheduleId);
@@ -127,7 +132,7 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleResponse toggleCompletion(UUID scheduleId, UUID userId) {
-        Schedule schedule = findByIdAndUserId(scheduleId, userId);
+        Schedule schedule = findByIdAndGroupId(scheduleId, userId);
         schedule.toggleCompletion();
         scheduleRepository.save(schedule);
 
@@ -142,7 +147,7 @@ public class ScheduleService {
 
     @Transactional
     public UUID convertToCareRecord(UUID scheduleId, UUID userId) {
-        Schedule schedule = findByIdAndUserId(scheduleId, userId);
+        Schedule schedule = findByIdAndGroupId(scheduleId, userId);
         careRecordRepository.findBySourceScheduleId(scheduleId).ifPresent(existing -> {
             throw new IllegalArgumentException("이미 케어기록으로 전환된 일정입니다.");
         });
@@ -171,9 +176,10 @@ public class ScheduleService {
 
     @Transactional(readOnly = true)
     public List<ScheduleStreakResponse> getScheduleStreaks(UUID userId, UUID petId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
         List<Schedule> schedules = petId != null
-                ? scheduleRepository.findByUserIdAndPetId(userId, petId)
-                : scheduleRepository.findByUserId(userId);
+                ? scheduleRepository.findByGroupIdAndPetId(groupId, petId)
+                : scheduleRepository.findByGroupId(groupId);
 
         return schedules.stream()
                 .filter(s -> s.getTitle() != null && !s.getTitle().isBlank())
@@ -221,7 +227,6 @@ public class ScheduleService {
                 .map(s -> new ScheduleStreakResponse.Occurrence(s.getScheduleDate(), Boolean.TRUE.equals(s.getIsCompleted())))
                 .toList();
 
-        // 가장 최근에 연동된 재고 아이템을 기준으로 소진 예상일을 계산합니다.
         InventoryItem linkedItem = sorted.stream()
                 .sorted(Comparator.comparing(Schedule::getScheduleDate).reversed())
                 .map(Schedule::getLinkedInventoryItem)
@@ -265,9 +270,9 @@ public class ScheduleService {
         return ScheduleResponse.of(schedule, files, tags, convertedCareRecordId);
     }
 
-    private InventoryItem resolveInventoryItem(UUID inventoryItemId, UUID userId) {
+    private InventoryItem resolveInventoryItem(UUID inventoryItemId, UUID groupId) {
         if (inventoryItemId == null) return null;
-        return inventoryItemRepository.findByIdAndUserId(inventoryItemId, userId)
+        return inventoryItemRepository.findByIdAndGroupId(inventoryItemId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("재고 아이템을 찾을 수 없습니다."));
     }
 
@@ -277,8 +282,9 @@ public class ScheduleService {
                 .orElseThrow(() -> new IllegalArgumentException("접종종류를 찾을 수 없습니다: " + vaccinationTypeId));
     }
 
-    private Schedule findByIdAndUserId(UUID scheduleId, UUID userId) {
-        return scheduleRepository.findByIdAndUser_Id(scheduleId, userId)
+    private Schedule findByIdAndGroupId(UUID scheduleId, UUID userId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        return scheduleRepository.findByIdAndGroupId(scheduleId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("일정을 찾을 수 없습니다."));
     }
 }

@@ -13,24 +13,25 @@ import java.util.UUID;
 
 public interface CareRecordRepository extends JpaRepository<CareRecord, UUID> {
 
-    @Query("SELECT c FROM CareRecord c WHERE c.user.id = :userId AND c.pet.id = :petId AND (LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.note) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY c.recordDate DESC")
-    List<CareRecord> findByUserIdAndPetIdAndKeyword(@Param("userId") UUID userId, @Param("petId") UUID petId, @Param("keyword") String keyword);
+    @Query("SELECT c FROM CareRecord c WHERE c.pet.group.id = :groupId AND c.pet.id = :petId AND (LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.note) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY c.recordDate DESC")
+    List<CareRecord> findByGroupIdAndPetIdAndKeyword(@Param("groupId") UUID groupId, @Param("petId") UUID petId, @Param("keyword") String keyword);
 
-    @Query("SELECT c FROM CareRecord c WHERE c.user.id = :userId AND (LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.note) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY c.recordDate DESC")
-    List<CareRecord> findByUserIdAndKeyword(@Param("userId") UUID userId, @Param("keyword") String keyword);
+    @Query("SELECT c FROM CareRecord c WHERE c.pet.group.id = :groupId AND (LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.note) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY c.recordDate DESC")
+    List<CareRecord> findByGroupIdAndKeyword(@Param("groupId") UUID groupId, @Param("keyword") String keyword);
 
-    @Query("SELECT c FROM CareRecord c WHERE c.user.id = :userId AND c.pet.id = :petId ORDER BY c.recordDate DESC")
-    List<CareRecord> findByUserIdAndPetId(@Param("userId") UUID userId, @Param("petId") UUID petId);
+    @Query("SELECT c FROM CareRecord c WHERE c.pet.group.id = :groupId AND c.pet.id = :petId ORDER BY c.recordDate DESC")
+    List<CareRecord> findByGroupIdAndPetId(@Param("groupId") UUID groupId, @Param("petId") UUID petId);
 
-    @Query("SELECT c FROM CareRecord c WHERE c.user.id = :userId ORDER BY c.recordDate DESC")
-    List<CareRecord> findByUserId(@Param("userId") UUID userId);
+    @Query("SELECT c FROM CareRecord c WHERE c.pet.group.id = :groupId ORDER BY c.recordDate DESC")
+    List<CareRecord> findByGroupId(@Param("groupId") UUID groupId);
 
-    Optional<CareRecord> findByIdAndUser_Id(UUID id, UUID userId);
+    @Query("SELECT c FROM CareRecord c WHERE c.id = :id AND c.pet.group.id = :groupId")
+    Optional<CareRecord> findByIdAndGroupId(@Param("id") UUID id, @Param("groupId") UUID groupId);
 
     Optional<CareRecord> findBySourceScheduleId(UUID sourceScheduleId);
 
-    @Query("SELECT c FROM CareRecord c WHERE c.user.id = :userId AND c.pet.id = :petId AND c.recordType = :recordType AND c.recordDate >= :from ORDER BY c.recordDate DESC")
-    List<CareRecord> findMedicalCandidates(@Param("userId") UUID userId, @Param("petId") UUID petId,
+    @Query("SELECT c FROM CareRecord c WHERE c.pet.group.id = :groupId AND c.pet.id = :petId AND c.recordType = :recordType AND c.recordDate >= :from ORDER BY c.recordDate DESC")
+    List<CareRecord> findMedicalCandidates(@Param("groupId") UUID groupId, @Param("petId") UUID petId,
                                             @Param("recordType") CareRecordType recordType,
                                             @Param("from") LocalDate from);
 

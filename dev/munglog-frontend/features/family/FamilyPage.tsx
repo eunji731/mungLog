@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp, IdCard, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp, IdCard, ShieldCheck, PawPrint, Users } from 'lucide-react';
 import { usePet, PetProfile, PetFormData } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/lib/clientApi';
 import { useToast } from '@/app/common/hooks/useToast';
@@ -11,10 +11,14 @@ import { FileUploader } from '@/components/common/FileUploader';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import RegistrationCardModal from '@/features/family/components/RegistrationCardModal';
 import PetDocumentSection from '@/features/family/components/PetDocumentSection';
+import FamilyMembersSection from '@/features/family/components/FamilyMembersSection';
+
+type ActiveTab = 'pets' | 'members';
 
 export default function FamilyPage() {
   const { pets, addPet, updatePet, removePet, loading } = usePet();
   const { success, error: toastError, warning } = useToast();
+  const [activeTab, setActiveTab] = useState<ActiveTab>('pets');
   const [isAdding, setIsAdding] = useState(false);
   const [editingPetId, setEditingPetId] = useState<string | null>(null);
   const [viewingPet, setViewingPet] = useState<PetProfile | null>(null);
@@ -177,7 +181,30 @@ export default function FamilyPage() {
             </h1>
           </div>
 
-          {!isAdding && !viewingPet && (
+          <div className="flex items-center gap-1 bg-zinc-100 rounded-xl p-1">
+            <button
+              onClick={() => setActiveTab('pets')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'pets'
+                  ? 'bg-background text-main-green shadow-sm'
+                  : 'text-text-sub hover:text-text-main'
+              }`}
+            >
+              <PawPrint className="w-3.5 h-3.5" /> 반려동물
+            </button>
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'members'
+                  ? 'bg-background text-main-green shadow-sm'
+                  : 'text-text-sub hover:text-text-main'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" /> 가족 구성원
+            </button>
+          </div>
+
+          {activeTab === 'pets' && !isAdding && !viewingPet && (
             <button
               onClick={() => {
                 resetForm();
@@ -194,6 +221,14 @@ export default function FamilyPage() {
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-10">
         <div className="max-w-5xl mx-auto">
+
+          {/* 가족 구성원 탭 */}
+          {activeTab === 'members' && (
+            <FamilyMembersSection />
+          )}
+
+          {/* 반려동물 탭 */}
+          {activeTab === 'pets' && (<>
 
           {/* 1) Add/Edit Pet Form */}
           {isAdding && (
@@ -611,6 +646,7 @@ export default function FamilyPage() {
               </div>
             </div>
           )}
+          </>)}
 
         </div>
       </div>

@@ -12,16 +12,16 @@ public interface VaccinationTypeRepository extends JpaRepository<VaccinationType
 
     @Query("""
             SELECT v FROM VaccinationType v
-            WHERE (v.member IS NULL OR v.member.id = :memberId)
+            WHERE (v.group IS NULL OR v.group.id = :groupId)
             AND v.isActive = true
-            ORDER BY v.member NULLS FIRST, v.name
+            ORDER BY v.group NULLS FIRST, v.name
             """)
-    List<VaccinationType> findActiveByMember(@Param("memberId") UUID memberId);
+    List<VaccinationType> findActiveByGroup(@Param("groupId") UUID groupId);
 
     @Query("""
             SELECT v FROM VaccinationType v
-            WHERE (v.member IS NULL OR v.member.id = :memberId)
-            ORDER BY v.member NULLS FIRST, v.name
+            WHERE (v.group IS NULL OR v.group.id = :groupId)
+            ORDER BY v.group NULLS FIRST, v.name
             """)
-    List<VaccinationType> findAllByMember(@Param("memberId") UUID memberId);
+    List<VaccinationType> findAllByGroup(@Param("groupId") UUID groupId);
 }

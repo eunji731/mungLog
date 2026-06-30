@@ -8,6 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, UUID> {
-    List<InventoryItem> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
-    Optional<InventoryItem> findByIdAndUserId(UUID id, UUID userId);
+    List<InventoryItem> findAllByGroupIdOrderByCreatedAtDesc(UUID groupId);
+    Optional<InventoryItem> findByIdAndGroupId(UUID id, UUID groupId);
 }

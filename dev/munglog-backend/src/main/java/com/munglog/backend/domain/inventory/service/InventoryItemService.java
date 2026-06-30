@@ -5,14 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.munglog.backend.common.file.domain.ParentDomainType;
 import com.munglog.backend.common.file.dto.FileResponse;
 import com.munglog.backend.common.file.service.AttachedFileService;
+import com.munglog.backend.domain.family.domain.FamilyGroup;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.inventory.domain.InventoryItem;
 import com.munglog.backend.domain.inventory.domain.ItemCategory;
 import com.munglog.backend.domain.inventory.domain.StorageMethod;
 import com.munglog.backend.domain.inventory.dto.InventoryItemRequest;
 import com.munglog.backend.domain.inventory.dto.InventoryItemResponse;
 import com.munglog.backend.domain.inventory.repository.InventoryItemRepository;
-import com.munglog.backend.domain.member.domain.Member;
-import com.munglog.backend.domain.member.repository.MemberRepository;
 import com.munglog.backend.domain.pet.domain.Pet;
 import com.munglog.backend.domain.pet.repository.PetRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,22 +33,21 @@ import java.util.UUID;
 public class InventoryItemService {
 
     private final InventoryItemRepository inventoryItemRepository;
-    private final MemberRepository memberRepository;
+    private final FamilyGroupService familyGroupService;
     private final PetRepository petRepository;
     private final AttachedFileService attachedFileService;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public InventoryItemResponse createItem(UUID userId, InventoryItemRequest request, List<MultipartFile> images) {
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        FamilyGroup group = familyGroupService.getGroupByUserId(userId);
 
         Pet pet = (request.getPetId() != null)
                 ? petRepository.findById(request.getPetId()).orElse(null)
                 : null;
 
         InventoryItem item = InventoryItem.builder()
-                .user(member)
+                .group(group)
                 .pet(pet)
                 .name(request.getName())
                 .category(parseEnum(ItemCategory.class, request.getCategory()))
@@ -81,7 +80,8 @@ public class InventoryItemService {
 
     @Transactional(readOnly = true)
     public List<InventoryItemResponse> getItems(UUID userId) {
-        return inventoryItemRepository.findAllByUserIdOrderByCreatedAtDesc(userId).stream()
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        return inventoryItemRepository.findAllByGroupIdOrderByCreatedAtDesc(groupId).stream()
                 .map(item -> InventoryItemResponse.from(item,
                         attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId()),
                         fromIngredientsJson(item.getIngredients())))
@@ -90,14 +90,14 @@ public class InventoryItemService {
 
     @Transactional(readOnly = true)
     public InventoryItemResponse getItem(UUID itemId, UUID userId) {
-        InventoryItem item = findByIdAndUserId(itemId, userId);
+        InventoryItem item = findByIdAndGroupId(itemId, userId);
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId());
         return InventoryItemResponse.from(item, files, fromIngredientsJson(item.getIngredients()));
     }
 
     @Transactional
     public InventoryItemResponse updateItem(UUID itemId, UUID userId, InventoryItemRequest request, List<MultipartFile> images) {
-        InventoryItem item = findByIdAndUserId(itemId, userId);
+        InventoryItem item = findByIdAndGroupId(itemId, userId);
 
         Pet pet = (request.getPetId() != null)
                 ? petRepository.findById(request.getPetId()).orElse(null)
@@ -122,22 +122,23 @@ public class InventoryItemService {
 
     @Transactional
     public void deleteItem(UUID itemId, UUID userId) {
-        InventoryItem item = findByIdAndUserId(itemId, userId);
+        InventoryItem item = findByIdAndGroupId(itemId, userId);
         attachedFileService.deleteAllByParent(ParentDomainType.INVENTORY, itemId);
         inventoryItemRepository.delete(item);
     }
 
     @Transactional
     public InventoryItemResponse toggleFeeding(UUID itemId, UUID userId) {
-        InventoryItem item = findByIdAndUserId(itemId, userId);
+        InventoryItem item = findByIdAndGroupId(itemId, userId);
         item.toggleFeeding();
         inventoryItemRepository.save(item);
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.INVENTORY, item.getId());
         return InventoryItemResponse.from(item, files, fromIngredientsJson(item.getIngredients()));
     }
 
-    private InventoryItem findByIdAndUserId(UUID itemId, UUID userId) {
-        return inventoryItemRepository.findByIdAndUserId(itemId, userId)
+    private InventoryItem findByIdAndGroupId(UUID itemId, UUID userId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        return inventoryItemRepository.findByIdAndGroupId(itemId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("아이템을 찾을 수 없습니다."));
     }
 

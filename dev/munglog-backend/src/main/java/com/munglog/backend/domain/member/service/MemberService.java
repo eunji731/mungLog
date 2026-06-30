@@ -9,6 +9,7 @@ import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.dto.MemberResponse;
 import com.munglog.backend.domain.member.dto.MemberUpdateRequest;
 import com.munglog.backend.domain.member.repository.MemberRepository;
+import com.munglog.backend.domain.family.repository.GroupMemberRepository;
 import com.munglog.backend.domain.pet.repository.PetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PetRepository petRepository;
+    private final GroupMemberRepository groupMemberRepository;
     private final AttachedFileService attachedFileService;
     private final FileStorageService fileStorageService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -61,7 +63,8 @@ public class MemberService {
     public void withdraw(UUID userId) {
         Member member = findById(userId);
         member.withdraw();
-        petRepository.findByUserId(userId).forEach(pet -> pet.delete());
+        groupMemberRepository.findGroupIdByUserId(userId)
+                .ifPresent(groupId -> petRepository.findByGroupId(groupId).forEach(pet -> pet.delete()));
         memberRepository.save(member);
     }
 

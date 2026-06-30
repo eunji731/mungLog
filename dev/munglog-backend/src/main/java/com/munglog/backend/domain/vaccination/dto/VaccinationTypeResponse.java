@@ -17,7 +17,7 @@ public record VaccinationTypeResponse(
                 .name(v.getName())
                 .intervalDays(v.getIntervalDays())
                 .isActive(v.getIsActive())
-                .isGlobal(v.getMember() == null)
+                .isGlobal(v.getGroup() == null)
                 .build();
     }
 }

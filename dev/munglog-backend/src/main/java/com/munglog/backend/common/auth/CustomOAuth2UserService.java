@@ -1,6 +1,7 @@
 package com.munglog.backend.common.auth;
 
 import com.munglog.backend.common.auth.dto.OAuthAttributes;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
+    private final FamilyGroupService familyGroupService;
 
     @Override
     @Transactional
@@ -44,6 +46,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     }
                     return memberRepository.save(member);
                 })
-                .orElseGet(() -> memberRepository.save(attributes.toEntity()));
+                .orElseGet(() -> {
+                    Member newMember = memberRepository.save(attributes.toEntity());
+                    familyGroupService.createGroupForNewMember(newMember);
+                    return newMember;
+                });
     }
 }

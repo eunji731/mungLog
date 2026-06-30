@@ -53,7 +53,7 @@ public class VaccinationTypeDataInitializer implements ApplicationRunner {
         log.info("기본 접종종류 데이터 초기화 시작");
         for (Map<String, Object> typeData : DEFAULT_TYPES) {
             VaccinationType vt = vaccinationTypeRepository.save(VaccinationType.builder()
-                    .member(null)
+                    .group(null)
                     .name((String) typeData.get("name"))
                     .intervalDays((Integer) typeData.get("intervalDays"))
                     .build());

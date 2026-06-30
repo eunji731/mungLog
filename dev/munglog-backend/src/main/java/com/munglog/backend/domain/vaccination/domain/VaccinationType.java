@@ -1,7 +1,7 @@
 package com.munglog.backend.domain.vaccination.domain;
 
 import com.munglog.backend.common.domain.BaseTimeEntity;
-import com.munglog.backend.domain.member.domain.Member;
+import com.munglog.backend.domain.family.domain.FamilyGroup;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,8 +20,8 @@ public class VaccinationType extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    @JoinColumn(name = "group_id")
+    private FamilyGroup group;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;

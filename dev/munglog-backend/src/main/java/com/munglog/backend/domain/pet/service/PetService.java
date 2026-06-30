@@ -4,8 +4,8 @@ import com.munglog.backend.common.file.domain.ParentDomainType;
 import com.munglog.backend.common.file.dto.FileResponse;
 import com.munglog.backend.common.file.service.AttachedFileService;
 import com.munglog.backend.common.file.service.FileStorageService;
-import com.munglog.backend.domain.member.domain.Member;
-import com.munglog.backend.domain.member.repository.MemberRepository;
+import com.munglog.backend.domain.family.domain.FamilyGroup;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.pet.domain.Pet;
 import com.munglog.backend.domain.pet.dto.PetRequest;
 import com.munglog.backend.domain.pet.dto.PetResponse;
@@ -23,33 +23,33 @@ import java.util.UUID;
 public class PetService {
 
     private final PetRepository petRepository;
-    private final MemberRepository memberRepository;
+    private final FamilyGroupService familyGroupService;
     private final AttachedFileService attachedFileService;
     private final FileStorageService fileStorageService;
 
     @Transactional(readOnly = true)
     public List<PetResponse> getPets(UUID userId) {
-        return petRepository.findByUserIdAndIsActiveTrue(userId).stream()
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        return petRepository.findByGroupIdAndIsActiveTrue(groupId).stream()
                 .map(pet -> PetResponse.from(pet, resolvePhotoUrl(pet)))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public PetResponse getPet(UUID petId, UUID userId) {
-        Pet pet = findByIdAndUserId(petId, userId);
+        Pet pet = findByIdAndGroupId(petId, userId);
         return PetResponse.from(pet, resolvePhotoUrl(pet));
     }
 
     @Transactional
     public PetResponse createPet(UUID userId, PetRequest request, MultipartFile profileImage) {
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        FamilyGroup group = familyGroupService.getGroupByUserId(userId);
 
         String regNum = (request.getRegistrationNumber() != null && !request.getRegistrationNumber().isBlank())
                 ? request.getRegistrationNumber().trim() : null;
 
         Pet pet = Pet.builder()
-                .user(member)
+                .group(group)
                 .name(request.getName())
                 .breed(request.getBreed())
                 .birthDate(request.getBirthDate())
@@ -75,7 +75,7 @@ public class PetService {
 
     @Transactional
     public PetResponse updatePet(UUID petId, UUID userId, PetRequest request, MultipartFile profileImage) {
-        Pet pet = findByIdAndUserId(petId, userId);
+        Pet pet = findByIdAndGroupId(petId, userId);
 
         String profileImagePath = pet.getProfileImagePath();
 
@@ -95,7 +95,7 @@ public class PetService {
 
     @Transactional
     public void deletePet(UUID petId, UUID userId) {
-        Pet pet = findByIdAndUserId(petId, userId);
+        Pet pet = findByIdAndGroupId(petId, userId);
         pet.delete();
         petRepository.save(pet);
     }
@@ -111,8 +111,9 @@ public class PetService {
         return null;
     }
 
-    private Pet findByIdAndUserId(UUID petId, UUID userId) {
-        return petRepository.findByIdAndUserId(petId, userId)
+    private Pet findByIdAndGroupId(UUID petId, UUID userId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        return petRepository.findByIdAndGroupId(petId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
     }
 }

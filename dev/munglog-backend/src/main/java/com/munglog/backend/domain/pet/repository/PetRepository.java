@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PetRepository extends JpaRepository<Pet, UUID> {
-    List<Pet> findByUserIdAndIsActiveTrue(UUID userId);
-    List<Pet> findByUserId(UUID userId);
-    Optional<Pet> findByIdAndUserId(UUID id, UUID userId);
+    List<Pet> findByGroupIdAndIsActiveTrue(UUID groupId);
+    List<Pet> findByGroupId(UUID groupId);
+    Optional<Pet> findByIdAndGroupId(UUID id, UUID groupId);
 }

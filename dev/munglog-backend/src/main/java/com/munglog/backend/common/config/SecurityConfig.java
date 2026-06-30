@@ -49,10 +49,11 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/login/oauth2/**", "/oauth2/**",
                                 "/files/**", "/uploads/**",
-                                "/api/admin/**",
                                 "/favicon.ico"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/codes/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

@@ -11,17 +11,18 @@ import java.util.UUID;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
 
-    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.pet.id = :petId AND (LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.memo) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY s.scheduleDate ASC")
-    List<Schedule> findByUserIdAndPetIdAndKeyword(@Param("userId") UUID userId, @Param("petId") UUID petId, @Param("keyword") String keyword);
+    @Query("SELECT s FROM Schedule s WHERE s.pet.group.id = :groupId AND s.pet.id = :petId AND (LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.memo) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY s.scheduleDate ASC")
+    List<Schedule> findByGroupIdAndPetIdAndKeyword(@Param("groupId") UUID groupId, @Param("petId") UUID petId, @Param("keyword") String keyword);
 
-    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND (LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.memo) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY s.scheduleDate ASC")
-    List<Schedule> findByUserIdAndKeyword(@Param("userId") UUID userId, @Param("keyword") String keyword);
+    @Query("SELECT s FROM Schedule s WHERE s.pet.group.id = :groupId AND (LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.memo) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY s.scheduleDate ASC")
+    List<Schedule> findByGroupIdAndKeyword(@Param("groupId") UUID groupId, @Param("keyword") String keyword);
 
-    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId AND s.pet.id = :petId ORDER BY s.scheduleDate ASC")
-    List<Schedule> findByUserIdAndPetId(@Param("userId") UUID userId, @Param("petId") UUID petId);
+    @Query("SELECT s FROM Schedule s WHERE s.pet.group.id = :groupId AND s.pet.id = :petId ORDER BY s.scheduleDate ASC")
+    List<Schedule> findByGroupIdAndPetId(@Param("groupId") UUID groupId, @Param("petId") UUID petId);
 
-    @Query("SELECT s FROM Schedule s WHERE s.user.id = :userId ORDER BY s.scheduleDate ASC")
-    List<Schedule> findByUserId(@Param("userId") UUID userId);
+    @Query("SELECT s FROM Schedule s WHERE s.pet.group.id = :groupId ORDER BY s.scheduleDate ASC")
+    List<Schedule> findByGroupId(@Param("groupId") UUID groupId);
 
-    Optional<Schedule> findByIdAndUser_Id(UUID id, UUID userId);
+    @Query("SELECT s FROM Schedule s WHERE s.id = :id AND s.pet.group.id = :groupId")
+    Optional<Schedule> findByIdAndGroupId(@Param("id") UUID id, @Param("groupId") UUID groupId);
 }

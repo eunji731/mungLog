@@ -1,7 +1,7 @@
 package com.munglog.backend.domain.pet.domain;
 
 import com.munglog.backend.common.domain.BaseTimeEntity;
-import com.munglog.backend.domain.member.domain.Member;
+import com.munglog.backend.domain.family.domain.FamilyGroup;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -24,8 +24,8 @@ public class Pet extends BaseTimeEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private Member user;
+    @JoinColumn(name = "group_id", nullable = false)
+    private FamilyGroup group;
 
     @Column(name = "name", nullable = false)
     private String name;

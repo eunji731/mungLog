@@ -1,7 +1,7 @@
 package com.munglog.backend.domain.inventory.domain;
 
 import com.munglog.backend.common.domain.BaseTimeEntity;
-import com.munglog.backend.domain.member.domain.Member;
+import com.munglog.backend.domain.family.domain.FamilyGroup;
 import com.munglog.backend.domain.pet.domain.Pet;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,8 +25,8 @@ public class InventoryItem extends BaseTimeEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private Member user;
+    @JoinColumn(name = "group_id", nullable = false)
+    private FamilyGroup group;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pet_id")

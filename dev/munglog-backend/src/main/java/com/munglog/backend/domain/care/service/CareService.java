@@ -10,6 +10,7 @@ import com.munglog.backend.domain.care.dto.CareRecordListResponse;
 import com.munglog.backend.domain.care.repository.CareRecordRepository;
 import com.munglog.backend.domain.care.repository.ExpenseDetailRepository;
 import com.munglog.backend.domain.care.repository.MedicalDetailRepository;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
 import com.munglog.backend.domain.pet.domain.Pet;
@@ -35,6 +36,7 @@ public class CareService {
     private final ExpenseDetailRepository expenseDetailRepository;
     private final MemberRepository memberRepository;
     private final PetRepository petRepository;
+    private final FamilyGroupService familyGroupService;
     private final AttachedFileService attachedFileService;
     private final SymptomService symptomService;
     private final SymptomSnapService symptomSnapService;
@@ -42,16 +44,17 @@ public class CareService {
 
     @Transactional(readOnly = true)
     public List<CareRecordListResponse> getRecords(UUID userId, UUID petId, String keyword) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         List<CareRecord> records;
         if (kw != null && petId != null) {
-            records = careRecordRepository.findByUserIdAndPetIdAndKeyword(userId, petId, kw);
+            records = careRecordRepository.findByGroupIdAndPetIdAndKeyword(groupId, petId, kw);
         } else if (kw != null) {
-            records = careRecordRepository.findByUserIdAndKeyword(userId, kw);
+            records = careRecordRepository.findByGroupIdAndKeyword(groupId, kw);
         } else if (petId != null) {
-            records = careRecordRepository.findByUserIdAndPetId(userId, petId);
+            records = careRecordRepository.findByGroupIdAndPetId(groupId, petId);
         } else {
-            records = careRecordRepository.findByUserId(userId);
+            records = careRecordRepository.findByGroupId(groupId);
         }
         return records.stream()
                 .map(r -> CareRecordListResponse.from(r,
@@ -61,14 +64,15 @@ public class CareService {
 
     @Transactional(readOnly = true)
     public CareRecordDetailResponse getRecord(UUID recordId, UUID userId) {
-        CareRecord record = findByIdAndUserId(recordId, userId);
+        CareRecord record = findByIdAndGroupId(recordId, userId);
         List<String> symptomTags = symptomService.getSymptomTagsByCareRecord(recordId);
         List<FileResponse> files = attachedFileService.getFiles(ParentDomainType.CARE, recordId);
 
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
         CareRecord relatedMedicalRecord = null;
         if (record.getExpenseDetail() != null && record.getExpenseDetail().getRelatedMedicalRecordId() != null) {
             relatedMedicalRecord = careRecordRepository
-                    .findByIdAndUser_Id(record.getExpenseDetail().getRelatedMedicalRecordId(), userId)
+                    .findByIdAndGroupId(record.getExpenseDetail().getRelatedMedicalRecordId(), groupId)
                     .orElse(null);
         }
 
@@ -77,8 +81,9 @@ public class CareService {
 
     @Transactional(readOnly = true)
     public List<CareRecordListResponse> getMedicalCandidates(UUID userId, UUID petId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
         List<CareRecord> records = careRecordRepository.findMedicalCandidates(
-                userId, petId, CareRecordType.HOSPITAL, LocalDate.now().minusYears(1));
+                groupId, petId, CareRecordType.HOSPITAL, LocalDate.now().minusYears(1));
         return records.stream()
                 .map(r -> CareRecordListResponse.from(r, 0))
                 .toList();
@@ -88,7 +93,8 @@ public class CareService {
     public CareRecordDetailResponse createRecord(UUID userId, CareRecordCreateRequest request) {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        Pet pet = petRepository.findByIdAndGroupId(request.getPetId(), groupId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
 
         VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
@@ -117,8 +123,9 @@ public class CareService {
 
     @Transactional
     public CareRecordDetailResponse updateRecord(UUID recordId, UUID userId, CareRecordCreateRequest request) {
-        CareRecord record = findByIdAndUserId(recordId, userId);
-        Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
+        CareRecord record = findByIdAndGroupId(recordId, userId);
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        Pet pet = petRepository.findByIdAndGroupId(request.getPetId(), groupId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
 
         VaccinationType vaccinationType = resolveVaccinationType(request.getVaccinationTypeId());
@@ -140,7 +147,7 @@ public class CareService {
 
     @Transactional
     public void deleteRecord(UUID recordId, UUID userId) {
-        CareRecord record = findByIdAndUserId(recordId, userId);
+        CareRecord record = findByIdAndGroupId(recordId, userId);
         symptomSnapService.unlinkAllByRecord(recordId);
         symptomService.deleteCareRecordSymptoms(recordId);
         attachedFileService.deleteAllByParent(ParentDomainType.CARE, recordId);
@@ -184,8 +191,9 @@ public class CareService {
                 .orElseThrow(() -> new IllegalArgumentException("접종종류를 찾을 수 없습니다: " + vaccinationTypeId));
     }
 
-    private CareRecord findByIdAndUserId(UUID recordId, UUID userId) {
-        return careRecordRepository.findByIdAndUser_Id(recordId, userId)
+    private CareRecord findByIdAndGroupId(UUID recordId, UUID userId) {
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        return careRecordRepository.findByIdAndGroupId(recordId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("케어 기록을 찾을 수 없습니다."));
     }
 }

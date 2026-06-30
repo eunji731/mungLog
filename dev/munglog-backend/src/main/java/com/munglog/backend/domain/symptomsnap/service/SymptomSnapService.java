@@ -5,6 +5,7 @@ import com.munglog.backend.common.file.dto.FileResponse;
 import com.munglog.backend.common.file.service.AttachedFileService;
 import com.munglog.backend.domain.care.domain.CareRecord;
 import com.munglog.backend.domain.care.repository.CareRecordRepository;
+import com.munglog.backend.domain.family.service.FamilyGroupService;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
 import com.munglog.backend.domain.pet.domain.Pet;
@@ -32,6 +33,7 @@ public class SymptomSnapService {
     private final SymptomSnapRepository symptomSnapRepository;
     private final MemberRepository memberRepository;
     private final PetRepository petRepository;
+    private final FamilyGroupService familyGroupService;
     private final CareRecordRepository careRecordRepository;
     private final ScheduleRepository scheduleRepository;
     private final AttachedFileService attachedFileService;
@@ -48,7 +50,8 @@ public class SymptomSnapService {
     public SymptomSnapResponse createSnap(UUID userId, SymptomSnapRequest request, MultipartFile symptomImage) {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        Pet pet = petRepository.findByIdAndUserId(request.getPetId(), userId)
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        Pet pet = petRepository.findByIdAndGroupId(request.getPetId(), groupId)
                 .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
 
         SymptomSnap snap = symptomSnapRepository.save(SymptomSnap.builder()
@@ -91,7 +94,8 @@ public class SymptomSnapService {
     @Transactional
     public SymptomSnapResponse linkRecord(UUID snapId, UUID userId, UUID resolvedRecordId) {
         SymptomSnap snap = findByIdAndUserId(snapId, userId);
-        careRecordRepository.findByIdAndUser_Id(resolvedRecordId, userId)
+        UUID groupId = familyGroupService.getGroupIdByUserId(userId);
+        careRecordRepository.findByIdAndGroupId(resolvedRecordId, groupId)
                 .orElseThrow(() -> new IllegalArgumentException("케어 기록을 찾을 수 없습니다."));
         snap.link(resolvedRecordId);
         return toResponse(snap);
