@@ -401,22 +401,28 @@ export default function FamilyPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2.5 w-full sm:w-auto self-stretch sm:self-auto shrink-0">
+                <div className="grid grid-cols-3 sm:flex gap-2.5 w-full sm:w-auto self-stretch sm:self-auto shrink-0">
+                  <button
+                    onClick={(e) => handleOpenRegistrationModal(e, viewingPet.id)}
+                    className="px-4 py-2.5 bg-zinc-50 hover:bg-zinc-100 text-text-sub border border-border/80 font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs shadow-sm hover:border-main-green hover:text-main-green"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> 동물등록증
+                  </button>
                   <button
                     onClick={(e) => handleEditClick(e, viewingPet)}
-                    className="flex-1 sm:flex-initial px-5 py-2.5 bg-main-green hover:bg-main-green/90 text-white font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs shadow-sm shadow-main-green/10"
+                    className="px-4 py-2.5 bg-main-green hover:bg-main-green/90 text-white font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs shadow-sm shadow-main-green/10"
                   >
                     <Sparkles className="w-3.5 h-3.5" /> 정보 수정
                   </button>
                   <button
                     onClick={(e) => handleRemovePet(e, viewingPet.id, viewingPet.name)}
-                    className="flex-1 sm:flex-initial px-5 py-2.5 bg-background border border-red-200 text-red-500 hover:bg-red-50 font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs"
+                    className="px-4 py-2.5 bg-background border border-red-200 text-red-500 hover:bg-red-50 font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> 삭제
                   </button>
                   <button
                     onClick={() => setViewingPet(null)}
-                    className="p-2.5 bg-zinc-50 hover:bg-zinc-100 text-text-sub rounded-xl border border-border/60 transition-all shrink-0"
+                    className="p-2.5 bg-zinc-50 hover:bg-zinc-100 text-text-sub rounded-xl border border-border/60 transition-all shrink-0 col-span-3 sm:col-span-1 flex items-center justify-center"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -451,11 +457,19 @@ export default function FamilyPage() {
                       </div>
                       <div className="text-sm font-black text-text-main">{viewingPet.diaryTone || '기본 설정'}</div>
                     </div>
-                    <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl col-span-2">
-                      <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                        <Info className="w-3.5 h-3.5" /> 동물등록번호
+                    <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl col-span-2 flex items-center justify-between gap-4">
+                      <div>
+                        <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                          <Info className="w-3.5 h-3.5" /> 동물등록번호
+                        </div>
+                        <div className="text-base font-black text-text-main tracking-wider">{viewingPet.registrationNumber || '정보 없음'}</div>
                       </div>
-                      <div className="text-sm font-black text-text-main">{viewingPet.registrationNumber || '정보 없음'}</div>
+                      <button
+                        onClick={(e) => handleOpenRegistrationModal(e, viewingPet.id)}
+                        className="px-3 py-1.5 rounded-lg border border-border/80 bg-white hover:border-main-green hover:text-main-green text-text-sub text-[11px] font-bold transition-all shadow-sm shrink-0"
+                      >
+                        등록증 보기
+                      </button>
                     </div>
                   </div>
 
