@@ -44,6 +44,7 @@ interface SidebarContentProps {
 }
 
 const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) => {
+  const router = useRouter();
   const { pets, selectedPetId, setSelectedPetId } = usePet();
   const [isPetSwitcherOpen, setIsPetSwitcherOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -95,7 +96,19 @@ const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) =>
         }
       `}} />
       <div className="p-4.5 flex items-center justify-between border-b border-main-yellow/10 shrink-0">
-        <Link href="/" className="flex items-center gap-2.5" onClick={onClose}>
+        <Link
+          href="/"
+          className="flex items-center gap-2.5"
+          onClick={(e) => {
+            e.preventDefault();
+            if (pathname === '/') {
+              window.location.href = '/';
+            } else {
+              router.push('/');
+            }
+            onClose();
+          }}
+        >
           <div className="relative w-9 h-9 shrink-0">
             <Image src="/logo_simple.png" alt="Logo" fill sizes="36px" className="object-contain" />
           </div>
@@ -113,11 +126,20 @@ const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) =>
           const isActive = (item.href === '/dashboard' && (pathname === '/' || pathname === '/dashboard')) || 
                         (item.href !== '/dashboard' && pathname.startsWith(item.href));
           const Icon = item.icon;
+          const targetHref = item.href === '/dashboard' ? '/' : item.href;
           return (
             <Link
               key={item.name}
-              href={item.href === '/dashboard' ? '/' : item.href}
-              onClick={onClose}
+              href={targetHref}
+              onClick={(e) => {
+                e.preventDefault();
+                if (pathname === targetHref) {
+                  window.location.href = targetHref;
+                } else {
+                  router.push(targetHref);
+                }
+                onClose();
+              }}
               className={`nav-item flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all group ${
                 isActive 
                   ? 'bg-main-green text-white shadow-lg shadow-main-green/15 font-extrabold' 
@@ -221,7 +243,15 @@ const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) =>
           ) : (
             <Link 
               href="/family"
-              onClick={onClose}
+              onClick={(e) => {
+                e.preventDefault();
+                if (pathname === '/family') {
+                  window.location.href = '/family';
+                } else {
+                  router.push('/family');
+                }
+                onClose();
+              }}
               className="switcher-btn flex items-center gap-3 p-3 bg-background/50 rounded-xl border border-dashed border-main-yellow/30 hover:bg-background transition-all group"
             >
               <div className="w-10 h-10 rounded-full bg-light-yellow flex items-center justify-center shrink-0">
