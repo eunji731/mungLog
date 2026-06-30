@@ -61,6 +61,7 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
 
   // 일정 연동 관련 상태
   const [activeLinkId, setActiveLinkId] = useState<string | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number } | null>(null);
   const [linkableSchedules, setLinkableSchedules] = useState<Schedule[]>([]);
   const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
 
@@ -223,9 +224,27 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
   };
 
   // 일정 연동 팝업 열기
-  const handleOpenLinkSchedule = async (snapId: string, petId: string) => {
+  const handleOpenLinkSchedule = async (snapId: string, petId: string, event: React.MouseEvent<HTMLButtonElement>) => {
     setActiveLinkId(snapId);
     setIsLoadingSchedules(true);
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const popoverWidth = 256;
+    const padding = 16;
+    
+    let left = rect.right - popoverWidth;
+    if (left < padding) {
+      left = padding;
+    }
+    if (left + popoverWidth > window.innerWidth - padding) {
+      left = window.innerWidth - popoverWidth - padding;
+    }
+
+    setPopoverPosition({
+      top: rect.top,
+      left: left,
+    });
+
     try {
       const all = await scheduleApi.getSchedules({ petId });
       const available = all.filter(s => !s.isCompleted && !s.convertedCareRecordId);
@@ -538,57 +557,21 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> 관찰 중
                           </span>
 
-                          <div className="relative">
+                          <div>
                             <button
                               type="button"
-                              onClick={() => {
+                              onClick={(e) => {
                                 if (activeLinkId === snap.id) {
                                   setActiveLinkId(null);
+                                  setPopoverPosition(null);
                                 } else {
-                                  handleOpenLinkSchedule(snap.id, snap.petId);
+                                  handleOpenLinkSchedule(snap.id, snap.petId, e);
                                 }
                               }}
                               className="flex items-center gap-1 font-black text-main-green hover:underline cursor-pointer bg-transparent border-none"
                             >
                               <Calendar className="w-3 h-3" /> 일정 연동
                             </button>
-
-                            {/* Linkable Schedules Popover */}
-                            {activeLinkId === snap.id && (
-                              <div className="absolute right-0 bottom-full mb-2 w-64 bg-background border border-border shadow-2xl rounded-2xl p-2 z-[60] max-h-52 overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-2">
-                                <div className="p-2 border-b border-border mb-1 flex items-center justify-between">
-                                  <span className="text-[10px] font-black text-text-sub">연동할 예약 일정 선택</span>
-                                  <button type="button" onClick={() => setActiveLinkId(null)}>
-                                    <X className="w-3 h-3 text-text-sub hover:text-red-500" />
-                                  </button>
-                                </div>
-
-                                {isLoadingSchedules ? (
-                                  <p className="text-[10px] text-text-sub text-center py-4 font-bold">불러오는 중...</p>
-                                ) : linkableSchedules.length === 0 ? (
-                                  <p className="text-[10px] text-text-sub text-center py-4 font-bold">
-                                    예약된 일정이 없습니다.
-                                  </p>
-                                ) : (
-                                  linkableSchedules.map((schedule) => (
-                                    <button
-                                      type="button"
-                                      key={schedule.id}
-                                      onClick={() => handleLinkSchedule(snap.id, schedule)}
-                                      className="w-full text-left p-2 hover:bg-surface-green rounded-xl transition-colors flex items-center gap-2"
-                                    >
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-black text-text-main truncate">{schedule.title}</p>
-                                        <p className="text-[9px] text-text-sub font-bold mt-0.5">
-                                          {schedule.scheduleDate?.slice(0, 10)} · {schedule.scheduleType || '일정'}
-                                        </p>
-                                      </div>
-                                      <Check className="w-3.5 h-3.5 text-main-green shrink-0 opacity-0 hover:opacity-100" />
-                                    </button>
-                                  ))
-                                )}
-                              </div>
-                            )}
                           </div>
                         </>
                       )}
@@ -1003,6 +986,70 @@ export default function SymptomSnapboard({ onSnapLinked }: SymptomSnapboardProps
             </div>
           </div>
         </div>,
+        document.body
+      )}
+
+      {/* Linkable Schedules Popover Portal */}
+      {activeLinkId && popoverPosition && mounted && createPortal(
+        <>
+          {/* 투명 백드롭으로 바깥 클릭 시 닫기 */}
+          <div
+            className="fixed inset-0 z-[240] bg-transparent"
+            onClick={() => {
+              setActiveLinkId(null);
+              setPopoverPosition(null);
+            }}
+          />
+          <div
+            className="fixed w-64 bg-background border border-border shadow-2xl rounded-2xl p-2 z-[250] max-h-52 overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-bottom-1"
+            style={{
+              top: `${popoverPosition.top - 8}px`,
+              left: `${popoverPosition.left}px`,
+              transform: 'translateY(-100%)'
+            }}
+          >
+            <div className="p-2 border-b border-border mb-1 flex items-center justify-between">
+              <span className="text-[10px] font-black text-text-sub">연동할 예약 일정 선택</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveLinkId(null);
+                  setPopoverPosition(null);
+                }}
+              >
+                <X className="w-3 h-3 text-text-sub hover:text-red-500" />
+              </button>
+            </div>
+
+            {isLoadingSchedules ? (
+              <p className="text-[10px] text-text-sub text-center py-4 font-bold">불러오는 중...</p>
+            ) : linkableSchedules.length === 0 ? (
+              <p className="text-[10px] text-text-sub text-center py-4 font-bold">
+                예약된 일정이 없습니다.
+              </p>
+            ) : (
+              linkableSchedules.map((schedule) => (
+                <button
+                  type="button"
+                  key={schedule.id}
+                  onClick={() => {
+                    handleLinkSchedule(activeLinkId, schedule);
+                    setPopoverPosition(null);
+                  }}
+                  className="w-full text-left p-2 hover:bg-surface-green rounded-xl transition-colors flex items-center gap-2"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-text-main truncate">{schedule.title}</p>
+                    <p className="text-[9px] text-text-sub font-bold mt-0.5">
+                      {schedule.scheduleDate?.slice(0, 10)} · {schedule.scheduleType || '일정'}
+                    </p>
+                  </div>
+                  <Check className="w-3.5 h-3.5 text-main-green shrink-0 opacity-0 hover:opacity-100" />
+                </button>
+              ))
+            )}
+          </div>
+        </>,
         document.body
       )}
     </div>
