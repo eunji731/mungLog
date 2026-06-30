@@ -10,6 +10,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { FileUploader } from '@/components/common/FileUploader';
 import TimelineDatePicker from '@/features/calendar/components/TimelineDatePicker';
 import RegistrationCardModal from '@/features/family/components/RegistrationCardModal';
+import PetDocumentSection from '@/features/family/components/PetDocumentSection';
 
 export default function FamilyPage() {
   const { pets, addPet, updatePet, removePet, loading } = usePet();
@@ -488,6 +489,11 @@ export default function FamilyPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* 첨부파일 */}
+              <div className="border-t border-border pt-6">
+                <PetDocumentSection petId={viewingPet.id} />
               </div>
 
             </div>

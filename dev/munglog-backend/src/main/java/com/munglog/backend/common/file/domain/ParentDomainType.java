@@ -5,6 +5,7 @@ public enum ParentDomainType {
     DIARY,
     RECORD,
     PET_PROFILE,
+    PET_DOC,
     MEMBER_PROFILE,
     INVENTORY,
     CARE,

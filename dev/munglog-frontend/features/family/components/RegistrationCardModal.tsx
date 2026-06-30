@@ -7,6 +7,7 @@ import { PetProfile } from '@/app/common/hooks/usePet';
 import { useAuth } from '@/context/AuthContext';
 import { getImagePath } from '@/lib/clientApi';
 import VaccinationSection from './VaccinationSection';
+import PetDocumentSection from './PetDocumentSection';
 
 interface RegistrationCardModalProps {
   pet: PetProfile;
@@ -156,6 +157,9 @@ const RegistrationCardModal: React.FC<RegistrationCardModalProps> = ({ pet, onCl
 
             {/* ── 예방접종 기록 ── */}
             <VaccinationSection petId={pet.id} />
+
+            {/* ── 첨부파일 ── */}
+            <PetDocumentSection petId={pet.id} />
 
           </div>
         </div>

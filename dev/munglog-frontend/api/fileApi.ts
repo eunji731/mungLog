@@ -7,6 +7,7 @@ const PARENT_TYPE_MAP: Record<string, string> = {
   CARE: 'CARE',
   SCHEDULE: 'SCHEDULE',
   DOG: 'PET_PROFILE',
+  PET_DOC: 'PET_DOC',
 };
 
 export const toParentType = (targetCode: string) => PARENT_TYPE_MAP[targetCode] || targetCode;
