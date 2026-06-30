@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp, IdCard, ShieldCheck, PawPrint, Users } from 'lucide-react';
+import { Plus, Trash2, Sparkles, User, Heart, Info, X, Calendar, TrendingUp, IdCard, ShieldCheck, PawPrint, Users, Scissors } from 'lucide-react';
 import { usePet, PetProfile, PetFormData } from '@/app/common/hooks/usePet';
 import { getImagePath } from '@/lib/clientApi';
 import { useToast } from '@/app/common/hooks/useToast';
@@ -37,6 +37,8 @@ export default function FamilyPage() {
   const [newLikes, setNewLikes] = useState('');
   const [newDislikes, setNewDislikes] = useState('');
   const [newDiaryTone, setNewDiaryTone] = useState('');
+  const [newIsNeutered, setNewIsNeutered] = useState(false);
+  const [newMemo, setNewMemo] = useState('');
   const profilePhoto = useFileUpload('DOG');
 
   const handleEditClick = (e: React.MouseEvent, pet: PetProfile) => {
@@ -54,6 +56,8 @@ export default function FamilyPage() {
     setNewLikes(pet.likes || '');
     setNewDislikes(pet.dislikes || '');
     setNewDiaryTone(pet.diaryTone || '');
+    setNewIsNeutered(pet.isNeutered ?? false);
+    setNewMemo(pet.memo || '');
 
     const photoFileName = pet.photo ? (pet.photo.split('/').pop() || 'profile.jpg') : 'profile.jpg';
     profilePhoto.setInitialFiles(
@@ -100,6 +104,8 @@ export default function FamilyPage() {
       likes: newLikes || undefined,
       dislikes: newDislikes || undefined,
       diaryTone: newDiaryTone || undefined,
+      isNeutered: newIsNeutered,
+      memo: newMemo || undefined,
     };
 
     try {
@@ -148,6 +154,8 @@ export default function FamilyPage() {
     setNewLikes('');
     setNewDislikes('');
     setNewDiaryTone('');
+    setNewIsNeutered(false);
+    setNewMemo('');
     profilePhoto.clear();
   };
 
@@ -340,6 +348,26 @@ export default function FamilyPage() {
                   </div>
 
                   <div className="space-y-1">
+                    <label className={modernLabelClass}>중성화 여부</label>
+                    <div className="flex bg-zinc-50 border border-border/80 rounded-xl p-1 h-[46px] items-center">
+                      <button
+                        type="button"
+                        onClick={() => setNewIsNeutered(true)}
+                        className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${newIsNeutered ? 'bg-background text-main-green border border-border/30 shadow-sm font-extrabold' : 'text-text-sub'}`}
+                      >
+                        완료
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewIsNeutered(false)}
+                        className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${!newIsNeutered ? 'bg-background text-text-sub border border-border/30 shadow-sm font-extrabold' : 'text-text-sub'}`}
+                      >
+                        미완료
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
                     <label className={modernLabelClass}>동물등록번호</label>
                     <input
                       type="text"
@@ -354,23 +382,21 @@ export default function FamilyPage() {
 
                 {/* Column 3: Traits */}
                 <div className="pt-6 lg:pt-0 lg:pl-8 space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className={modernLabelClass}>좋아하는 것</label>
-                      <input
-                        type="text" value={newLikes} onChange={e => setNewLikes(e.target.value)}
-                        placeholder="간식, 장난감 등"
-                        className={modernInputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className={modernLabelClass}>싫어하는 것</label>
-                      <input
-                        type="text" value={newDislikes} onChange={e => setNewDislikes(e.target.value)}
-                        placeholder="행동, 소리 등"
-                        className={modernInputClass}
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className={modernLabelClass}>좋아하는 것</label>
+                    <input
+                      type="text" value={newLikes} onChange={e => setNewLikes(e.target.value)}
+                      placeholder="간식, 장난감 등"
+                      className={modernInputClass}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={modernLabelClass}>싫어하는 것</label>
+                    <input
+                      type="text" value={newDislikes} onChange={e => setNewDislikes(e.target.value)}
+                      placeholder="행동, 소리 등"
+                      className={modernInputClass}
+                    />
                   </div>
 
                   <div className="space-y-1">
@@ -395,6 +421,15 @@ export default function FamilyPage() {
                     <textarea
                       rows={2} value={newTraits} onChange={e => setNewTraits(e.target.value)}
                       placeholder="아이의 성격을 자세히 적어주세요. AI가 더 똑똑해집니다."
+                      className="w-full px-3.5 py-2.5 bg-zinc-50/50 border border-zinc-200/80 rounded-xl focus:bg-background focus:border-main-green focus:ring-1 focus:ring-main-green/10 text-xs font-semibold text-text-main placeholder:text-text-sub/30 resize-none transition-all outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className={modernLabelClass}>추가정보</label>
+                    <textarea
+                      rows={2} value={newMemo} onChange={e => setNewMemo(e.target.value)}
+                      placeholder="기타 특이사항, 알레르기, 복용약 등 자유롭게 작성해 주세요."
                       className="w-full px-3.5 py-2.5 bg-zinc-50/50 border border-zinc-200/80 rounded-xl focus:bg-background focus:border-main-green focus:ring-1 focus:ring-main-green/10 text-xs font-semibold text-text-main placeholder:text-text-sub/30 resize-none transition-all outline-none"
                     />
                   </div>
@@ -488,6 +523,12 @@ export default function FamilyPage() {
                     </div>
                     <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl">
                       <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <Scissors className="w-3.5 h-3.5" /> 중성화
+                      </div>
+                      <div className="text-sm font-black text-text-main">{viewingPet.isNeutered ? '완료' : '미완료'}</div>
+                    </div>
+                    <div className="p-4 bg-zinc-50 border border-border/40 rounded-xl col-span-2">
+                      <div className="text-[10px] font-black text-main-green uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5" /> 일기 말투
                       </div>
                       <div className="text-sm font-black text-text-main">{viewingPet.diaryTone || '기본 설정'}</div>
@@ -535,6 +576,13 @@ export default function FamilyPage() {
                     <h4 className="text-xs font-black text-main-green tracking-widest uppercase">외형적 특징</h4>
                     <div className="p-5 bg-zinc-50/50 border border-border/60 rounded-xl text-sm font-bold text-text-main leading-relaxed">
                       {viewingPet.appearance || '정보 없음'}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-black text-main-green tracking-widest uppercase">추가정보</h4>
+                    <div className="p-5 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100/50 dark:border-amber-900/20 rounded-xl text-sm font-bold text-text-main leading-relaxed whitespace-pre-wrap">
+                      {viewingPet.memo || '정보 없음'}
                     </div>
                   </div>
                 </div>

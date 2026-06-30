@@ -19,6 +19,8 @@ export interface PetProfile {
   dislikes?: string;
   diaryTone?: string;
   registrationNumber?: string;
+  isNeutered?: boolean;
+  memo?: string;
   isActive: boolean;
   addedAt: string;
 }
@@ -28,11 +30,14 @@ export type PetFormData = Omit<PetProfile, 'id' | 'addedAt' | 'photo' | 'isActiv
 // 백엔드 PetResponse 응답 형태 (photo 대신 profileImageUrl로 내려옴)
 interface PetResponseDto extends Omit<PetProfile, 'photo' | 'isActive' | 'addedAt'> {
   profileImageUrl: string | null;
+  isNeutered: boolean;
+  memo?: string;
 }
 
 const mapPetResponse = (dto: PetResponseDto): PetProfile => ({
   ...dto,
   photo: dto.profileImageUrl ?? '',
+  isNeutered: dto.isNeutered ?? false,
   isActive: true,
   addedAt: '',
 });

@@ -62,6 +62,8 @@ public class PetService {
                 .dislikes(request.getDislikes())
                 .diaryTone(request.getDiaryTone())
                 .registrationNumber(regNum)
+                .isNeutered(request.getIsNeutered() != null ? request.getIsNeutered() : false)
+                .memo(request.getMemo())
                 .build();
 
         pet = petRepository.save(pet);
@@ -87,7 +89,7 @@ public class PetService {
                 request.getAdoptionDate(), request.getGender(), request.getWeightKg(),
                 profileImagePath, request.getTraits(), request.getAppearance(),
                 request.getLikes(), request.getDislikes(), request.getDiaryTone(),
-                request.getRegistrationNumber());
+                request.getRegistrationNumber(), request.getIsNeutered(), request.getMemo());
 
         petRepository.save(pet);
         return PetResponse.from(pet, resolvePhotoUrl(pet));

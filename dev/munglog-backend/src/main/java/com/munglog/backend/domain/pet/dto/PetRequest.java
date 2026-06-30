@@ -22,4 +22,6 @@ public class PetRequest {
     private String dislikes;
     private String diaryTone;
     private String registrationNumber;
+    private Boolean isNeutered;
+    private String memo;
 }
