@@ -20,6 +20,8 @@ export const familyGroupApi = {
   createGroup: (name: string) => apiClient.post<FamilyGroupInfo>('/family/create', { name }),
   joinGroup: (inviteCode: string) => apiClient.post<FamilyGroupInfo>('/family/join', { inviteCode }),
   refreshInviteCode: () => apiClient.post<string>('/family/invite-code/refresh'),
+  updateGroupName: (name: string) =>
+    apiClient.patch<FamilyGroupInfo>('/family/name', { name }),
   transferOwner: (newOwnerUserId: string) =>
     apiClient.post<FamilyGroupInfo>('/family/transfer-owner', { newOwnerUserId }),
   leaveGroup: () => apiClient.delete('/family/leave'),

@@ -99,6 +99,21 @@ public class FamilyGroupService {
     }
 
     @Transactional
+    public FamilyGroupResponse updateGroupName(UUID userId, String name) {
+        GroupMember gm = groupMemberRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("소속된 가족 그룹이 없습니다."));
+        if (gm.getRole() != GroupRole.OWNER) {
+            throw new IllegalStateException("그룹 이름은 관리자만 변경할 수 있습니다.");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("그룹 이름을 입력해주세요.");
+        }
+        gm.getGroup().updateName(name.trim());
+        familyGroupRepository.save(gm.getGroup());
+        return buildResponse(gm.getGroup(), gm.getRole(), userId);
+    }
+
+    @Transactional
     public FamilyGroupResponse transferOwnership(UUID userId, UUID newOwnerUserId) {
         GroupMember currentOwner = groupMemberRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalStateException("소속된 가족 그룹이 없습니다."));

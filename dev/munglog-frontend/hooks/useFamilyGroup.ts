@@ -45,6 +45,11 @@ export const useFamilyGroup = () => {
     }
   };
 
+  const updateGroupName = async (name: string) => {
+    const res = await familyGroupApi.updateGroupName(name);
+    setGroup(res.data);
+  };
+
   const transferOwner = async (newOwnerUserId: string) => {
     const res = await familyGroupApi.transferOwner(newOwnerUserId);
     setGroup(res.data);
@@ -64,6 +69,7 @@ export const useFamilyGroup = () => {
     createGroup,
     joinGroup,
     refreshInviteCode,
+    updateGroupName,
     transferOwner,
     leaveGroup,
   };

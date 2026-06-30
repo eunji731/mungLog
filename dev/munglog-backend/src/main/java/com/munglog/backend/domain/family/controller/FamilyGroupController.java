@@ -5,6 +5,7 @@ import com.munglog.backend.domain.family.dto.CreateGroupRequest;
 import com.munglog.backend.domain.family.dto.FamilyGroupResponse;
 import com.munglog.backend.domain.family.dto.JoinGroupRequest;
 import com.munglog.backend.domain.family.dto.TransferOwnerRequest;
+import com.munglog.backend.domain.family.dto.UpdateGroupNameRequest;
 import com.munglog.backend.domain.family.service.FamilyGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,15 @@ public class FamilyGroupController {
             @AuthenticationPrincipal UserDetails userDetails) {
         UUID userId = UUID.fromString(userDetails.getUsername());
         return ResponseEntity.ok(ApiResponse.success(familyGroupService.refreshInviteCode(userId)));
+    }
+
+    @PatchMapping("/name")
+    public ResponseEntity<ApiResponse<FamilyGroupResponse>> updateGroupName(
+            @RequestBody UpdateGroupNameRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        return ResponseEntity.ok(ApiResponse.success(
+                familyGroupService.updateGroupName(userId, request.getName())));
     }
 
     @PostMapping("/transfer-owner")

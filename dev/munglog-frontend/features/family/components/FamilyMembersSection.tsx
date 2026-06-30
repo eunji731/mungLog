@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, RefreshCw, LogOut, UserPlus, Users, Crown, Check, ArrowRight } from 'lucide-react';
+import { Copy, RefreshCw, LogOut, UserPlus, Users, Crown, Check, ArrowRight, Pencil, X } from 'lucide-react';
 import { useFamilyGroup } from '@/hooks/useFamilyGroup';
 import { useToast } from '@/app/common/hooks/useToast';
 
 export default function FamilyMembersSection() {
-  const { group, isLoading, hasGroup, createGroup, joinGroup, refreshInviteCode, transferOwner, leaveGroup } = useFamilyGroup();
+  const { group, isLoading, hasGroup, createGroup, joinGroup, refreshInviteCode, updateGroupName, transferOwner, leaveGroup } = useFamilyGroup();
   const { success, error: toastError } = useToast();
 
   const [mode, setMode] = useState<'idle' | 'create' | 'join'>('idle');
@@ -16,6 +16,8 @@ export default function FamilyMembersSection() {
   const [copied, setCopied] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedNewOwner, setSelectedNewOwner] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
 
   const handleCreate = async () => {
     if (!groupName.trim()) return;
@@ -61,6 +63,25 @@ export default function FamilyMembersSection() {
       success('초대 코드가 갱신되었습니다.');
     } catch {
       toastError('초대 코드 갱신에 실패했습니다.');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleStartEditName = () => {
+    setNameInput(group?.name ?? '');
+    setEditingName(true);
+  };
+
+  const handleSaveName = async () => {
+    if (!nameInput.trim()) return;
+    setIsBusy(true);
+    try {
+      await updateGroupName(nameInput.trim());
+      success('그룹 이름이 변경되었습니다.');
+      setEditingName(false);
+    } catch {
+      toastError('그룹 이름 변경에 실패했습니다.');
     } finally {
       setIsBusy(false);
     }
@@ -207,9 +228,35 @@ export default function FamilyMembersSection() {
 
       {/* 초대 코드 카드 */}
       <div className="bg-background border border-border/80 rounded-2xl p-6 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-text-main">{group!.name}</h3>
-          <span className="text-[10px] font-bold text-text-sub bg-zinc-100 px-2 py-0.5 rounded-full">
+        <div className="flex items-center justify-between gap-2">
+          {editingName ? (
+            <div className="flex-1 flex items-center gap-2">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false); }}
+                className="flex-1 px-3 py-1.5 bg-zinc-50 border border-main-green rounded-lg text-sm font-bold text-text-main outline-none focus:ring-2 focus:ring-main-green/20"
+                autoFocus
+              />
+              <button onClick={handleSaveName} disabled={isBusy || !nameInput.trim()} className="p-1.5 bg-main-green text-white rounded-lg disabled:opacity-50">
+                <Check className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => setEditingName(false)} disabled={isBusy} className="p-1.5 bg-zinc-100 text-text-sub rounded-lg">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-black text-text-main">{group!.name}</h3>
+              {group!.myRole === 'OWNER' && (
+                <button onClick={handleStartEditName} className="p-1 text-text-sub hover:text-main-green transition-colors">
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          )}
+          <span className="shrink-0 text-[10px] font-bold text-text-sub bg-zinc-100 px-2 py-0.5 rounded-full">
             {group!.myRole === 'OWNER' ? '그룹 관리자' : '구성원'}
           </span>
         </div>
