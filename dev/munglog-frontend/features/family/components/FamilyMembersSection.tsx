@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, RefreshCw, LogOut, UserPlus, Users, Crown, Check, ArrowRight, Pencil, X, Info } from 'lucide-react';
+import { Copy, RefreshCw, LogOut, UserPlus, Users, Crown, Check, ArrowRight, Pencil, X, Info, AlertTriangle } from 'lucide-react';
 import { useFamilyGroup } from '@/hooks/useFamilyGroup';
 import { useToast } from '@/app/common/hooks/useToast';
 
@@ -15,6 +15,8 @@ export default function FamilyMembersSection() {
   const [isBusy, setIsBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showLeaveWarningModal, setShowLeaveWarningModal] = useState(false);
+  const [showJoinWarningModal, setShowJoinWarningModal] = useState(false);
   const [selectedNewOwner, setSelectedNewOwner] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
@@ -95,8 +97,7 @@ export default function FamilyMembersSection() {
       setSelectedNewOwner(null);
       setShowTransferModal(true);
     } else {
-      if (!confirm('정말 그룹에서 나가시겠습니까?')) return;
-      handleLeaveConfirm();
+      setShowLeaveWarningModal(true);
     }
   };
 
@@ -340,7 +341,7 @@ export default function FamilyMembersSection() {
       {/* 개인 그룹: 가족 그룹 참여 */}
       {isPersonalGroup && mode === 'idle' && (
         <button
-          onClick={() => setMode('join')}
+          onClick={() => setShowJoinWarningModal(true)}
           className="w-full flex items-center justify-center gap-2 py-3 text-sm font-bold text-main-green hover:bg-main-green/5 border border-main-green/40 rounded-2xl transition-all"
         >
           <Users className="w-4 h-4" />
@@ -351,12 +352,6 @@ export default function FamilyMembersSection() {
       {isPersonalGroup && mode === 'join' && (
         <div className="bg-background border border-border/80 rounded-2xl p-6 space-y-4 animate-in fade-in">
           <h4 className="text-sm font-black text-text-main">초대 코드로 가족 그룹 참여</h4>
-          <div className="flex gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-[11px] font-medium text-amber-700 leading-relaxed">
-              개인 그룹의 반려동물·기록·재고·접종 정보가 가족 그룹으로 이동하고, 개인 그룹은 삭제됩니다.
-            </p>
-          </div>
           <input
             type="text"
             value={inviteCodeInput}
@@ -445,6 +440,129 @@ export default function FamilyMembersSection() {
                 className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 disabled:opacity-50 transition-all"
               >
                 {isBusy ? '처리 중...' : (<><ArrowRight className="w-4 h-4" />위임 후 나가기</>)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 그룹 나가기 경고 모달 */}
+      {showLeaveWarningModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isBusy && setShowLeaveWarningModal(false)} />
+          <div className="relative w-full sm:max-w-sm bg-background rounded-t-3xl sm:rounded-2xl p-6 space-y-5 animate-in slide-in-from-bottom-4 duration-200">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-text-main">그룹 나가기 전에 확인하세요</h3>
+                <p className="text-[11px] font-medium text-text-sub">탈퇴 후 개인 그룹으로 이동합니다</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-[12px] font-medium">
+              <p className="text-text-sub font-bold mb-1">함께 이동하는 것</p>
+              <div className="flex items-start gap-2 text-text-main">
+                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                <span>내가 등록한 반려동물</span>
+              </div>
+              <div className="flex items-start gap-2 text-text-main">
+                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                <span>내 반려동물의 케어기록·일정·증상기록</span>
+              </div>
+              <div className="flex items-start gap-2 text-text-main">
+                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                <span>내 반려동물만 포함된 다이어리·아카이브·지도 기록</span>
+              </div>
+
+              <div className="border-t border-border/60 my-3" />
+
+              <p className="text-text-sub font-bold mb-1">가족 그룹에 남는 것</p>
+              <div className="flex items-start gap-2 text-text-sub">
+                <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span>가족과 함께한 기록 (여러 반려동물 포함)</span>
+              </div>
+              <div className="flex items-start gap-2 text-text-sub">
+                <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span>재고 (공동 관리 물품)</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setShowLeaveWarningModal(false)}
+                disabled={isBusy}
+                className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 text-text-sub font-bold rounded-xl text-sm transition-all disabled:opacity-50"
+              >취소</button>
+              <button
+                onClick={() => { setShowLeaveWarningModal(false); handleLeaveConfirm(); }}
+                disabled={isBusy}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 disabled:opacity-50 transition-all"
+              >
+                {isBusy ? '처리 중...' : (<><LogOut className="w-4 h-4" />그룹 나가기</>)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 가족 그룹 참여 경고 모달 */}
+      {showJoinWarningModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isBusy && setShowJoinWarningModal(false)} />
+          <div className="relative w-full sm:max-w-sm bg-background rounded-t-3xl sm:rounded-2xl p-6 space-y-5 animate-in slide-in-from-bottom-4 duration-200">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-text-main">참여 전에 확인하세요</h3>
+                <p className="text-[11px] font-medium text-text-sub">개인 그룹의 데이터가 가족 그룹으로 이동합니다</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-[12px] font-medium">
+              <p className="text-text-sub font-bold mb-1">가족 그룹으로 함께 이동하는 것</p>
+              <div className="flex items-start gap-2 text-text-main">
+                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                <span>반려동물 정보</span>
+              </div>
+              <div className="flex items-start gap-2 text-text-main">
+                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                <span>케어기록·일정·증상기록</span>
+              </div>
+              <div className="flex items-start gap-2 text-text-main">
+                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                <span>다이어리·아카이브·지도 기록</span>
+              </div>
+              <div className="flex items-start gap-2 text-text-main">
+                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                <span>재고·접종 정보</span>
+              </div>
+
+              <div className="border-t border-border/60 my-3" />
+
+              <div className="flex gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-amber-700 leading-relaxed">
+                  이동 후 개인 그룹은 삭제됩니다. 이 작업은 되돌릴 수 없어요.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setShowJoinWarningModal(false)}
+                disabled={isBusy}
+                className="flex-1 py-3 bg-zinc-100 hover:bg-zinc-200 text-text-sub font-bold rounded-xl text-sm transition-all disabled:opacity-50"
+              >취소</button>
+              <button
+                onClick={() => { setShowJoinWarningModal(false); setMode('join'); }}
+                disabled={isBusy}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-main-green text-white font-bold rounded-xl text-sm hover:bg-main-green/90 disabled:opacity-50 transition-all shadow-md shadow-main-green/20"
+              >
+                <ArrowRight className="w-4 h-4" />확인, 참여할게요
               </button>
             </div>
           </div>

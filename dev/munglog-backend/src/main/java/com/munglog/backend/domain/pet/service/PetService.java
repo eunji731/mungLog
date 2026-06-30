@@ -51,6 +51,7 @@ public class PetService {
 
         Pet pet = Pet.builder()
                 .group(group)
+                .registeredBy(userId)
                 .name(request.getName())
                 .breed(request.getBreed())
                 .birthDate(request.getBirthDate())

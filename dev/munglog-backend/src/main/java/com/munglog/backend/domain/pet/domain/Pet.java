@@ -27,6 +27,9 @@ public class Pet extends BaseTimeEntity {
     @JoinColumn(name = "group_id", nullable = false)
     private FamilyGroup group;
 
+    @Column(name = "registered_by", columnDefinition = "uuid")
+    private UUID registeredBy;
+
     @Column(name = "name", nullable = false)
     private String name;
 

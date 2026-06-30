@@ -76,4 +76,24 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID> {
     @Modifying
     @Query("UPDATE Memory m SET m.group.id = :targetGroupId WHERE m.group.id = :sourceGroupId")
     int bulkMoveToGroup(@Param("sourceGroupId") UUID sourceGroupId, @Param("targetGroupId") UUID targetGroupId);
+
+    // 내 펫에만 태그된 기록만 이전 (가족 펫과 공유된 기록은 제외)
+    @Modifying
+    @Query(value = """
+            UPDATE tb_memory m SET group_id = CAST(:newGroupId AS uuid)
+            WHERE m.group_id = CAST(:oldGroupId AS uuid)
+            AND EXISTS (
+                SELECT 1 FROM tb_memory_dog md WHERE md.memory_id = m.id
+            )
+            AND NOT EXISTS (
+                SELECT 1 FROM tb_memory_dog md
+                JOIN tb_pet p ON md.dog_id = p.id
+                WHERE md.memory_id = m.id
+                AND (p.registered_by IS NULL OR p.registered_by != CAST(:userId AS uuid))
+            )
+            """, nativeQuery = true)
+    int bulkMoveMyPetMemories(
+            @Param("oldGroupId") String oldGroupId,
+            @Param("newGroupId") String newGroupId,
+            @Param("userId") String userId);
 }

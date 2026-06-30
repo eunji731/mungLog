@@ -186,7 +186,17 @@ public class FamilyGroupService {
 
         // 탈퇴 후 개인 그룹 자동 생성
         Member member = findMember(userId);
-        return createGroupForNewMember(member);
+        FamilyGroupResponse newGroupResponse = createGroupForNewMember(member);
+
+        // 본인이 등록한 반려동물 + 그 펫에만 연결된 기록을 개인 그룹으로 이전
+        UUID oldGroupId = gm.getGroup().getId();
+        UUID newGroupId = groupMemberRepository.findGroupIdByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("개인 그룹 생성에 실패했습니다."));
+        memoryRepository.bulkMoveMyPetMemories(
+                oldGroupId.toString(), newGroupId.toString(), userId.toString());
+        petRepository.bulkMoveToGroupByRegisteredBy(userId, newGroupId);
+
+        return newGroupResponse;
     }
 
     public UUID getGroupIdByUserId(UUID userId) {
