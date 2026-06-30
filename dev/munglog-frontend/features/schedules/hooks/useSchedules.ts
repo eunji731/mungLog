@@ -1,15 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { scheduleApi } from '@/api/scheduleApi';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
 import type { Schedule, ScheduleFilters } from '@/types/schedule';
 
 export const useSchedules = () => {
   const { selectedPetId } = usePet();
+  const searchParams = useSearchParams();
+  const initialType = searchParams?.get('type') || 'ALL';
+
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<ScheduleFilters>({
-    type: 'ALL'
+    type: initialType
   });
+
+  const typeParam = searchParams?.get('type');
+  useEffect(() => {
+    if (typeParam) {
+      setFilters(prev => ({ ...prev, type: typeParam }));
+    }
+  }, [typeParam]);
 
   const fetchSchedules = useCallback(async () => {
     try {

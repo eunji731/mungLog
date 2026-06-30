@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { ShieldCheck, Calendar, Users, Syringe, AlertCircle, Info } from 'lucide-react';
 import { useToast } from '@/app/common/hooks/useToast';
 import { usePet, ALL_PETS_ID } from '@/app/common/hooks/usePet';
@@ -37,6 +38,7 @@ const STATUS_CONFIG = {
 export default function VaccinationCard() {
   const { pets, selectedPetId } = usePet();
   const { success, error: toastError } = useToast();
+  const router = useRouter();
   const isAll = selectedPetId === ALL_PETS_ID;
 
   // Local active pet ID when "All pets" is selected
@@ -57,24 +59,17 @@ export default function VaccinationCard() {
   // Fetch vaccination records and summaries for the active pet
   const { summary, isLoading } = useVaccinationRecords(currentPetId || '');
 
-  const [schedulingId, setSchedulingId] = useState<number | null>(null);
-
-  const handleCreateSchedule = async (item: any) => {
+  const handleNavigateToCreateSchedule = (item: any) => {
     if (!currentPetId || !item.dDayInfo?.nextDueDate) return;
-    setSchedulingId(item.vaccinationTypeId);
-    try {
-      await scheduleApi.createSchedule({
-        petId: currentPetId,
-        scheduleTypeId: 3, // VACCINATION
-        title: `${item.vaccinationTypeName} 예방접종`,
-        scheduleDate: `${item.dDayInfo.nextDueDate}T10:00:00`,
-      });
-      success(`${item.vaccinationTypeName} 예방접종 일정을 캘린더에 등록했습니다.`);
-    } catch (err) {
-      toastError('일정 등록에 실패했습니다. 다시 시도해 주세요.');
-    } finally {
-      setSchedulingId(null);
-    }
+
+    const params = new URLSearchParams();
+    params.set('date', item.dDayInfo.nextDueDate);
+    params.set('dogId', currentPetId);
+    params.set('scheduleTypeId', '3'); // 예방접종 일정 유형 (VACCINATION)
+    params.set('vaccinationTypeId', String(item.vaccinationTypeId));
+    params.set('title', `${item.vaccinationTypeName} 예방접종`);
+
+    router.push(`/schedules/new?${params.toString()}`);
   };
 
   const hasPets = pets.length > 0;
@@ -95,7 +90,7 @@ export default function VaccinationCard() {
           )}
         </div>
         <Link
-          href="/family"
+          href="/schedules?type=VACCINATION"
           className="text-[10px] font-black text-text-sub hover:text-main-green transition-colors"
         >
           기록 관리
@@ -103,10 +98,25 @@ export default function VaccinationCard() {
       </div>
 
       {/* 안내 문구 */}
-      <div className="flex items-start gap-2 p-3 bg-zinc-50/50 dark:bg-zinc-900/20 border border-border/60 rounded-2xl animate-in fade-in duration-200 select-none shrink-0">
-        <Info className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
-        <div className="text-[10px] sm:text-[11px] font-semibold text-text-sub leading-relaxed">
-          예방접종 일정 및 접종 주기는 <span className="text-main-green font-black">케어기록</span> 또는 <span className="text-main-green font-black">가족 관리 &gt; 동물등록증</span>의 접종 기록에서 관리할 수 있습니다.
+      <div className="flex flex-col gap-2 p-3.5 bg-zinc-50/50 dark:bg-zinc-900/20 border border-border/60 rounded-2xl animate-in fade-in duration-200 select-none shrink-0">
+        <div className="flex items-start gap-2">
+          <Info className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+          <div className="text-[10px] sm:text-[11px] font-semibold text-text-sub leading-relaxed">
+            예방접종 일정 및 접종 주기는 <span className="text-main-green font-black">케어기록</span> 또는 <span className="text-main-green font-black">가족 관리 &gt; 동물등록증</span>의 접종 기록에서 관리할 수 있습니다.
+          </div>
+        </div>
+        <div className="mt-1 pt-1.5 border-t border-border/40 text-[9px] sm:text-[10px] text-text-sub/80 space-y-1">
+          <p className="font-bold text-text-main flex items-center gap-1">
+            💡 일정 예약(캘린더) vs 바로 케어기록(접종 완료) 가이드
+          </p>
+          <ul className="list-disc pl-3.5 space-y-0.5 font-medium leading-relaxed">
+            <li>
+              <span className="font-black text-main-green">일정 등록 (달력 버튼):</span> 미래 접종 예정일에 맞춰 예약을 등록할 때 사용합니다. 실제 접종 후 일정 상세에서 <span className="underline font-bold">케어기록으로 전환</span>할 수 있습니다.
+            </li>
+            <li>
+              <span className="font-black text-main-green">바로 케어기록:</span> 캘린더 등록 없이 이미 접종을 완료한 경우, <span className="underline font-bold">기록 관리 &gt; 새 케어기록 등록</span>을 통해 완료된 내역을 직접 기록합니다.
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -173,7 +183,10 @@ export default function VaccinationCard() {
           <p className="text-xs text-text-sub font-black">
             {activePetName ? `${activePetName}의 ` : ''}등록된 예방접종 기록이 없습니다
           </p>
-          <Link href="/family" className="mt-2 text-[10px] font-black text-main-green underline">
+          <Link
+            href={`/schedules/new?scheduleTypeId=3${currentPetId ? `&dogId=${currentPetId}` : ''}`}
+            className="mt-2 text-[10px] font-black text-main-green underline"
+          >
             예방접종 등록하러 가기
           </Link>
         </div>
@@ -183,8 +196,6 @@ export default function VaccinationCard() {
             const dDayInfo = item.dDayInfo;
             const status = dDayInfo?.status || 'OK';
             const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.OK;
-            const isScheduling = schedulingId === item.vaccinationTypeId;
-
             return (
               <div
                 key={item.vaccinationTypeId}
@@ -205,10 +216,9 @@ export default function VaccinationCard() {
                   <VaccinationDDayBadge dDayInfo={dDayInfo} size="xs" />
                   {dDayInfo?.nextDueDate && (status === 'SOON' || status === 'OVERDUE') && (
                     <button
-                      onClick={() => handleCreateSchedule(item)}
-                      disabled={isScheduling}
-                      className="p-1 rounded-lg border border-border/60 bg-background dark:bg-zinc-800 hover:border-main-green hover:text-main-green text-text-sub transition-all disabled:opacity-50 active:scale-90"
-                      title={isScheduling ? '등록 중...' : '다음 접종 일정 등록'}
+                      onClick={() => handleNavigateToCreateSchedule(item)}
+                      className="p-1 rounded-lg border border-border/60 bg-background dark:bg-zinc-800 hover:border-main-green hover:text-main-green text-text-sub transition-all active:scale-90"
+                      title="다음 접종 일정 등록"
                     >
                       <Calendar className="w-3 h-3" />
                     </button>

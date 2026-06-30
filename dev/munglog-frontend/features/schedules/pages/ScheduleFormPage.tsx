@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/common/Button';
 import { Spinner } from '@/components/common/Spinner';
@@ -125,6 +126,28 @@ const ScheduleFormPage: React.FC<ScheduleFormPageProps> = ({
       {/* Main Content Area with inner scroll */}
       <div className={`flex-1 overflow-y-auto no-scrollbar bg-surface-green/10 ${isEmbedded ? 'p-4 pt-1.5 space-y-3' : 'p-6 lg:p-8 bg-surface-green/10'}`}>
         <div className={`max-w-4xl mx-auto ${isEmbedded ? 'space-y-3' : 'space-y-6'}`}>
+
+          {/* 일정/케어기록 구분 팁 배너 */}
+          {!isEdit && (
+            <div className="bg-background/80 dark:bg-zinc-900/80 backdrop-blur-md border border-main-green/20 rounded-[24px] p-4.5 flex gap-3 shadow-xs animate-in fade-in duration-300 select-none">
+              <span className="text-lg mt-0.5 select-none shrink-0">💡</span>
+              <div className="space-y-1.5 flex-1">
+                <h4 className="text-[12px] font-black text-text-main flex items-center gap-2">
+                  일정 예약(캘린더) vs 바로 케어기록(접종/병원 완료) 가이드
+                </h4>
+                <p className="text-[11px] font-bold text-text-sub leading-relaxed">
+                  <span className="text-main-green">일정 등록</span>은 미래의 예방접종, 병원 진료, 미용 등 캘린더에 예약을 잡고 관리하고 싶을 때 사용합니다. 실제 접종/방문을 마친 뒤 일정 상세에서 <span className="underline font-extrabold text-main-green">케어기록으로 전환</span>할 수 있습니다.<br />
+                  캘린더 예약 과정 없이 <span className="underline font-extrabold text-main-green">이미 수행 완료한 활동(오늘 또는 과거)</span>을 바로 저장하려면 케어기록으로 곧바로 등록하세요.
+                </p>
+                <div className="text-[10.5px] font-black text-main-green pt-1 flex items-center gap-1">
+                  <span>이미 완료한 활동인가요?</span>
+                  <Link href="/care-records/new" className="underline hover:text-main-green-dark transition-colors">
+                    여기에서 바로 케어기록 등록하기 →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
           <Section title="기본 정보" description="누구의 어떤 일정인가요?" overflowVisible={true}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

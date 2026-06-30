@@ -156,6 +156,28 @@ const CareRecordFormPage: React.FC<CareRecordFormPageProps> = ({
       <div className={`flex-1 overflow-y-auto no-scrollbar bg-surface-green/10 ${isEmbedded ? 'p-4 pt-1.5 space-y-3' : 'p-6 lg:p-8 space-y-6'}`}>
         <div className={`max-w-4xl mx-auto ${isEmbedded ? 'space-y-3' : 'space-y-6'}`}>
 
+          {/* 일정/케어기록 구분 팁 배너 */}
+          {!isEdit && (
+            <div className="bg-background/80 dark:bg-zinc-900/80 backdrop-blur-md border border-main-green/20 rounded-[24px] p-4.5 flex gap-3 shadow-xs animate-in fade-in duration-300 select-none">
+              <span className="text-lg mt-0.5 select-none shrink-0">💡</span>
+              <div className="space-y-1.5 flex-1">
+                <h4 className="text-[12px] font-black text-text-main flex items-center gap-2">
+                  바로 케어기록(접종/병원 완료) vs 일정 예약(캘린더) 가이드
+                </h4>
+                <p className="text-[11px] font-bold text-text-sub leading-relaxed">
+                  <span className="text-main-green">케어기록 등록</span>은 오늘이나 과거에 예방접종, 병원 진료, 미용 등을 <span className="underline font-extrabold text-main-green">실제 완료한 이력</span>을 바로 저장할 때 사용합니다.<br />
+                  미래의 특정 날짜에 수행할 계획이나 방문 예약을 미리 등록하여 캘린더에서 관리하고 싶다면 일정 예약을 등록해 주세요.
+                </p>
+                <div className="text-[10.5px] font-black text-main-green pt-1 flex items-center gap-1">
+                  <span>미래에 예정된 계획인가요?</span>
+                  <Link href="/schedules/new" className="underline hover:text-main-green-dark transition-colors">
+                    여기에서 일정/예약 등록하기 →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 기록 종류 선택 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 mb-2 w-full">
             {recordTypes.map((type) => {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { scheduleApi } from '@/api/scheduleApi';
 import { fileApi } from '@/api/fileApi';
 import { symptomSnapApi } from '@/api/symptomSnapApi';
@@ -16,24 +16,32 @@ export const useScheduleForm = (
   }
 ) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { success, error: toastError, warning } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(!!id);
   const { pets: dogs, selectedPetId } = usePet();
   const { items: inventoryItems, fetchItems: fetchInventoryItems } = useInventory();
 
+  // URL에서 초기 파라미터 추출
+  const paramDogId = searchParams?.get('dogId') || searchParams?.get('petId') || '';
+  const paramTitle = searchParams?.get('title') || '';
+  const paramScheduleTypeId = searchParams?.get('scheduleTypeId') ? Number(searchParams.get('scheduleTypeId')) : 0;
+  const paramVaccinationTypeId = searchParams?.get('vaccinationTypeId') ? Number(searchParams.get('vaccinationTypeId')) : null;
+  const paramDate = searchParams?.get('date') || options?.prefillDate || '';
+
   const [formData, setFormData] = useState({
-    dogId: selectedPetId && selectedPetId !== 'ALL' ? selectedPetId.toString() : '',
-    title: '',
+    dogId: paramDogId || (selectedPetId && selectedPetId !== 'ALL' ? selectedPetId.toString() : ''),
+    title: paramTitle,
     location: '',
-    scheduleDate: options?.prefillDate || new Date().toISOString().split('T')[0],
+    scheduleDate: paramDate || new Date().toISOString().split('T')[0],
     scheduleTime: '10:00',
-    scheduleTypeId: 0 as number,
+    scheduleTypeId: paramScheduleTypeId,
     memo: '',
     symptomTags: [] as string[],
     inventoryItemId: '',
     linkedSymptomSnapId: '',
-    vaccinationTypeId: null as number | null,
+    vaccinationTypeId: paramVaccinationTypeId,
   });
 
   useEffect(() => {
@@ -43,10 +51,10 @@ export const useScheduleForm = (
 
   // Zustand persist 재수화 후 selectedPetId가 늦게 반영되는 경우 동기화 (신규 등록 시만)
   useEffect(() => {
-    if (!id && selectedPetId && selectedPetId !== 'ALL') {
+    if (!id && !paramDogId && selectedPetId && selectedPetId !== 'ALL') {
       setFormData(prev => prev.dogId ? prev : { ...prev, dogId: selectedPetId.toString() });
     }
-  }, [selectedPetId, id]);
+  }, [selectedPetId, id, paramDogId]);
 
   const fileUploader = useFileUpload('SCHEDULE');
   const fileLoadedRef = useRef(false);
