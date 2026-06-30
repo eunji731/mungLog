@@ -39,6 +39,9 @@ export const useFamilyGroup = () => {
   const joinGroup = async (inviteCode: string) => {
     const res = await familyGroupApi.joinGroup(inviteCode);
     setGroup(res.data);
+    usePetStore.setState((s) => ({ pets: [], selectedPetId: ALL_PETS_ID, groupVersion: s.groupVersion + 1 }));
+    useInventoryStore.setState({ items: [] });
+    useDiaryStore.setState({ dailyLogs: {} });
   };
 
   const refreshInviteCode = async () => {

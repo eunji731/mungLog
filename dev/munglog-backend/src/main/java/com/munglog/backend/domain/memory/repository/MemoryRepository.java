@@ -2,6 +2,7 @@ package com.munglog.backend.domain.memory.repository;
 
 import com.munglog.backend.domain.memory.domain.Memory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -71,4 +72,8 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID> {
 
     @Query("SELECT m FROM Memory m WHERE m.id = :id AND m.group.id = :groupId")
     Optional<Memory> findByIdAndGroupId(@Param("id") UUID id, @Param("groupId") UUID groupId);
+
+    @Modifying
+    @Query("UPDATE Memory m SET m.group.id = :targetGroupId WHERE m.group.id = :sourceGroupId")
+    int bulkMoveToGroup(@Param("sourceGroupId") UUID sourceGroupId, @Param("targetGroupId") UUID targetGroupId);
 }

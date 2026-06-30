@@ -2,6 +2,7 @@ package com.munglog.backend.domain.vaccination.repository;
 
 import com.munglog.backend.domain.vaccination.domain.VaccinationType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,4 +25,8 @@ public interface VaccinationTypeRepository extends JpaRepository<VaccinationType
             ORDER BY v.group NULLS FIRST, v.name
             """)
     List<VaccinationType> findAllByGroup(@Param("groupId") UUID groupId);
+
+    @Modifying
+    @Query("UPDATE VaccinationType v SET v.group.id = :targetGroupId WHERE v.group.id = :sourceGroupId")
+    int bulkMoveToGroup(@Param("sourceGroupId") UUID sourceGroupId, @Param("targetGroupId") UUID targetGroupId);
 }

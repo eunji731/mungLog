@@ -8,8 +8,12 @@ import com.munglog.backend.domain.family.dto.FamilyGroupResponse;
 import com.munglog.backend.domain.family.dto.GroupMemberResponse;
 import com.munglog.backend.domain.family.repository.FamilyGroupRepository;
 import com.munglog.backend.domain.family.repository.GroupMemberRepository;
+import com.munglog.backend.domain.inventory.repository.InventoryItemRepository;
 import com.munglog.backend.domain.member.domain.Member;
 import com.munglog.backend.domain.member.repository.MemberRepository;
+import com.munglog.backend.domain.memory.repository.MemoryRepository;
+import com.munglog.backend.domain.pet.repository.PetRepository;
+import com.munglog.backend.domain.vaccination.repository.VaccinationTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,10 @@ public class FamilyGroupService {
     private final FamilyGroupRepository familyGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final MemberRepository memberRepository;
+    private final PetRepository petRepository;
+    private final MemoryRepository memoryRepository;
+    private final InventoryItemRepository inventoryItemRepository;
+    private final VaccinationTypeRepository vaccinationTypeRepository;
 
     @Transactional
     public FamilyGroupResponse createGroup(UUID userId, String name) {
@@ -61,22 +69,44 @@ public class FamilyGroupService {
 
     @Transactional
     public FamilyGroupResponse joinGroup(UUID userId, String inviteCode) {
-        if (groupMemberRepository.findByUserId(userId).isPresent()) {
-            throw new IllegalStateException("이미 가족 그룹에 속해 있습니다. 탈퇴 후 참여하세요.");
-        }
-        FamilyGroup group = familyGroupRepository.findByInviteCode(inviteCode.trim().toUpperCase())
+        FamilyGroup targetGroup = familyGroupRepository.findByInviteCode(inviteCode.trim().toUpperCase())
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 초대 코드입니다."));
         Member member = findMember(userId);
 
+        GroupMember existing = groupMemberRepository.findByUserId(userId).orElse(null);
+        if (existing != null) {
+            UUID currentGroupId = existing.getGroup().getId();
+            if (currentGroupId.equals(targetGroup.getId())) {
+                throw new IllegalStateException("이미 해당 가족 그룹에 속해 있습니다.");
+            }
+            long memberCount = groupMemberRepository.countByGroupId(currentGroupId);
+            if (memberCount > 1) {
+                throw new IllegalStateException("다른 구성원이 있는 그룹은 먼저 탈퇴해야 합니다. 관리자라면 위임 후 탈퇴하세요.");
+            }
+            // 개인 그룹(1인) → 데이터를 가족 그룹으로 이전 후 개인 그룹 삭제
+            mergeGroupData(currentGroupId, targetGroup.getId());
+            groupMemberRepository.delete(existing);
+            if (groupMemberRepository.countByGroupId(currentGroupId) == 0) {
+                familyGroupRepository.deleteById(currentGroupId);
+            }
+        }
+
         GroupMember gm = GroupMember.builder()
-                .id(new GroupMemberId(group.getId(), userId))
-                .group(group)
+                .id(new GroupMemberId(targetGroup.getId(), userId))
+                .group(targetGroup)
                 .member(member)
                 .role(GroupRole.MEMBER)
                 .build();
         groupMemberRepository.save(gm);
 
-        return buildResponse(group, GroupRole.MEMBER, userId);
+        return buildResponse(targetGroup, GroupRole.MEMBER, userId);
+    }
+
+    private void mergeGroupData(UUID sourceGroupId, UUID targetGroupId) {
+        petRepository.bulkMoveToGroup(sourceGroupId, targetGroupId);
+        memoryRepository.bulkMoveToGroup(sourceGroupId, targetGroupId);
+        inventoryItemRepository.bulkMoveToGroup(sourceGroupId, targetGroupId);
+        vaccinationTypeRepository.bulkMoveToGroup(sourceGroupId, targetGroupId);
     }
 
     @Transactional(readOnly = true)

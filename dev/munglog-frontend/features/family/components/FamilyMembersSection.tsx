@@ -337,6 +337,49 @@ export default function FamilyMembersSection() {
         </div>
       </div>
 
+      {/* 개인 그룹: 가족 그룹 참여 */}
+      {isPersonalGroup && mode === 'idle' && (
+        <button
+          onClick={() => setMode('join')}
+          className="w-full flex items-center justify-center gap-2 py-3 text-sm font-bold text-main-green hover:bg-main-green/5 border border-main-green/40 rounded-2xl transition-all"
+        >
+          <Users className="w-4 h-4" />
+          가족 그룹에 참여하기
+        </button>
+      )}
+
+      {isPersonalGroup && mode === 'join' && (
+        <div className="bg-background border border-border/80 rounded-2xl p-6 space-y-4 animate-in fade-in">
+          <h4 className="text-sm font-black text-text-main">초대 코드로 가족 그룹 참여</h4>
+          <div className="flex gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] font-medium text-amber-700 leading-relaxed">
+              개인 그룹의 반려동물·기록·재고·접종 정보가 가족 그룹으로 이동하고, 개인 그룹은 삭제됩니다.
+            </p>
+          </div>
+          <input
+            type="text"
+            value={inviteCodeInput}
+            onChange={e => setInviteCodeInput(e.target.value.toUpperCase())}
+            onKeyDown={e => e.key === 'Enter' && handleJoin()}
+            placeholder="초대 코드를 입력하세요"
+            className={inputClass}
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setMode('idle'); setInviteCodeInput(''); }}
+              className="flex-1 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-text-sub font-bold rounded-xl text-sm transition-all"
+            >취소</button>
+            <button
+              onClick={handleJoin}
+              disabled={isBusy || !inviteCodeInput.trim()}
+              className="flex-1 py-2.5 bg-main-green text-white font-bold rounded-xl text-sm shadow-md shadow-main-green/20 hover:bg-main-green/90 disabled:opacity-50 transition-all"
+            >{isBusy ? '참여 중...' : '참여하기'}</button>
+          </div>
+        </div>
+      )}
+
       {/* 그룹 나가기 */}
       <button
         onClick={handleLeaveClick}
