@@ -3,6 +3,11 @@ package com.munglog.backend.common.ai;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.munglog.backend.common.ai.dto.GeminiContent;
+import com.munglog.backend.common.ai.dto.GeminiGenerationConfig;
+import com.munglog.backend.common.ai.dto.GeminiInlineData;
+import com.munglog.backend.common.ai.dto.GeminiPart;
+import com.munglog.backend.common.ai.dto.GeminiRequest;
 import com.munglog.backend.domain.ai.dto.AnalyzeProductResult;
 import com.munglog.backend.domain.ai.dto.DailyLogResponse;
 import lombok.RequiredArgsConstructor;
@@ -52,12 +57,13 @@ public class GeminiClient {
      */
     public DailyLogResponse analyzeImages(List<String> base64Images, List<String> fileNames, String prompt) {
         try {
-            List<Map<String, Object>> parts = new ArrayList<>();
-            parts.add(Map.of("text", prompt));
+            // 프롬프트 텍스트를 먼저 넣고, 그 다음 이미지마다 "파일명 텍스트 + 이미지" 순서로 넣는다.
+            List<GeminiPart> parts = new ArrayList<>();
+            parts.add(new GeminiPart(prompt, null));
             for (int i = 0; i < base64Images.size(); i++) {
                 String fileName = i < fileNames.size() ? fileNames.get(i) : "image" + i + ".jpg";
-                parts.add(Map.of("text", "[사진 파일명: " + fileName + "]"));
-                parts.add(Map.of("inline_data", Map.of("mime_type", "image/jpeg", "data", base64Images.get(i))));
+                parts.add(new GeminiPart("[사진 파일명: " + fileName + "]", null));
+                parts.add(new GeminiPart(null, new GeminiInlineData("image/jpeg", base64Images.get(i))));
             }
             String raw = callGemini(parts);
             String json = extractJson(raw);
@@ -78,10 +84,10 @@ public class GeminiClient {
      */
     public String ocrProductImages(List<String> base64Images) {
         String prompt = "이 제품 이미지들에서 보이는 모든 텍스트를 그대로 추출해줘. 특히 성분표, 영양성분, 제품명, 브랜드, 용량, 유통기한, 보관방법을 중심으로 추출해줘.";
-        List<Map<String, Object>> parts = new ArrayList<>();
-        parts.add(Map.of("text", prompt));
+        List<GeminiPart> parts = new ArrayList<>();
+        parts.add(new GeminiPart(prompt, null));
         for (String b64 : base64Images) {
-            parts.add(Map.of("inline_data", Map.of("mime_type", "image/jpeg", "data", b64)));
+            parts.add(new GeminiPart(null, new GeminiInlineData("image/jpeg", b64)));
         }
         return callGemini(parts);
     }
@@ -124,7 +130,7 @@ public class GeminiClient {
                 }
                 """;
         try {
-            List<Map<String, Object>> parts = List.of(Map.of("text", prompt));
+            List<GeminiPart> parts = List.of(new GeminiPart(prompt, null));
             String raw = callGemini(parts);
             String json = extractJson(raw);
             return objectMapper.readValue(json, AnalyzeProductResult.class);
@@ -141,7 +147,7 @@ public class GeminiClient {
      * @return AI가 생성한 텍스트 (JSON 부분만 추출됨)
      */
     public String generateText(String prompt) {
-        List<Map<String, Object>> parts = List.of(Map.of("text", prompt));
+        List<GeminiPart> parts = List.of(new GeminiPart(prompt, null));
         String raw = callGemini(parts);
         return extractJson(raw);
     }
@@ -155,12 +161,18 @@ public class GeminiClient {
      * @return Gemini가 생성한 원문 텍스트
      * @throws RuntimeException 응답 파싱 실패 시
      */
-    private String callGemini(List<Map<String, Object>> parts) {
+    private String callGemini(List<GeminiPart> parts) {
         String url = baseUrl + "/models/" + model + ":generateContent?key=" + apiKey;
-        Map<String, Object> body = Map.of(
-                "contents", List.of(Map.of("parts", parts)),
-                "generationConfig", Map.of("temperature", 0.7, "maxOutputTokens", 8192)
-        );
+
+        // 1) 옵션(생성 설정)을 만든다.
+        GeminiGenerationConfig generationConfig = new GeminiGenerationConfig(0.7, 8192);
+
+        // 2) parts를 담은 Content 1개를 만든다. (우리는 항상 Content를 1개만 사용한다)
+        GeminiContent content = new GeminiContent(parts);
+
+        // 3) 위 두 가지를 합쳐서 실제로 보낼 요청 본문(body)을 만든다.
+        GeminiRequest body = new GeminiRequest(List.of(content), generationConfig);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         ResponseEntity<String> response = restTemplate.exchange(
