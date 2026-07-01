@@ -13,6 +13,8 @@ import {
   X,
   Menu,
   Syringe,
+  MessageSquare,
+  Bell,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
@@ -31,6 +33,18 @@ const navItems = [
     href: '/admin/vaccinations',
     icon: Syringe,
     description: '기본 접종 종류 관리',
+  },
+  {
+    label: '공지사항 관리',
+    href: '/admin/notices',
+    icon: Bell,
+    description: '공지사항 작성 및 관리',
+  },
+  {
+    label: '문의 관리',
+    href: '/admin/inquiries',
+    icon: MessageSquare,
+    description: '사용자 1:1 문의 답변',
   },
   {
     label: '유저 관리',

@@ -53,6 +53,13 @@ public class Member extends BaseTimeEntity {
     @Column(name = "ai_context", columnDefinition = "TEXT")
     private String aiContext;
 
+    @Column(name = "last_notice_read_at")
+    private Instant lastNoticeReadAt;
+
+    public void markNoticesRead() {
+        this.lastNoticeReadAt = Instant.now();
+    }
+
     public void update(String kakaoNickname, String profileImagePath) {
         this.kakaoNickname = kakaoNickname;
         if (profileImagePath != null) {

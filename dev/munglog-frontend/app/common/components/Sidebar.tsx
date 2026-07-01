@@ -19,6 +19,8 @@ import {
   Plus,
   BookOpen,
   Shield,
+  Bell,
+  MessageSquare,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '../hooks/useToast';
@@ -26,6 +28,9 @@ import { useConfirm } from '../hooks/useConfirm';
 import { usePet, ALL_PETS_ID } from '../hooks/usePet';
 import { getImagePath } from '@/lib/clientApi';
 import { useAuth } from '@/context/AuthContext';
+import NotificationPanel from './NotificationPanel';
+import { noticeApi } from '@/api/noticeApi';
+import { inquiryApi } from '@/api/inquiryApi';
 
 const isAdmin = (role?: string) => role === 'ROLE_ADMIN';
 
@@ -47,9 +52,13 @@ interface SidebarContentProps {
   onClose: () => void;
   onLogout: () => void;
   userRole?: string;
+  onOpenNotices: () => void;
+  onOpenMessages: () => void;
+  noticeCount: number;
+  replyCount: number;
 }
 
-const SidebarContent = ({ pathname, onClose, onLogout, userRole }: SidebarContentProps) => {
+const SidebarContent = ({ pathname, onClose, onLogout, userRole, onOpenNotices, onOpenMessages, noticeCount, replyCount }: SidebarContentProps) => {
   const router = useRouter();
   const { pets, selectedPetId, setSelectedPetId } = usePet();
   const [isPetSwitcherOpen, setIsPetSwitcherOpen] = React.useState(false);
@@ -181,6 +190,39 @@ const SidebarContent = ({ pathname, onClose, onLogout, userRole }: SidebarConten
       )}
 
       <div className="footer-container p-3 border-t border-main-yellow/10 space-y-2.5 relative shrink-0">
+        {/* 알림 / 문의 버튼 */}
+        <div className="flex items-center gap-2 px-1">
+          <button
+            onClick={() => { onClose(); onOpenNotices(); }}
+            className="flex-1 flex items-center justify-center py-2.5 rounded-xl text-text-sub hover:bg-main-green/5 hover:text-main-green transition-all group"
+          >
+            <div className="relative flex items-center gap-2">
+              <Bell className="w-4 h-4 group-hover:text-main-green transition-colors" />
+              <span className="text-[13px] font-bold tracking-tight">공지사항</span>
+              {noticeCount > 0 && (
+                <span className="absolute -top-2.5 -right-4 min-w-[16px] h-4 px-1 bg-main-green text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                  {noticeCount > 9 ? '9+' : noticeCount}
+                </span>
+              )}
+            </div>
+          </button>
+          <div className="w-px h-5 bg-border" />
+          <button
+            onClick={() => { onClose(); onOpenMessages(); }}
+            className="flex-1 flex items-center justify-center py-2.5 rounded-xl text-text-sub hover:bg-main-green/5 hover:text-main-green transition-all group"
+          >
+            <div className="relative flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 group-hover:text-main-green transition-colors" />
+              <span className="text-[13px] font-bold tracking-tight">문의하기</span>
+              {replyCount > 0 && (
+                <span className="absolute -top-2.5 -right-4 min-w-[16px] h-4 px-1 bg-main-green text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                  {replyCount > 9 ? '9+' : replyCount}
+                </span>
+              )}
+            </div>
+          </button>
+        </div>
+
         <button
           onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-text-sub hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-500 transition-all group"
@@ -301,6 +343,23 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   const { success } = useToast();
   const { confirm } = useConfirm();
   const { logout, user } = useAuth();
+  const [panelOpen, setPanelOpen] = React.useState(false);
+  const [panelTab, setPanelTab] = React.useState<'notices' | 'messages'>('notices');
+  const [noticeCount, setNoticeCount] = React.useState(0);
+  const [replyCount, setReplyCount] = React.useState(0);
+
+  const fetchBadgeCounts = React.useCallback(async () => {
+    try {
+      const [notices, inquiries] = await Promise.all([
+        noticeApi.getAll(),
+        inquiryApi.getMyInquiries(),
+      ]);
+      setNoticeCount(notices.filter(n => n.isNew).length);
+      setReplyCount(inquiries.filter(i => i.isReplyNew).length);
+    } catch {}
+  }, []);
+
+  React.useEffect(() => { fetchBadgeCounts(); }, [fetchBadgeCounts]);
 
   const handleLogout = async () => {
     const isConfirmed = await confirm('로그아웃 하시겠습니까?');
@@ -322,6 +381,9 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
     router.push('/login');
   };
 
+  const openNotices = () => { setPanelTab('notices'); setPanelOpen(true); };
+  const openMessages = () => { setPanelTab('messages'); setPanelOpen(true); };
+
   return (
     <>
       <aside className="hidden lg:flex flex-col w-[250px] h-screen sticky top-0 border-r border-border shrink-0">
@@ -330,6 +392,10 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           onClose={onClose}
           onLogout={handleLogout}
           userRole={user?.role}
+          onOpenNotices={openNotices}
+          onOpenMessages={openMessages}
+          noticeCount={noticeCount}
+          replyCount={replyCount}
         />
       </aside>
 
@@ -337,14 +403,26 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         <div className="lg:hidden fixed inset-0 z-[120] flex">
           <div className="fixed inset-0 bg-black/30 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
           <aside className="relative w-[85%] max-w-[320px] h-full shadow-2xl animate-in slide-in-from-left duration-500">
-            <SidebarContent 
-              pathname={pathname} 
-              onClose={onClose} 
-              onLogout={handleLogout} 
+            <SidebarContent
+              pathname={pathname}
+              onClose={onClose}
+              onLogout={handleLogout}
+              userRole={user?.role}
+              onOpenNotices={openNotices}
+              onOpenMessages={openMessages}
+              noticeCount={noticeCount}
+              replyCount={replyCount}
             />
           </aside>
         </div>
       )}
+
+      <NotificationPanel
+        isOpen={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        defaultTab={panelTab}
+        onBadgeUpdate={fetchBadgeCounts}
+      />
     </>
   );
 }
