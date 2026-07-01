@@ -4,21 +4,25 @@ import { ScrollText } from 'lucide-react';
 
 export default function LogsAdminPage() {
   return (
-    <div className="max-w-3xl space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-main-green/10 flex items-center justify-center shrink-0">
-          <ScrollText className="w-5 h-5 text-main-green" />
+    <div className="max-w-4xl mx-auto w-full space-y-8 py-6 px-4 animate-in fade-in duration-300">
+      {/* 페이지 헤더 */}
+      <div className="flex items-center gap-4 bg-gradient-to-r from-surface-green to-transparent p-6 rounded-2xl border border-border/50">
+        <div className="w-12 h-12 rounded-2xl bg-main-green/10 flex items-center justify-center shrink-0 border border-main-green/20">
+          <ScrollText className="w-6 h-6 text-main-green" />
         </div>
         <div>
-          <h1 className="text-xl font-black text-text-main tracking-tight">로그 관리</h1>
-          <p className="text-xs text-text-sub mt-0.5">시스템 로그 조회 기능입니다.</p>
+          <h1 className="text-2xl font-black text-text-main tracking-tight">로그 관리</h1>
+          <p className="text-xs text-text-sub mt-1 leading-relaxed">시스템 활동 및 인프라 로그를 조회하는 기능입니다.</p>
         </div>
       </div>
 
-      <div className="bg-background rounded-2xl border border-dashed border-border p-16 text-center">
-        <ScrollText className="w-10 h-10 text-border mx-auto mb-3" />
-        <p className="text-sm font-black text-text-sub">준비 중인 기능입니다.</p>
-        <p className="text-xs text-text-sub/70 mt-1">곧 추가될 예정입니다.</p>
+      {/* 준비 중 카드 */}
+      <div className="bg-background rounded-3xl border border-dashed border-border/80 p-20 text-center shadow-sm hover:shadow-md transition-shadow">
+        <div className="w-16 h-16 bg-surface-green rounded-2xl flex items-center justify-center mx-auto mb-4 border border-border">
+          <ScrollText className="w-8 h-8 text-text-sub/40" />
+        </div>
+        <h2 className="text-base font-black text-text-main">준비 중인 기능입니다</h2>
+        <p className="text-xs text-text-sub/70 mt-2 font-medium">실시간 트래픽 로그 및 예외 에러 트래킹 기능이 곧 추가될 예정입니다.</p>
       </div>
     </div>
   );
