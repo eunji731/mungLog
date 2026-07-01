@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -20,6 +20,7 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/app/common/hooks/useToast';
 import { useConfirm } from '@/app/common/hooks/useConfirm';
+import { inquiryAdminApi } from '@/api/inquiryApi';
 
 const navItems = [
   {
@@ -64,9 +65,10 @@ const navItems = [
 
 interface SidebarContentProps {
   onClose: () => void;
+  unreadInquiryCount: number;
 }
 
-function SidebarContent({ onClose }: SidebarContentProps) {
+function SidebarContent({ onClose, unreadInquiryCount }: SidebarContentProps) {
   const pathname = usePathname() ?? '';
   const router = useRouter();
   const { logout } = useAuth();
@@ -151,10 +153,17 @@ function SidebarContent({ onClose }: SidebarContentProps) {
                   }`}
                 >
                   <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : 'group-hover:text-main-green transition-colors'}`} />
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     <div className={`text-[13px] font-bold truncate ${isActive ? 'text-white' : ''}`}>{item.label}</div>
                     <div className={`text-[10px] font-medium truncate ${isActive ? 'text-white/70' : 'text-text-sub/70'}`}>{item.description}</div>
                   </div>
+                  {item.href === '/admin/inquiries' && unreadInquiryCount > 0 && (
+                    <span className={`shrink-0 min-w-[18px] h-[18px] px-1 text-[10px] font-black rounded-full flex items-center justify-center ${
+                      isActive ? 'bg-white/25 text-white' : 'bg-main-green text-white'
+                    }`}>
+                      {unreadInquiryCount > 99 ? '99+' : unreadInquiryCount}
+                    </span>
+                  )}
                 </Link>
               )}
             </div>
@@ -178,6 +187,21 @@ function SidebarContent({ onClose }: SidebarContentProps) {
 
 export default function AdminSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadInquiryCount, setUnreadInquiryCount] = useState(0);
+  const pathname = usePathname() ?? '';
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      setUnreadInquiryCount(await inquiryAdminApi.getUnreadCount());
+    } catch {}
+  }, []);
+
+  useEffect(() => { fetchUnreadCount(); }, [fetchUnreadCount]);
+
+  // 문의 관리 페이지에 들어오면 카운트 갱신
+  useEffect(() => {
+    if (pathname.startsWith('/admin/inquiries')) fetchUnreadCount();
+  }, [pathname, fetchUnreadCount]);
 
   return (
     <>
@@ -191,7 +215,7 @@ export default function AdminSidebar() {
 
       {/* 데스크탑 사이드바 */}
       <aside className="hidden lg:flex flex-col w-[220px] h-screen sticky top-0 border-r border-border shrink-0">
-        <SidebarContent onClose={() => {}} />
+        <SidebarContent onClose={() => {}} unreadInquiryCount={unreadInquiryCount} />
       </aside>
 
       {/* 모바일 드로어 */}
@@ -202,7 +226,7 @@ export default function AdminSidebar() {
             onClick={() => setMobileOpen(false)}
           />
           <aside className="relative w-[260px] h-full shadow-2xl animate-in slide-in-from-left duration-300">
-            <SidebarContent onClose={() => setMobileOpen(false)} />
+            <SidebarContent onClose={() => setMobileOpen(false)} unreadInquiryCount={unreadInquiryCount} />
           </aside>
         </div>
       )}

@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface InquiryRepository extends JpaRepository<Inquiry, UUID> {
     List<Inquiry> findByMemberIdOrderByCreatedAtDesc(UUID memberId);
     List<Inquiry> findAllByOrderByCreatedAtDesc();
+
+    long countByAdminReadAtIsNull();
 }

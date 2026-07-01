@@ -35,6 +35,11 @@ export const inquiryApi = {
 };
 
 export const inquiryAdminApi = {
+  getUnreadCount: async (): Promise<number> => {
+    const res = await apiClient.get<number>('/admin/inquiries/unread-count');
+    return res.data;
+  },
+
   getAll: async (): Promise<Inquiry[]> => {
     const res = await apiClient.get<Inquiry[]>('/admin/inquiries');
     return res.data;

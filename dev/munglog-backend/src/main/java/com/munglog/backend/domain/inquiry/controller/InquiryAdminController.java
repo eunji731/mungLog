@@ -23,6 +23,12 @@ public class InquiryAdminController {
 
     private final InquiryService inquiryService;
 
+    @Operation(summary = "미읽음 문의 수 조회")
+    @GetMapping("/unread-count")
+    public ResponseEntity<ApiResponse<Long>> getUnreadCount() {
+        return ResponseEntity.ok(ApiResponse.success(inquiryService.getUnreadCountForAdmin()));
+    }
+
     @Operation(summary = "전체 문의 목록 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<List<InquiryResponse>>> getAll() {

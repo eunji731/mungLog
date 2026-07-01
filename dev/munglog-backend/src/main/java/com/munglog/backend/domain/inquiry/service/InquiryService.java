@@ -53,6 +53,11 @@ public class InquiryService {
     }
 
     @Transactional(readOnly = true)
+    public long getUnreadCountForAdmin() {
+        return inquiryRepository.countByAdminReadAtIsNull();
+    }
+
+    @Transactional(readOnly = true)
     public List<InquiryResponse> getAllForAdmin() {
         return inquiryRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
