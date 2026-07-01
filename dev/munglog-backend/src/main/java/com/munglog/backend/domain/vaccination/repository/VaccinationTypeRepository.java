@@ -26,6 +26,9 @@ public interface VaccinationTypeRepository extends JpaRepository<VaccinationType
             """)
     List<VaccinationType> findAllByGroup(@Param("groupId") UUID groupId);
 
+    @Query("SELECT v FROM VaccinationType v WHERE v.group IS NOT NULL AND v.isActive = true ORDER BY v.name")
+    List<VaccinationType> findAllUserCreated();
+
     @Modifying
     @Query("UPDATE VaccinationType v SET v.group.id = :targetGroupId WHERE v.group.id = :sourceGroupId")
     int bulkMoveToGroup(@Param("sourceGroupId") UUID sourceGroupId, @Param("targetGroupId") UUID targetGroupId);

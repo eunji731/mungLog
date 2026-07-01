@@ -16,4 +16,8 @@ public interface SymptomSnapSymptomRepository extends JpaRepository<SymptomSnapS
     @Modifying
     @Query("DELETE FROM SymptomSnapSymptom sss WHERE sss.symptomSnapId IN (SELECT s.id FROM SymptomSnap s WHERE s.pet.group.id = :groupId)")
     void deleteAllByGroupId(@Param("groupId") UUID groupId);
+
+    @Modifying
+    @Query("UPDATE SymptomSnapSymptom sss SET sss.symptomId = :targetId WHERE sss.symptomId = :sourceId")
+    void updateSymptomId(@Param("sourceId") Long sourceId, @Param("targetId") Long targetId);
 }

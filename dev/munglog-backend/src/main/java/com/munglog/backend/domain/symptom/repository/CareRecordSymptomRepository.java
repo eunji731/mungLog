@@ -16,4 +16,8 @@ public interface CareRecordSymptomRepository extends JpaRepository<CareRecordSym
     @Modifying
     @Query("DELETE FROM CareRecordSymptom crs WHERE crs.petId IN (SELECT p.id FROM Pet p WHERE p.group.id = :groupId)")
     void deleteAllByGroupId(@Param("groupId") UUID groupId);
+
+    @Modifying
+    @Query("UPDATE CareRecordSymptom crs SET crs.symptomId = :targetId WHERE crs.symptomId = :sourceId")
+    void updateSymptomId(@Param("sourceId") Long sourceId, @Param("targetId") Long targetId);
 }

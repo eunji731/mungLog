@@ -11,7 +11,8 @@ public record MemberResponse(
         String kakaoEmail,
         String nickname,
         String profileImageUrl,
-        String aiContext
+        String aiContext,
+        String role
 ) {
     public static MemberResponse from(Member member, String profileImageUrl) {
         return MemberResponse.builder()
@@ -20,6 +21,7 @@ public record MemberResponse(
                 .nickname(member.getDisplayName())
                 .profileImageUrl(profileImageUrl)
                 .aiContext(member.getAiContext())
+                .role(member.getRole())
                 .build();
     }
 }

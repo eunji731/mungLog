@@ -4,6 +4,7 @@ export interface VaccinationType {
   intervalDays: number | null;
   isActive: boolean;
   isGlobal: boolean;
+  groupName?: string | null;
 }
 
 export interface VaccinationAliasMatch {

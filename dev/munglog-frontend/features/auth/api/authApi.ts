@@ -6,6 +6,7 @@ export interface User {
   name: string;
   profileImageUrl?: string | null;
   type_id?: string;
+  role?: string;
 }
 
 export const authApi = {
@@ -25,6 +26,7 @@ export const authApi = {
         name: data.nickname ?? data.name ?? '',
         profileImageUrl: data.profileImageUrl ?? null,
         type_id: data.type_id,
+        role: data.role,
       };
     } catch (error) {
       console.error('내 정보를 가져오지 못했습니다:', error);

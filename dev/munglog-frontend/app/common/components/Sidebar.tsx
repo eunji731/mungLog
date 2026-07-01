@@ -17,7 +17,8 @@ import {
   LogOut,
   Users,
   Plus,
-  BookOpen
+  BookOpen,
+  Shield,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '../hooks/useToast';
@@ -25,6 +26,8 @@ import { useConfirm } from '../hooks/useConfirm';
 import { usePet, ALL_PETS_ID } from '../hooks/usePet';
 import { getImagePath } from '@/lib/clientApi';
 import { useAuth } from '@/context/AuthContext';
+
+const isAdmin = (role?: string) => role === 'ROLE_ADMIN';
 
 const navItems = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
@@ -43,9 +46,10 @@ interface SidebarContentProps {
   pathname: string;
   onClose: () => void;
   onLogout: () => void;
+  userRole?: string;
 }
 
-const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) => {
+const SidebarContent = ({ pathname, onClose, onLogout, userRole }: SidebarContentProps) => {
   const router = useRouter();
   const { pets, selectedPetId, setSelectedPetId } = usePet();
   const [isPetSwitcherOpen, setIsPetSwitcherOpen] = React.useState(false);
@@ -123,7 +127,7 @@ const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) =>
         </button>
       </div>
 
-      <nav className="nav-container flex-1 px-4 py-4.5 space-y-1.5 shrink-0">
+      <nav className="nav-container flex-1 px-4 py-4.5 space-y-1.5 overflow-y-auto min-h-0 no-scrollbar">
         {navItems.map((item) => {
           const isActive = (item.href === '/dashboard' && (pathname === '/' || pathname === '/dashboard')) || 
                         (item.href !== '/dashboard' && pathname.startsWith(item.href));
@@ -155,8 +159,29 @@ const SidebarContent = ({ pathname, onClose, onLogout }: SidebarContentProps) =>
         })}
       </nav>
 
+      {isAdmin(userRole) && (
+        <div className="px-4 py-2 border-t border-main-yellow/10 shrink-0">
+          <Link
+            href="/admin"
+            onClick={(e) => {
+              e.preventDefault();
+              router.push('/admin');
+              onClose();
+            }}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group ${
+              pathname.startsWith('/admin')
+                ? 'bg-main-green text-white shadow-sm'
+                : 'text-text-sub hover:bg-main-green/5 hover:text-main-green'
+            }`}
+          >
+            <Shield className={`w-4 h-4 shrink-0 ${pathname.startsWith('/admin') ? 'text-white' : 'group-hover:text-main-green transition-colors'}`} />
+            <span className={`text-[13px] font-bold tracking-tight ${pathname.startsWith('/admin') ? 'text-white' : 'group-hover:text-main-green'}`}>관리자 페이지</span>
+          </Link>
+        </div>
+      )}
+
       <div className="footer-container p-3 border-t border-main-yellow/10 space-y-2.5 relative shrink-0">
-        <button 
+        <button
           onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-text-sub hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-500 transition-all group"
         >
@@ -275,7 +300,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   const router = useRouter();
   const { success } = useToast();
   const { confirm } = useConfirm();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     const isConfirmed = await confirm('로그아웃 하시겠습니까?');
@@ -300,10 +325,11 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   return (
     <>
       <aside className="hidden lg:flex flex-col w-[250px] h-screen sticky top-0 border-r border-border shrink-0">
-        <SidebarContent 
-          pathname={pathname} 
-          onClose={onClose} 
-          onLogout={handleLogout} 
+        <SidebarContent
+          pathname={pathname}
+          onClose={onClose}
+          onLogout={handleLogout}
+          userRole={user?.role}
         />
       </aside>
 

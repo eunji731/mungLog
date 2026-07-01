@@ -16,4 +16,8 @@ public interface ScheduleSymptomRepository extends JpaRepository<ScheduleSymptom
     @Modifying
     @Query("DELETE FROM ScheduleSymptom ss WHERE ss.scheduleId IN (SELECT s.id FROM Schedule s WHERE s.pet.group.id = :groupId)")
     void deleteAllByGroupId(@Param("groupId") UUID groupId);
+
+    @Modifying
+    @Query("UPDATE ScheduleSymptom ss SET ss.symptomId = :targetId WHERE ss.symptomId = :sourceId")
+    void updateSymptomId(@Param("sourceId") Long sourceId, @Param("targetId") Long targetId);
 }

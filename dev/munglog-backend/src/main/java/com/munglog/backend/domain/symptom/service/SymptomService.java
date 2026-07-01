@@ -31,6 +31,59 @@ public class SymptomService {
                 .map(SymptomResponse::from).toList();
     }
 
+    // ─── Admin CRUD ────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<SymptomResponse> getAllSymptoms() {
+        return symptomMasterRepository.findAllByOrderByIsActiveDescNameAsc().stream()
+                .map(SymptomResponse::from).toList();
+    }
+
+    @Transactional
+    public SymptomResponse createSymptom(String name) {
+        if (symptomMasterRepository.findByName(name).isPresent()) {
+            throw new IllegalArgumentException("이미 존재하는 증상입니다: " + name);
+        }
+        SymptomMaster symptom = symptomMasterRepository.save(SymptomMaster.builder().name(name).build());
+        return SymptomResponse.from(symptom);
+    }
+
+    @Transactional
+    public SymptomResponse updateSymptom(Long id, String name) {
+        SymptomMaster symptom = symptomMasterRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("증상을 찾을 수 없습니다."));
+        symptom.updateName(name);
+        return SymptomResponse.from(symptom);
+    }
+
+    @Transactional
+    public void deactivateSymptom(Long id) {
+        SymptomMaster symptom = symptomMasterRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("증상을 찾을 수 없습니다."));
+        symptom.deactivate();
+    }
+
+    @Transactional
+    public void activateSymptom(Long id) {
+        SymptomMaster symptom = symptomMasterRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("증상을 찾을 수 없습니다."));
+        symptom.activate();
+    }
+
+    @Transactional
+    public void mergeSymptoms(Long sourceId, Long targetId) {
+        SymptomMaster source = symptomMasterRepository.findById(sourceId)
+                .orElseThrow(() -> new IllegalArgumentException("소스 증상을 찾을 수 없습니다."));
+        if (!symptomMasterRepository.existsById(targetId)) {
+            throw new IllegalArgumentException("대상 증상을 찾을 수 없습니다.");
+        }
+        // 관련 레코드 모두 target으로 이전
+        careRecordSymptomRepository.updateSymptomId(sourceId, targetId);
+        scheduleSymptomRepository.updateSymptomId(sourceId, targetId);
+        symptomSnapSymptomRepository.updateSymptomId(sourceId, targetId);
+        symptomMasterRepository.delete(source);
+    }
+
     @Transactional
     public SymptomMaster getOrCreateSymptom(String name) {
         return symptomMasterRepository.findByName(name)

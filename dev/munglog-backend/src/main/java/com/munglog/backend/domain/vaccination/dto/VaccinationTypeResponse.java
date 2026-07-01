@@ -9,7 +9,8 @@ public record VaccinationTypeResponse(
         String name,
         Integer intervalDays,
         boolean isActive,
-        boolean isGlobal
+        boolean isGlobal,
+        String groupName
 ) {
     public static VaccinationTypeResponse from(VaccinationType v) {
         return VaccinationTypeResponse.builder()
@@ -18,6 +19,7 @@ public record VaccinationTypeResponse(
                 .intervalDays(v.getIntervalDays())
                 .isActive(v.getIsActive())
                 .isGlobal(v.getGroup() == null)
+                .groupName(v.getGroup() != null ? v.getGroup().getName() : null)
                 .build();
     }
 }

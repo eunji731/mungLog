@@ -5,6 +5,9 @@ import com.munglog.backend.domain.category.dto.CategoryRequest;
 import com.munglog.backend.domain.category.dto.CategoryResponse;
 import com.munglog.backend.domain.category.service.CategoryService;
 import com.munglog.backend.domain.memory.service.ThumbnailMigrationService;
+import com.munglog.backend.domain.symptom.dto.SymptomResponse;
+import com.munglog.backend.domain.symptom.service.SymptomService;
+import com.munglog.backend.domain.vaccination.dto.VaccinationMergeRequest;
 import com.munglog.backend.domain.vaccination.dto.VaccinationTypeCreateRequest;
 import com.munglog.backend.domain.vaccination.dto.VaccinationTypeResponse;
 import com.munglog.backend.domain.vaccination.service.VaccinationAdminService;
@@ -22,6 +25,7 @@ public class AdminController {
     private final ThumbnailMigrationService thumbnailMigrationService;
     private final CategoryService categoryService;
     private final VaccinationAdminService vaccinationAdminService;
+    private final SymptomService symptomService;
 
     // ─── 케어기록 카테고리 관리 ─────────────────────────────────────
     @GetMapping("/care-categories")
@@ -90,6 +94,52 @@ public class AdminController {
     @DeleteMapping("/vaccination-types/{id}")
     public ResponseEntity<ApiResponse<Void>> deactivateGlobalVaccinationType(@PathVariable Long id) {
         vaccinationAdminService.deactivateGlobalType(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @GetMapping("/vaccination-types/user-types")
+    public ResponseEntity<ApiResponse<List<VaccinationTypeResponse>>> getUserCreatedVaccinationTypes() {
+        return ResponseEntity.ok(ApiResponse.success(vaccinationAdminService.getUserCreatedTypes()));
+    }
+
+    @PostMapping("/vaccination-types/merge")
+    public ResponseEntity<ApiResponse<Void>> mergeVaccinationTypes(@RequestBody VaccinationMergeRequest req) {
+        vaccinationAdminService.mergeUserTypeToGlobal(req.getSourceId(), req.getTargetId());
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    // ─── 증상마스터 관리 ──────────────────────────────────────────
+    @GetMapping("/symptoms")
+    public ResponseEntity<ApiResponse<List<SymptomResponse>>> getAllSymptoms() {
+        return ResponseEntity.ok(ApiResponse.success(symptomService.getAllSymptoms()));
+    }
+
+    @PostMapping("/symptoms")
+    public ResponseEntity<ApiResponse<SymptomResponse>> createSymptom(@RequestBody java.util.Map<String, String> body) {
+        return ResponseEntity.ok(ApiResponse.success(symptomService.createSymptom(body.get("name"))));
+    }
+
+    @PutMapping("/symptoms/{id}")
+    public ResponseEntity<ApiResponse<SymptomResponse>> updateSymptom(
+            @PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        return ResponseEntity.ok(ApiResponse.success(symptomService.updateSymptom(id, body.get("name"))));
+    }
+
+    @PutMapping("/symptoms/{id}/deactivate")
+    public ResponseEntity<ApiResponse<Void>> deactivateSymptom(@PathVariable Long id) {
+        symptomService.deactivateSymptom(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PutMapping("/symptoms/{id}/activate")
+    public ResponseEntity<ApiResponse<Void>> activateSymptom(@PathVariable Long id) {
+        symptomService.activateSymptom(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/symptoms/merge")
+    public ResponseEntity<ApiResponse<Void>> mergeSymptoms(@RequestBody java.util.Map<String, Long> body) {
+        symptomService.mergeSymptoms(body.get("sourceId"), body.get("targetId"));
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface SymptomMasterRepository extends JpaRepository<SymptomMaster, Long> {
     Optional<SymptomMaster> findByName(String name);
     List<SymptomMaster> findByNameContainingIgnoreCase(String keyword);
+    List<SymptomMaster> findAllByOrderByIsActiveDescNameAsc();
 }
