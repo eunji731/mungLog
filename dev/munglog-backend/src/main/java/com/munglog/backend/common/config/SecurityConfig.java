@@ -23,6 +23,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+/**
+ * Spring Security 설정 클래스.
+ * JWT 기반 Stateless 인증, 카카오 OAuth2 로그인, CORS, 권한별 접근 제어를 설정한다.
+ * 세션을 사용하지 않으므로(STATELESS) 모든 요청은 쿠키의 JWT 토큰으로 인증한다.
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -34,9 +39,23 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
 
+    /** 허용할 CORS 오리진 목록 (쉼표 구분, 예: http://localhost:3000,https://munglog.com) */
     @Value("${app.cors.allowed-origins}")
     private String allowedOriginsRaw;
 
+    /**
+     * [목적] Spring Security 필터 체인을 구성하고 등록한다.
+     * [설명] - CSRF 비활성화 (JWT+쿠키 방식 사용)
+     *        - CORS 설정 적용
+     *        - STATELESS 세션 정책 (서버가 세션을 생성하지 않음)
+     *        - 공개 URL 및 관리자 URL 접근 제어
+     *        - 카카오 OAuth2 로그인 설정
+     *        - JWT 인증 필터를 UsernamePasswordAuthenticationFilter 앞에 추가
+     *
+     * @param http HttpSecurity 객체
+     * @return 구성된 SecurityFilterChain
+     * @throws Exception 설정 오류 시
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -73,6 +92,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * [목적] CORS 정책을 설정하여 허용된 오리진의 크로스 도메인 요청을 허용한다.
+     * [설명] 쿠키 기반 인증을 위해 allowCredentials=true 필수.
+     *        allowedOriginsRaw는 쉼표로 구분된 URL 문자열이며 패턴 매칭을 지원한다.
+     *
+     * @return CORS 설정 소스
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

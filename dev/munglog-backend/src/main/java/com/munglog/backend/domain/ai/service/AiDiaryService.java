@@ -34,14 +34,22 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
+/**
+ * AI 일지 분석 및 저장 비즈니스 로직을 담당하는 서비스.
+ * 주요 기능: 사용량 조회·제한, 이미지 EXIF 추출, Gemini AI 분석, Memory 저장
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiDiaryService {
 
+    /** 하루 동안 특정 날짜에 대해 허용되는 최대 AI 분석 횟수 */
     private static final int DATE_LIMIT = 2;
+    /** 하루 동안 허용되는 전체 AI 사용 최대 횟수 */
     private static final int DAILY_LIMIT = 10;
+    /** 날짜별 분석 사용 유형 식별자 */
     private static final String USAGE_TYPE_ANALYZE = "ANALYZE";
+    /** 일별 총량 카운트 사용 유형 식별자 */
     private static final String USAGE_TYPE_DAILY = "DAILY";
 
     private final GeminiClient geminiClient;
@@ -58,6 +66,15 @@ public class AiDiaryService {
     private final FamilyGroupService familyGroupService;
     private final ObjectMapper objectMapper;
 
+    /**
+     * [목적] 특정 날짜에 대한 AI 사용량 현황을 조회한다.
+     * [설명] 날짜별 분석 횟수(dateCount)와 오늘 하루 전체 AI 호출 횟수(dailyTotal)를 집계하여
+     *        제한 초과 여부(dateBlocked, dailyBlocked)와 함께 반환한다.
+     *
+     * @param userId     조회할 사용자 ID
+     * @param targetDate 날짜별 사용량을 확인할 기준 날짜
+     * @return AI 사용량 현황 (횟수, 제한, 차단 여부)
+     */
     @Transactional(readOnly = true)
     public AiUsageResponse getUsage(UUID userId, LocalDate targetDate) {
         LocalDate today = LocalDate.now();
@@ -76,6 +93,14 @@ public class AiDiaryService {
                 .build();
     }
 
+    /**
+     * [목적] 이미지 파일 목록의 EXIF 메타데이터 포함 여부를 사전에 확인한다.
+     * [설명] 각 파일에서 촬영 일시와 GPS 좌표 존재 여부를 추출하여 반환한다.
+     *        파일을 저장하지 않으므로 AI 사용량이 소모되지 않는다.
+     *
+     * @param files 메타데이터를 확인할 이미지 파일 목록
+     * @return 파일별 날짜·GPS 포함 여부 목록
+     */
     public List<CheckMetadataResponse> checkMetadata(List<MultipartFile> files) {
         return files.stream().map(file -> {
             ExifMeta exif = extractExif(file);
@@ -87,6 +112,19 @@ public class AiDiaryService {
         }).toList();
     }
 
+    /**
+     * [목적] 업로드된 이미지들을 Gemini AI로 분석하여 반려동물 1인칭 일지를 생성한다.
+     * [설명] 사용량 제한 확인 → 파일 임시 저장 → EXIF 추출 → Base64 변환 →
+     *        반려동물 정보·GPS·태그를 포함한 프롬프트 생성 → Gemini 호출 → 사용량 기록 순서로 처리한다.
+     *
+     * @param userId     분석을 요청하는 사용자 ID
+     * @param targetDate 일지 대상 날짜
+     * @param files      분석할 이미지 파일 목록
+     * @param petInfos   분석에 포함할 반려동물 ID·이름 목록 (null이면 전체)
+     * @param userTags   일지에 반영할 사용자 직접 입력 키워드 (null 가능)
+     * @return AI 분석 결과와 임시 저장된 파일 정보
+     * @throws AiRateLimitException 날짜별 또는 일별 사용량 제한 초과 시
+     */
     @Transactional
     public AnalyzeDiaryResult analyze(UUID userId, LocalDate targetDate, List<MultipartFile> files,
                                       List<PetInfoRequest> petInfos, List<String> userTags) {
@@ -140,6 +178,16 @@ public class AiDiaryService {
         return AnalyzeDiaryResult.builder().aiResult(aiResult).storedFiles(storedFiles).build();
     }
 
+    /**
+     * [목적] AI 분석 결과를 Memory 엔티티로 데이터베이스에 영구 저장한다.
+     * [설명] Memory → MemoryDog(참여 반려동물) → MemoryMoment(순간) → Photo(사진) → PhotoThemeTag(태그)
+     *        순서로 계층 저장하며, 각 사진에 썸네일을 생성한다.
+     *        oldMemoryId가 있으면 해당 Memory를 먼저 삭제하고 새로 생성한다(재분석 저장).
+     *
+     * @param userId  저장을 요청하는 사용자 ID
+     * @param request 저장할 일지 데이터
+     * @return 새로 생성된 Memory의 UUID
+     */
     @Transactional
     public UUID saveDiary(UUID userId, SaveDiaryRequest request) {
         Member member = memberRepository.findById(userId)
@@ -233,6 +281,7 @@ public class AiDiaryService {
             }
         }
 
+        // isBest 사진을 대표 사진으로 설정, 없으면 첫 번째 사진 사용
         allPhotos.stream()
                 .filter(p -> Boolean.TRUE.equals(p.getIsBest()))
                 .findFirst()
@@ -242,6 +291,14 @@ public class AiDiaryService {
         return memory.getId();
     }
 
+    /**
+     * [목적] AI 사용량 제한을 초과했는지 검사하고, 초과 시 예외를 던진다.
+     * [설명] 날짜별 분석 횟수(DATE_LIMIT)와 일별 전체 사용 횟수(DAILY_LIMIT)를 각각 확인한다.
+     *
+     * @param userId     검사할 사용자 ID
+     * @param targetDate 날짜별 제한 확인에 사용할 기준 날짜
+     * @throws AiRateLimitException 날짜별 또는 일별 제한 초과 시
+     */
     private void checkRateLimit(UUID userId, LocalDate targetDate) {
         LocalDate today = LocalDate.now();
         LocalDateTime todayStart = LocalDateTime.of(today, LocalTime.MIDNIGHT);
@@ -256,6 +313,14 @@ public class AiDiaryService {
         if (dailyTotal >= DAILY_LIMIT) throw AiRateLimitException.dailyLimitExceeded();
     }
 
+    /**
+     * [목적] AI 기능 사용 내역을 데이터베이스에 기록한다.
+     * [설명] 사용 횟수 집계의 기준이 되는 레코드를 저장하여 이후 제한 초과 검사에 사용된다.
+     *
+     * @param member     AI를 사용한 회원 엔티티
+     * @param targetDate AI 분석 대상 날짜
+     * @param usageType  사용 유형 (ANALYZE, DAILY, INVENTORY)
+     */
     private void recordUsage(Member member, LocalDate targetDate, String usageType) {
         aiDiaryUsageRepository.save(AiDiaryUsage.builder()
                 .member(member).targetDate(targetDate)
@@ -263,6 +328,13 @@ public class AiDiaryService {
                 .build());
     }
 
+    /**
+     * [목적] 이미지 파일에서 EXIF 메타데이터(촬영 일시, GPS 좌표)를 추출한다.
+     * [설명] metadata-extractor 라이브러리를 사용하며, EXIF가 없거나 파싱 오류 시 null 값으로 반환한다.
+     *
+     * @param file EXIF를 추출할 이미지 파일
+     * @return 촬영 일시, 위도, 경도를 담은 ExifMeta 레코드 (값 없으면 각 필드 null)
+     */
     private ExifMeta extractExif(MultipartFile file) {
         try (InputStream is = file.getInputStream()) {
             Metadata metadata = ImageMetadataReader.readMetadata(is);
@@ -287,6 +359,14 @@ public class AiDiaryService {
         }
     }
 
+    /**
+     * [목적] 반려동물 목록의 특성 정보를 AI 프롬프트용 텍스트로 변환한다.
+     * [설명] 이름, 품종, 성격, 외모, 좋아하는 것, 싫어하는 것, 일기 말투를 한 줄씩 포맷하여
+     *        Gemini가 반려동물의 개성을 일지에 반영할 수 있도록 한다.
+     *
+     * @param pets 프롬프트에 포함할 반려동물 목록
+     * @return 반려동물 특성 설명 텍스트 (비어 있으면 "알 수 없음")
+     */
     private String buildPetContext(List<Pet> pets) {
         if (pets.isEmpty()) return "알 수 없음";
         StringBuilder sb = new StringBuilder();
@@ -303,6 +383,19 @@ public class AiDiaryService {
         return sb.toString().stripTrailing();
     }
 
+    /**
+     * [목적] Gemini에 전달할 이미지 분석 프롬프트를 생성한다.
+     * [설명] 날짜, 반려동물 정보, 사용자 개인 맥락, GPS 좌표, 사용자 키워드를 조합하여
+     *        반려동물 1인칭 일지 형식의 JSON 응답을 요구하는 프롬프트를 반환한다.
+     *
+     * @param targetDate     분석 대상 날짜 (문자열)
+     * @param petContext     반려동물 특성 설명 텍스트
+     * @param userAiContext  사용자가 설정한 개인 AI 맥락 (null 가능)
+     * @param imageFileNames 업로드된 이미지 파일명 목록
+     * @param storedFiles    임시 저장된 파일 정보 (GPS 좌표 포함)
+     * @param userTags       사용자가 직접 입력한 키워드 목록 (null 가능)
+     * @return Gemini에 전달할 완성된 프롬프트 문자열
+     */
     private String buildAnalyzePrompt(String targetDate, String petContext, String userAiContext,
                                       List<String> imageFileNames, List<StoredFileInfo> storedFiles,
                                       List<String> userTags) {
@@ -386,6 +479,13 @@ public class AiDiaryService {
                 gpsSection);
     }
 
+    /**
+     * [목적] Gemini가 반환한 JSON 문자열을 DailyLogResponse 객체로 파싱한다.
+     * [설명] Jackson ObjectMapper를 사용하며, 파싱 실패 시 원본 텍스트를 aiSummary에 담아 반환한다.
+     *
+     * @param aiJson Gemini API가 반환한 JSON 형식의 문자열
+     * @return 파싱된 DailyLogResponse (실패 시 기본값 응답)
+     */
     private DailyLogResponse parseDailyLog(String aiJson) {
         try {
             return objectMapper.readValue(aiJson, DailyLogResponse.class);
@@ -395,5 +495,6 @@ public class AiDiaryService {
         }
     }
 
+    /** 이미지 EXIF에서 추출한 촬영 정보를 담는 내부 레코드 */
     private record ExifMeta(LocalDateTime takenAt, Double latitude, Double longitude) {}
 }

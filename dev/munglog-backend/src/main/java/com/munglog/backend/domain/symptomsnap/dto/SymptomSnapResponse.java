@@ -10,6 +10,24 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 증상 스냅 응답 DTO.
+ * 증상 스냅 정보를 API 응답으로 전달하는 record 클래스.
+ * 연동된 진료 기록 제목과 일정 제목을 함께 포함한다.
+ *
+ * @param id                   증상 스냅 UUID
+ * @param petId                반려동물 UUID
+ * @param date                 증상 관찰 날짜
+ * @param time                 증상 관찰 시각 (HH:mm 형식)
+ * @param symptomTags          증상 태그 목록
+ * @param memo                 메모
+ * @param photoUrl             증상 사진 URL
+ * @param status               처리 상태 (MONITORING / RESOLVED)
+ * @param resolvedRecordId     연동된 진료 기록 UUID
+ * @param resolvedRecordTitle  연동된 진료 기록 제목
+ * @param linkedScheduleId     연동된 일정 UUID
+ * @param linkedScheduleTitle  연동된 일정 제목
+ */
 @Builder
 public record SymptomSnapResponse(
         UUID id,
@@ -25,6 +43,16 @@ public record SymptomSnapResponse(
         UUID linkedScheduleId,
         String linkedScheduleTitle
 ) {
+    /**
+     * [목적] SymptomSnap 엔티티와 부가 정보를 응답 DTO로 변환한다.
+     *
+     * @param snap                 변환할 증상 스냅 엔티티
+     * @param symptomTags          증상 태그 목록
+     * @param photoUrl             증상 사진 URL
+     * @param resolvedRecordTitle  연동된 진료 기록 제목
+     * @param linkedScheduleTitle  연동된 일정 제목
+     * @return 증상 스냅 응답 DTO
+     */
     public static SymptomSnapResponse from(SymptomSnap snap, List<String> symptomTags,
                                             String photoUrl, String resolvedRecordTitle,
                                             String linkedScheduleTitle) {

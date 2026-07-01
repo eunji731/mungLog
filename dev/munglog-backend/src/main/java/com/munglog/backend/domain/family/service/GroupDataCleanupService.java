@@ -23,6 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+/**
+ * 가족 그룹 데이터 일괄 삭제 서비스.
+ * 마지막 구성원이 탈퇴하여 그룹이 해산될 때 그룹에 속한 모든 도메인 데이터를
+ * 외래키 제약 조건을 위반하지 않도록 leaf → root 순서로 삭제한다.
+ * 주요 기능: 그룹 해산 시 연관 데이터 전체 삭제
+ */
 @Service
 @RequiredArgsConstructor
 public class GroupDataCleanupService {
@@ -45,6 +51,15 @@ public class GroupDataCleanupService {
     private final VaccinationAliasRepository vaccinationAliasRepository;
     private final VaccinationTypeRepository vaccinationTypeRepository;
 
+    /**
+     * [목적] 그룹에 속한 모든 도메인 데이터를 삭제한다.
+     * [설명] 외래키 제약을 위반하지 않기 위해 자식 테이블부터 부모 테이블 순으로 삭제한다.
+     *        삭제 순서: Memory 계열 → CareRecord 계열 → Schedule 계열 →
+     *        SymptomSnap 계열 → InventoryItem → Pet → Vaccination 계열
+     *        Memory의 대표 사진 FK는 Photo 삭제 전에 null로 해제한다.
+     *
+     * @param groupId 삭제할 그룹 UUID
+     */
     @Transactional
     public void deleteAllGroupData(UUID groupId) {
         // Memory 계열: leaf → root 순서

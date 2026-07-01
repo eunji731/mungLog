@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 관리자용 문의 관리 컨트롤러.
+ * 관리자가 사용자 문의를 조회하고 답변을 등록하는 API를 제공한다.
+ * 경로: /api/admin/inquiries (ROLE_ADMIN 권한 필요)
+ */
 @Tag(name = "관리자 - 문의", description = "문의 관리 API")
 @RestController
 @RequiredArgsConstructor
@@ -50,6 +55,12 @@ public class InquiryAdminController {
         return ResponseEntity.ok(ApiResponse.success(inquiryService.reply(inquiryId, uuid(user), request)));
     }
 
+    /**
+     * [목적] Spring Security User 객체에서 UUID를 추출한다.
+     *
+     * @param user Spring Security 인증 주체 (username = 사용자 UUID 문자열)
+     * @return 사용자 UUID
+     */
     private UUID uuid(User user) {
         return UUID.fromString(user.getUsername());
     }

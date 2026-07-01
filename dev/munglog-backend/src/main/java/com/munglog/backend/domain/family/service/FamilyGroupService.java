@@ -23,12 +23,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * 가족 그룹 서비스.
+ * 그룹 생성·참여·탈퇴, 초대 코드 관리, 소유권 위임 등 가족 그룹 관련 핵심 비즈니스 로직을 처리한다.
+ * 그룹 탈퇴 또는 합류 시 반려동물·기억·인벤토리 데이터를 적절한 그룹으로 이전한다.
+ * 주요 기능: 그룹 생성, 초대 코드로 참여, 탈퇴, 소유권 위임, 초대 코드 갱신
+ */
 @Service
 @RequiredArgsConstructor
 public class FamilyGroupService {
 
+    /** 초대 코드 생성에 사용할 문자 집합 (혼동하기 쉬운 0, O, 1, I 제외) */
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    /** 초대 코드 길이 */
     private static final int CODE_LENGTH = 8;
+
+    /** 초대 코드 생성용 암호학적으로 안전한 난수 생성기 */
     private final SecureRandom random = new SecureRandom();
 
     private final FamilyGroupRepository familyGroupRepository;
@@ -40,6 +51,17 @@ public class FamilyGroupService {
     private final VaccinationTypeRepository vaccinationTypeRepository;
     private final GroupDataCleanupService groupDataCleanupService;
 
+    /**
+     * [목적] 사용자가 새 가족 그룹을 직접 생성한다.
+     * [설명] 이미 그룹에 속해 있으면 예외를 발생시킨다.
+     *        name이 null이거나 공백이면 "{사용자 이름}의 가족"으로 자동 설정된다.
+     *        생성자는 자동으로 OWNER 역할로 참여한다.
+     *
+     * @param userId 그룹을 생성하는 사용자 UUID
+     * @param name   그룹 이름 (null 허용)
+     * @return 생성된 그룹 응답 DTO
+     * @throws IllegalStateException 이미 다른 그룹에 속해 있을 경우
+     */
     @Transactional
     public FamilyGroupResponse createGroup(UUID userId, String name) {
         if (groupMemberRepository.findByUserId(userId).isPresent()) {
@@ -56,6 +78,14 @@ public class FamilyGroupService {
         return buildResponse(group, GroupRole.OWNER, userId);
     }
 
+    /**
+     * [목적] 신규 회원을 위한 개인 그룹을 자동으로 생성한다.
+     * [설명] OAuth2 로그인 시 신규 회원에게 자동으로 1인 개인 그룹을 부여할 때 호출된다.
+     *        생성된 그룹에 해당 회원이 OWNER로 자동 참여된다.
+     *
+     * @param member 그룹을 생성할 신규 회원 엔티티
+     * @return 생성된 그룹 응답 DTO
+     */
     @Transactional
     public FamilyGroupResponse createGroupForNewMember(Member member) {
         FamilyGroup group = familyGroupRepository.save(
@@ -68,6 +98,17 @@ public class FamilyGroupService {
         return buildResponse(group, GroupRole.OWNER, member.getId());
     }
 
+    /**
+     * [목적] 초대 코드를 입력하여 기존 가족 그룹에 참여한다.
+     * [설명] 현재 개인 그룹(1인)에 속해 있다면 데이터를 대상 그룹으로 이전 후 개인 그룹을 삭제한다.
+     *        다른 구성원이 있는 그룹에 속해 있다면 먼저 탈퇴해야 한다.
+     *
+     * @param userId     참여 요청 사용자 UUID
+     * @param inviteCode 참여할 그룹의 초대 코드
+     * @return 참여한 그룹 응답 DTO
+     * @throws IllegalArgumentException 유효하지 않은 초대 코드인 경우
+     * @throws IllegalStateException    이미 해당 그룹 소속이거나 탈퇴가 필요한 경우
+     */
     @Transactional
     public FamilyGroupResponse joinGroup(UUID userId, String inviteCode) {
         FamilyGroup targetGroup = familyGroupRepository.findByInviteCode(inviteCode.trim().toUpperCase())
@@ -103,6 +144,13 @@ public class FamilyGroupService {
         return buildResponse(targetGroup, GroupRole.MEMBER, userId);
     }
 
+    /**
+     * [목적] 개인 그룹의 모든 데이터를 대상 그룹으로 일괄 이전한다.
+     * [설명] 반려동물, 기억, 인벤토리, 예방접종 데이터의 group_id를 일괄 업데이트한다.
+     *
+     * @param sourceGroupId 이전 원본 그룹 UUID
+     * @param targetGroupId 이전 대상 그룹 UUID
+     */
     private void mergeGroupData(UUID sourceGroupId, UUID targetGroupId) {
         petRepository.bulkMoveToGroup(sourceGroupId, targetGroupId);
         memoryRepository.bulkMoveToGroup(sourceGroupId, targetGroupId);
@@ -110,6 +158,13 @@ public class FamilyGroupService {
         vaccinationTypeRepository.bulkMoveToGroup(sourceGroupId, targetGroupId);
     }
 
+    /**
+     * [목적] 현재 사용자가 속한 가족 그룹 정보를 조회한다.
+     *
+     * @param userId 조회 요청 사용자 UUID
+     * @return 소속 그룹 응답 DTO
+     * @throws IllegalStateException 소속된 그룹이 없는 경우
+     */
     @Transactional(readOnly = true)
     public FamilyGroupResponse getMyGroup(UUID userId) {
         GroupMember gm = groupMemberRepository.findByUserId(userId)
@@ -117,6 +172,14 @@ public class FamilyGroupService {
         return buildResponse(gm.getGroup(), gm.getRole(), userId);
     }
 
+    /**
+     * [목적] 그룹의 초대 코드를 새로운 값으로 갱신한다.
+     * [설명] OWNER만 호출할 수 있으며, 기존 초대 코드는 무효화된다.
+     *
+     * @param userId 요청 사용자 UUID
+     * @return 새로 생성된 초대 코드 문자열
+     * @throws IllegalStateException OWNER가 아닌 경우
+     */
     @Transactional
     public String refreshInviteCode(UUID userId) {
         GroupMember gm = groupMemberRepository.findByUserId(userId)
@@ -130,6 +193,16 @@ public class FamilyGroupService {
         return newCode;
     }
 
+    /**
+     * [목적] 그룹 이름을 수정한다.
+     * [설명] OWNER만 호출 가능하며, 빈 이름은 허용하지 않는다.
+     *
+     * @param userId 요청 사용자 UUID
+     * @param name   변경할 새 그룹 이름
+     * @return 수정된 그룹 응답 DTO
+     * @throws IllegalStateException    OWNER가 아닌 경우
+     * @throws IllegalArgumentException 이름이 비어 있는 경우
+     */
     @Transactional
     public FamilyGroupResponse updateGroupName(UUID userId, String name) {
         GroupMember gm = groupMemberRepository.findByUserId(userId)
@@ -145,6 +218,17 @@ public class FamilyGroupService {
         return buildResponse(gm.getGroup(), gm.getRole(), userId);
     }
 
+    /**
+     * [목적] 그룹 소유권(OWNER 역할)을 다른 구성원에게 위임한다.
+     * [설명] 현재 OWNER의 역할은 MEMBER로 강등되고, 대상 구성원이 OWNER가 된다.
+     *        자기 자신에게는 위임할 수 없다.
+     *
+     * @param userId         현재 OWNER 사용자 UUID
+     * @param newOwnerUserId 새로운 OWNER로 지정할 구성원 UUID
+     * @return 소유권 위임 후 그룹 응답 DTO (현재 사용자 역할은 MEMBER)
+     * @throws IllegalStateException    현재 사용자가 OWNER가 아닌 경우
+     * @throws IllegalArgumentException 자기 자신에게 위임하거나 대상 구성원이 없는 경우
+     */
     @Transactional
     public FamilyGroupResponse transferOwnership(UUID userId, UUID newOwnerUserId) {
         GroupMember currentOwner = groupMemberRepository.findByUserId(userId)
@@ -170,6 +254,17 @@ public class FamilyGroupService {
         return buildResponse(currentOwner.getGroup(), GroupRole.MEMBER, userId);
     }
 
+    /**
+     * [목적] 현재 사용자가 가족 그룹에서 탈퇴한다.
+     * [설명] 탈퇴 시나리오는 두 가지다.
+     *        1) 마지막 구성원: 그룹 데이터 전체 삭제 후 새 개인 그룹 생성.
+     *        2) 다른 구성원 존재: 본인이 등록한 펫·기억만 새 개인 그룹으로 이전.
+     *        OWNER이면서 다른 구성원이 있을 경우 먼저 소유권을 위임해야 한다.
+     *
+     * @param userId 탈퇴 요청 사용자 UUID
+     * @return 탈퇴 후 생성된 새 개인 그룹 응답 DTO
+     * @throws IllegalStateException OWNER이면서 다른 구성원이 있는 경우
+     */
     @Transactional
     public FamilyGroupResponse leaveGroup(UUID userId) {
         GroupMember gm = groupMemberRepository.findByUserId(userId)
@@ -206,21 +301,47 @@ public class FamilyGroupService {
         return createGroupForNewMember(member);
     }
 
+    /**
+     * [목적] 사용자 ID로 소속 그룹 UUID를 반환한다. 그룹이 없으면 예외를 발생시킨다.
+     *
+     * @param userId 조회할 사용자 UUID
+     * @return 소속 그룹 UUID
+     * @throws IllegalStateException 그룹에 미소속인 경우
+     */
     public UUID getGroupIdByUserId(UUID userId) {
         return groupMemberRepository.findGroupIdByUserId(userId)
                 .orElseThrow(() -> new IllegalStateException("소속된 가족 그룹이 없습니다."));
     }
 
+    /**
+     * [목적] 사용자 ID로 소속 그룹 UUID를 Optional로 반환한다. 그룹이 없어도 예외 없이 empty를 반환한다.
+     *
+     * @param userId 조회할 사용자 UUID
+     * @return 소속 그룹 UUID Optional
+     */
     public Optional<UUID> findGroupIdByUserId(UUID userId) {
         return groupMemberRepository.findGroupIdByUserId(userId);
     }
 
+    /**
+     * [목적] 사용자 ID로 소속 FamilyGroup 엔티티를 반환한다.
+     *
+     * @param userId 조회할 사용자 UUID
+     * @return 소속 FamilyGroup 엔티티
+     * @throws IllegalStateException 그룹에 미소속인 경우
+     */
     public FamilyGroup getGroupByUserId(UUID userId) {
         return groupMemberRepository.findByUserId(userId)
                 .map(GroupMember::getGroup)
                 .orElseThrow(() -> new IllegalStateException("소속된 가족 그룹이 없습니다."));
     }
 
+    /**
+     * [목적] 주어진 회원을 그룹의 OWNER로 등록한다.
+     *
+     * @param group  참여할 FamilyGroup 엔티티
+     * @param member OWNER로 등록할 Member 엔티티
+     */
     private void joinAsOwner(FamilyGroup group, Member member) {
         GroupMember gm = GroupMember.builder()
                 .id(new GroupMemberId(group.getId(), member.getId()))
@@ -231,17 +352,40 @@ public class FamilyGroupService {
         groupMemberRepository.save(gm);
     }
 
+    /**
+     * [목적] 그룹 응답 DTO를 조립한다.
+     * [설명] 그룹 엔티티와 요청한 사용자의 역할을 조합하여 FamilyGroupResponse를 생성한다.
+     *
+     * @param group  응답을 생성할 FamilyGroup 엔티티
+     * @param myRole 요청 사용자의 현재 역할
+     * @param userId 요청 사용자 UUID
+     * @return FamilyGroupResponse 인스턴스
+     */
     private FamilyGroupResponse buildResponse(FamilyGroup group, GroupRole myRole, UUID userId) {
         List<GroupMemberResponse> members = groupMemberRepository.findAllByGroupId(group.getId())
                 .stream().map(GroupMemberResponse::from).toList();
         return FamilyGroupResponse.of(group, myRole, members);
     }
 
+    /**
+     * [목적] 사용자 ID로 Member 엔티티를 조회한다.
+     *
+     * @param userId 조회할 사용자 UUID
+     * @return Member 엔티티
+     * @throws IllegalArgumentException 사용자가 존재하지 않는 경우
+     */
     private Member findMember(UUID userId) {
         return memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
+    /**
+     * [목적] 중복되지 않는 초대 코드를 생성한다.
+     * [설명] CODE_CHARS에서 CODE_LENGTH 길이의 랜덤 문자열을 생성하고,
+     *        DB에 이미 존재하면 재생성을 반복한다.
+     *
+     * @return 고유한 초대 코드 문자열
+     */
     private String generateUniqueCode() {
         String code;
         do {

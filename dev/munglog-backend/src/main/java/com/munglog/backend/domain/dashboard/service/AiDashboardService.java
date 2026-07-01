@@ -32,14 +32,26 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * AI 대시보드 리포트 서비스.
+ * Gemini AI를 활용하여 반려동물의 월간 활동 리포트를 생성하고 관리하는 클래스.
+ * 주요 기능: 월간 리포트 조회, AI 리포트 갱신 (하루 최대 3회 제한)
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiDashboardService {
 
+    /** 하루 AI 리포트 갱신 최대 횟수 */
     private static final int DAILY_LIMIT = 3;
+
+    /** AI 사용량 추적을 위한 용도 구분 코드 */
     private static final String USAGE_TYPE = "DASHBOARD";
+
+    /** 연월 포맷터 (예: "2025-07") */
     private static final DateTimeFormatter YEAR_MONTH_FMT = DateTimeFormatter.ofPattern("yyyy-MM");
+
+    /** AI 응답 JSON 파싱용 ObjectMapper */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final GeminiClient geminiClient;
@@ -50,6 +62,16 @@ public class AiDashboardService {
     private final AiDiaryUsageRepository aiDiaryUsageRepository;
     private final FamilyGroupService familyGroupService;
 
+    /**
+     * [목적] 저장된 AI 월간 리포트를 조회한다.
+     * [설명] 이미 생성된 리포트가 있으면 캐시된 결과를 반환한다.
+     *        리포트가 없으면 hasData = false인 응답을 반환한다.
+     *
+     * @param userId    사용자 UUID
+     * @param petId     반려동물 UUID (null이면 전체 기준)
+     * @param yearMonth 조회 연월 (null이면 현재 월)
+     * @return AI 리포트 응답
+     */
     @Transactional(readOnly = true)
     public AiReportResponse getReport(UUID userId, UUID petId, String yearMonth) {
         if (yearMonth == null) yearMonth = LocalDate.now().format(YEAR_MONTH_FMT);
@@ -59,6 +81,18 @@ public class AiDashboardService {
         return AiReportResponse.from(report, countRecords(userId, petId, yearMonth), remainingRefreshCount(userId));
     }
 
+    /**
+     * [목적] Gemini AI를 호출하여 월간 리포트를 새로 생성(갱신)한다.
+     * [설명] 하루 DAILY_LIMIT(3)회를 초과하면 AiRateLimitException이 발생한다.
+     *        기존 리포트가 있으면 내용을 덮어쓰고, 없으면 새로 생성한다.
+     *        AI 호출 기록은 AiDiaryUsage 테이블에 저장된다.
+     *
+     * @param userId    사용자 UUID
+     * @param petId     반려동물 UUID (null이면 전체 기준)
+     * @param yearMonth 조회 연월 (null이면 현재 월)
+     * @return 새로 생성된 AI 리포트 응답
+     * @throws AiRateLimitException 하루 갱신 한도 초과 시 발생
+     */
     @Transactional
     public AiReportResponse refreshReport(UUID userId, UUID petId, String yearMonth) {
         if (yearMonth == null) yearMonth = LocalDate.now().format(YEAR_MONTH_FMT);
@@ -90,6 +124,13 @@ public class AiDashboardService {
         return AiReportResponse.from(report, countRecords(userId, petId, yearMonth), remainingRefreshCount(userId));
     }
 
+    /**
+     * [목적] AI 응답 JSON을 파싱하여 리포트 엔티티에 반영한다.
+     * [설명] JSON 파싱 실패 시 원본 문자열을 monthlyReport에 저장하고 나머지는 null로 처리한다.
+     *
+     * @param report 업데이트할 DashboardReport 엔티티
+     * @param aiJson AI가 반환한 JSON 문자열
+     */
     private void parseAndUpdate(DashboardReport report, String aiJson) {
         try {
             JsonNode root = MAPPER.readTree(aiJson);
@@ -106,11 +147,25 @@ public class AiDashboardService {
         }
     }
 
+    /**
+     * [목적] JsonNode를 JSON 문자열로 변환한다.
+     * [설명] null 또는 null 노드이면 null을 반환한다.
+     *
+     * @param node 변환할 JsonNode
+     * @return JSON 문자열 또는 null
+     */
     private String nodeToString(JsonNode node) {
         if (node == null || node.isNull()) return null;
         return node.toString();
     }
 
+    /**
+     * [목적] AI에게 전달할 리포트 생성 프롬프트를 구성한다.
+     * [설명] JSON 형식의 구조화된 응답을 요청하며, 출력 규칙과 형식을 상세히 지정한다.
+     *
+     * @param context 반려동물 일기 데이터 컨텍스트 문자열
+     * @return 완성된 프롬프트 문자열
+     */
     private String buildPrompt(String context) {
         return """
 반려동물 월간 일기 리포트를 JSON으로 생성해주세요.
@@ -160,13 +215,22 @@ public class AiDashboardService {
 """ + context;
     }
 
+    /**
+     * [목적] AI 프롬프트에 포함할 일기 데이터 컨텍스트를 구성한다.
+     * [설명] 해당 월의 기억(Memory) 목록을 조회하고, 외출 통계·평균 에너지를 계산하여
+     *        텍스트로 요약한다. AI가 통계 수치를 리포트에 반영할 수 있도록 [통계] 섹션을 포함한다.
+     *
+     * @param userId    사용자 UUID
+     * @param petId     반려동물 UUID (null이면 전체 기준)
+     * @param yearMonth 조회 연월
+     * @return 컨텍스트 문자열
+     */
     private String buildContext(UUID userId, UUID petId, String yearMonth) {
         LocalDate start = LocalDate.parse(yearMonth + "-01");
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
         UUID groupId = familyGroupService.getGroupIdByUserId(userId);
         List<Memory> memories = memoryRepository.findWithMomentsByGroupAndDateRange(groupId, start, end);
 
-        // 실제 통계 계산
         List<String> allLocations = new ArrayList<>();
         double totalEnergy = 0;
         int energyCount = 0;
@@ -219,6 +283,16 @@ public class AiDashboardService {
         return sb.toString();
     }
 
+    /**
+     * [목적] 특정 월의 기록(Memory) 수를 반환한다.
+     * [설명] petId가 있으면 해당 반려동물 기준, 없으면 그룹 전체 기준으로 카운트한다.
+     *        조회 실패 시 0을 반환한다.
+     *
+     * @param userId    사용자 UUID
+     * @param petId     반려동물 UUID (null이면 전체)
+     * @param yearMonth 조회 연월
+     * @return 기록 수 (실패 시 0)
+     */
     private int countRecords(UUID userId, UUID petId, String yearMonth) {
         try {
             LocalDate start = LocalDate.parse(yearMonth + "-01");
@@ -233,6 +307,14 @@ public class AiDashboardService {
         }
     }
 
+    /**
+     * [목적] 오늘 남은 AI 리포트 갱신 횟수를 반환한다.
+     * [설명] DAILY_LIMIT(3)에서 오늘 이미 사용한 횟수를 빼서 반환한다.
+     *        음수가 되지 않도록 Math.max(0, ...)를 적용한다.
+     *
+     * @param userId 사용자 UUID
+     * @return 오늘 남은 갱신 횟수 (0 이상)
+     */
     private int remainingRefreshCount(UUID userId) {
         LocalDate today = LocalDate.now();
         long used = aiDiaryUsageRepository.countByMember_IdAndUsageTypeAndCalledAtBetween(

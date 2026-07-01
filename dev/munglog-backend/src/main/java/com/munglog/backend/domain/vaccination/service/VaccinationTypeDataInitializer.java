@@ -14,6 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 예방접종 종류 초기 데이터 설정 컴포넌트.
+ * 애플리케이션 최초 실행 시 전역(글로벌) 예방접종 종류와 별칭 데이터를 DB에 자동 삽입하는 클래스.
+ * 이미 데이터가 존재하면 아무 동작도 하지 않아 중복 등록을 방지한다.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -22,7 +27,10 @@ public class VaccinationTypeDataInitializer implements ApplicationRunner {
     private final VaccinationTypeRepository vaccinationTypeRepository;
     private final VaccinationAliasRepository vaccinationAliasRepository;
 
-    // 전역 기본 접종 종류 (member = null)
+    /**
+     * 전역 기본 접종 종류 목록 (group = null).
+     * 각 항목은 name(접종명), intervalDays(권장 주기), aliases(별칭 목록)로 구성된다.
+     */
     private static final List<Map<String, Object>> DEFAULT_TYPES = List.of(
             Map.of("name", "종합백신(DHPPL)", "intervalDays", 365,
                     "aliases", List.of("DHPPL", "종합백신", "5종백신", "DHPPi")),
@@ -42,12 +50,19 @@ public class VaccinationTypeDataInitializer implements ApplicationRunner {
                     "aliases", List.of("렙토", "Leptospira"))
     );
 
+    /**
+     * [목적] 애플리케이션 시작 시 기본 접종 종류 데이터를 초기화한다.
+     * [설명] 이미 접종 종류 데이터가 존재하면 초기화를 건너뛴다.
+     *        최초 실행 시에만 DEFAULT_TYPES 목록을 저장한다.
+     *
+     * @param args 애플리케이션 실행 인자 (사용하지 않음)
+     */
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         long existingCount = vaccinationTypeRepository.count();
         if (existingCount > 0) {
-            return; // 이미 초기화됨
+            return;
         }
 
         log.info("기본 접종종류 데이터 초기화 시작");

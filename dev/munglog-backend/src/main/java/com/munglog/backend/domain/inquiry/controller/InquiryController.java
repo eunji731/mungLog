@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 사용자용 1:1 문의 컨트롤러.
+ * 문의 작성, 내 문의 조회, 답변 읽음 처리 API를 제공한다.
+ * 경로: /api/inquiries (로그인 필요)
+ */
 @Tag(name = "문의", description = "1:1 문의 API")
 @RestController
 @RequiredArgsConstructor
@@ -46,6 +51,12 @@ public class InquiryController {
         return ResponseEntity.ok(ApiResponse.success(inquiryService.markReplyRead(inquiryId, uuid(user))));
     }
 
+    /**
+     * [목적] Spring Security User 객체에서 UUID를 추출한다.
+     *
+     * @param user Spring Security 인증 주체 (username = 사용자 UUID 문자열)
+     * @return 사용자 UUID
+     */
     private UUID uuid(User user) {
         return UUID.fromString(user.getUsername());
     }
