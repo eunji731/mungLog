@@ -38,6 +38,7 @@ public class FamilyGroupService {
     private final MemoryRepository memoryRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final VaccinationTypeRepository vaccinationTypeRepository;
+    private final GroupDataCleanupService groupDataCleanupService;
 
     @Transactional
     public FamilyGroupResponse createGroup(UUID userId, String name) {
@@ -178,25 +179,31 @@ public class FamilyGroupService {
             throw new IllegalStateException("다른 구성원이 있는 경우 관리자는 탈퇴할 수 없습니다. 관리자를 먼저 위임하세요.");
         }
 
+        UUID oldGroupId = gm.getGroup().getId();
+        boolean isLastMember = groupMemberRepository.countByGroupId(oldGroupId) == 1;
+
         groupMemberRepository.delete(gm);
 
-        if (groupMemberRepository.countByGroupId(gm.getGroup().getId()) == 0) {
-            familyGroupRepository.delete(gm.getGroup());
+        if (isLastMember) {
+            // 마지막 멤버 탈퇴: 그룹 데이터 전체 삭제 후 그룹 삭제
+            groupDataCleanupService.deleteAllGroupData(oldGroupId);
+            familyGroupRepository.deleteById(oldGroupId);
+        } else {
+            // 가족 그룹에서 탈퇴: 본인 펫 + 해당 펫만의 기록을 개인 그룹으로 이전
+            Member member = findMember(userId);
+            FamilyGroupResponse newGroupResponse = createGroupForNewMember(member);
+
+            UUID newGroupId = groupMemberRepository.findGroupIdByUserId(userId)
+                    .orElseThrow(() -> new IllegalStateException("개인 그룹 생성에 실패했습니다."));
+            memoryRepository.bulkMoveMyPetMemories(
+                    oldGroupId.toString(), newGroupId.toString(), userId.toString());
+            petRepository.bulkMoveToGroupByRegisteredBy(userId, newGroupId);
+            return newGroupResponse;
         }
 
-        // 탈퇴 후 개인 그룹 자동 생성
+        // 마지막 멤버 탈퇴 후 빈 개인 그룹 생성
         Member member = findMember(userId);
-        FamilyGroupResponse newGroupResponse = createGroupForNewMember(member);
-
-        // 본인이 등록한 반려동물 + 그 펫에만 연결된 기록을 개인 그룹으로 이전
-        UUID oldGroupId = gm.getGroup().getId();
-        UUID newGroupId = groupMemberRepository.findGroupIdByUserId(userId)
-                .orElseThrow(() -> new IllegalStateException("개인 그룹 생성에 실패했습니다."));
-        memoryRepository.bulkMoveMyPetMemories(
-                oldGroupId.toString(), newGroupId.toString(), userId.toString());
-        petRepository.bulkMoveToGroupByRegisteredBy(userId, newGroupId);
-
-        return newGroupResponse;
+        return createGroupForNewMember(member);
     }
 
     public UUID getGroupIdByUserId(UUID userId) {

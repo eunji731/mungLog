@@ -22,4 +22,8 @@ public interface PetRepository extends JpaRepository<Pet, UUID> {
     @Modifying
     @Query("UPDATE Pet p SET p.group.id = :targetGroupId WHERE p.registeredBy = :userId")
     int bulkMoveToGroupByRegisteredBy(@Param("userId") UUID userId, @Param("targetGroupId") UUID targetGroupId);
+
+    @Modifying
+    @Query("DELETE FROM Pet p WHERE p.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }

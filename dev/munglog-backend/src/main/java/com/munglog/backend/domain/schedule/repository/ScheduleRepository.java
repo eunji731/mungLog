@@ -2,6 +2,7 @@ package com.munglog.backend.domain.schedule.repository;
 
 import com.munglog.backend.domain.schedule.domain.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,4 +26,8 @@ public interface ScheduleRepository extends JpaRepository<Schedule, UUID> {
 
     @Query("SELECT s FROM Schedule s WHERE s.id = :id AND s.pet.group.id = :groupId")
     Optional<Schedule> findByIdAndGroupId(@Param("id") UUID id, @Param("groupId") UUID groupId);
+
+    @Modifying
+    @Query("DELETE FROM Schedule s WHERE s.pet.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }

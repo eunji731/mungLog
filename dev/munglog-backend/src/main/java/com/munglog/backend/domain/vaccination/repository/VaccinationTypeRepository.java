@@ -29,4 +29,8 @@ public interface VaccinationTypeRepository extends JpaRepository<VaccinationType
     @Modifying
     @Query("UPDATE VaccinationType v SET v.group.id = :targetGroupId WHERE v.group.id = :sourceGroupId")
     int bulkMoveToGroup(@Param("sourceGroupId") UUID sourceGroupId, @Param("targetGroupId") UUID targetGroupId);
+
+    @Modifying
+    @Query("DELETE FROM VaccinationType v WHERE v.group IS NOT NULL AND v.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }

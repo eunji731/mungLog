@@ -89,6 +89,8 @@ export default function FamilyMembersSection() {
     }
   };
 
+  const isLastOwner = group?.myRole === 'OWNER' && group?.members?.length === 1;
+
   const handleLeaveClick = () => {
     if (!group) return;
     const isOwner = group.myRole === 'OWNER';
@@ -452,42 +454,71 @@ export default function FamilyMembersSection() {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isBusy && setShowLeaveWarningModal(false)} />
           <div className="relative w-full sm:max-w-sm bg-background rounded-t-3xl sm:rounded-2xl p-6 space-y-5 animate-in slide-in-from-bottom-4 duration-200">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5 text-amber-500" />
+              <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <h3 className="text-base font-black text-text-main">그룹 나가기 전에 확인하세요</h3>
-                <p className="text-[11px] font-medium text-text-sub">탈퇴 후 개인 그룹으로 이동합니다</p>
+                {isLastOwner ? (
+                  <>
+                    <h3 className="text-base font-black text-text-main">⚠️ 주의 — 모든 데이터가 삭제됩니다</h3>
+                    <p className="text-[11px] font-medium text-text-sub">그룹을 나가면 되돌릴 수 없어요</p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-base font-black text-text-main">그룹 나가기 전에 확인하세요</h3>
+                    <p className="text-[11px] font-medium text-text-sub">탈퇴 후 개인 그룹으로 이동합니다</p>
+                  </>
+                )}
               </div>
             </div>
 
-            <div className="space-y-2 text-[12px] font-medium">
-              <p className="text-text-sub font-bold mb-1">함께 이동하는 것</p>
-              <div className="flex items-start gap-2 text-text-main">
-                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
-                <span>내가 등록한 반려동물</span>
+            {isLastOwner ? (
+              <div className="space-y-2 text-[12px] font-medium">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-red-700 leading-relaxed">
+                    그룹에 혼자 남은 상태에서 나가면 그룹이 해체되며 아래 데이터가 <strong>영구 삭제</strong>됩니다.
+                  </p>
+                </div>
+                {[
+                  '반려동물 정보',
+                  '케어기록·일정·증상기록',
+                  '다이어리·아카이브·지도 기록',
+                  '재고·접종 정보',
+                ].map(item => (
+                  <div key={item} className="flex items-start gap-2 text-red-600">
+                    <X className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+                <p className="text-[11px] text-text-sub pt-1">탈퇴 후에는 빈 개인 그룹으로 이동합니다.</p>
               </div>
-              <div className="flex items-start gap-2 text-text-main">
-                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
-                <span>내 반려동물의 케어기록·일정·증상기록</span>
+            ) : (
+              <div className="space-y-2 text-[12px] font-medium">
+                <p className="text-text-sub font-bold mb-1">함께 이동하는 것</p>
+                <div className="flex items-start gap-2 text-text-main">
+                  <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                  <span>내가 등록한 반려동물</span>
+                </div>
+                <div className="flex items-start gap-2 text-text-main">
+                  <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                  <span>내 반려동물의 케어기록·일정·증상기록</span>
+                </div>
+                <div className="flex items-start gap-2 text-text-main">
+                  <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
+                  <span>내 반려동물만 포함된 다이어리·아카이브·지도 기록</span>
+                </div>
+                <div className="border-t border-border/60 my-3" />
+                <p className="text-text-sub font-bold mb-1">가족 그룹에 남는 것</p>
+                <div className="flex items-start gap-2 text-text-sub">
+                  <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <span>가족과 함께한 기록 (여러 반려동물 포함)</span>
+                </div>
+                <div className="flex items-start gap-2 text-text-sub">
+                  <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <span>재고 (공동 관리 물품)</span>
+                </div>
               </div>
-              <div className="flex items-start gap-2 text-text-main">
-                <Check className="w-4 h-4 text-main-green shrink-0 mt-0.5" />
-                <span>내 반려동물만 포함된 다이어리·아카이브·지도 기록</span>
-              </div>
-
-              <div className="border-t border-border/60 my-3" />
-
-              <p className="text-text-sub font-bold mb-1">가족 그룹에 남는 것</p>
-              <div className="flex items-start gap-2 text-text-sub">
-                <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                <span>가족과 함께한 기록 (여러 반려동물 포함)</span>
-              </div>
-              <div className="flex items-start gap-2 text-text-sub">
-                <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                <span>재고 (공동 관리 물품)</span>
-              </div>
-            </div>
+            )}
 
             <div className="flex gap-2 pt-1">
               <button
@@ -500,7 +531,7 @@ export default function FamilyMembersSection() {
                 disabled={isBusy}
                 className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-red-500 text-white font-bold rounded-xl text-sm hover:bg-red-600 disabled:opacity-50 transition-all"
               >
-                {isBusy ? '처리 중...' : (<><LogOut className="w-4 h-4" />그룹 나가기</>)}
+                {isBusy ? '처리 중...' : (<><LogOut className="w-4 h-4" />{isLastOwner ? '삭제하고 나가기' : '그룹 나가기'}</>)}
               </button>
             </div>
           </div>

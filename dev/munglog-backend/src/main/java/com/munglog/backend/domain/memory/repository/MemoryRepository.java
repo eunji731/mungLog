@@ -77,6 +77,14 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID> {
     @Query("UPDATE Memory m SET m.group.id = :targetGroupId WHERE m.group.id = :sourceGroupId")
     int bulkMoveToGroup(@Param("sourceGroupId") UUID sourceGroupId, @Param("targetGroupId") UUID targetGroupId);
 
+    @Modifying
+    @Query("UPDATE Memory m SET m.representativePhoto = null WHERE m.group.id = :groupId")
+    void clearRepresentativePhotosByGroupId(@Param("groupId") UUID groupId);
+
+    @Modifying
+    @Query("DELETE FROM Memory m WHERE m.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
+
     // 내 펫에만 태그된 기록만 이전 (가족 펫과 공유된 기록은 제외)
     @Modifying
     @Query(value = """

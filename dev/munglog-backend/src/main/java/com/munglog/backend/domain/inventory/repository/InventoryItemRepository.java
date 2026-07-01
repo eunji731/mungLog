@@ -17,4 +17,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, UU
     @Modifying
     @Query("UPDATE InventoryItem i SET i.group.id = :targetGroupId WHERE i.group.id = :sourceGroupId")
     int bulkMoveToGroup(@Param("sourceGroupId") UUID sourceGroupId, @Param("targetGroupId") UUID targetGroupId);
+
+    @Modifying
+    @Query("DELETE FROM InventoryItem i WHERE i.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }

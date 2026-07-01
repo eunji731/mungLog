@@ -2,6 +2,7 @@ package com.munglog.backend.domain.memory.repository;
 
 import com.munglog.backend.domain.memory.domain.MemoryMoment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -47,4 +48,8 @@ public interface MemoryMomentRepository extends JpaRepository<MemoryMoment, UUID
 
     @Query("SELECT mm.category, COUNT(mm) FROM MemoryMoment mm WHERE mm.memory.user.id = :userId AND mm.memory.memoryDate BETWEEN :start AND :end GROUP BY mm.category")
     List<Object[]> findCategoryDistribution(@Param("userId") UUID userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Modifying
+    @Query("DELETE FROM MemoryMoment mm WHERE mm.memory.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }

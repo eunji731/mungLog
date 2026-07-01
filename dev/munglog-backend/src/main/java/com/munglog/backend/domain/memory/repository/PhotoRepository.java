@@ -2,6 +2,7 @@ package com.munglog.backend.domain.memory.repository;
 
 import com.munglog.backend.domain.memory.domain.Photo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -68,4 +69,8 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
 
     @Query("SELECT p FROM Photo p WHERE p.pathThumb100 IS NULL AND p.pathOrigin IS NOT NULL")
     List<Photo> findPhotosWithoutThumbnails();
+
+    @Modifying
+    @Query("DELETE FROM Photo p WHERE p.memory.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }

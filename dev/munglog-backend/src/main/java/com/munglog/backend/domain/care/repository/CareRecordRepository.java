@@ -3,6 +3,7 @@ package com.munglog.backend.domain.care.repository;
 import com.munglog.backend.domain.care.domain.CareRecord;
 import com.munglog.backend.domain.care.domain.CareRecordType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -36,4 +37,8 @@ public interface CareRecordRepository extends JpaRepository<CareRecord, UUID> {
                                             @Param("from") LocalDate from);
 
     List<CareRecord> findByVaccinationTypeId(Long vaccinationTypeId);
+
+    @Modifying
+    @Query("DELETE FROM CareRecord c WHERE c.pet.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }

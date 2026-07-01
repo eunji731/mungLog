@@ -2,6 +2,7 @@ package com.munglog.backend.domain.memory.repository;
 
 import com.munglog.backend.domain.memory.domain.PhotoThemeTag;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -40,4 +41,8 @@ public interface PhotoThemeTagRepository extends JpaRepository<PhotoThemeTag, UU
 
     @Query("SELECT DISTINCT pt FROM PhotoThemeTag pt JOIN pt.photo p WHERE p.memory.user.id = :userId AND pt.tag LIKE %:keyword%")
     List<PhotoThemeTag> searchThemesByKeyword(@Param("userId") UUID userId, @Param("keyword") String keyword);
+
+    @Modifying
+    @Query("DELETE FROM PhotoThemeTag pt WHERE pt.photo.memory.group.id = :groupId")
+    void deleteAllByGroupId(@Param("groupId") UUID groupId);
 }
