@@ -13,17 +13,18 @@ import java.util.UUID;
  * 카카오 OAuth2로 가입한 사용자의 정보를 저장하는 JPA 엔티티 클래스.
  * 주요 기능: 프로필 관리, 토큰 관리, 탈퇴/재가입 처리, AI 컨텍스트 관리
  */
-@Entity
-@Table(name = "tb_member")
+@Entity // 이 클래스는 JPA 엔티티라는 뜻
+@Table(name = "tb_member") // 이 엔티티가 연결될 테이블 이름을 지정
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // 기본 생성자, 파라미터 없는 생성자를 자동으로 만들어주는 롬복 어노테이션
+// protected로 막아둔 이유 : 아무 정보 없는 회원 객체를 막 만들지 못하게 하려고
+@AllArgsConstructor // 모든 필드를 파라미터로 받는 생성자를 자동으로 만들어주는 롬복 어노테이션
+@Builder // 객체 만들 때 생성자 대신 .필드명(값) 형태로 조립해서 만들게 해주는 롬복 어노테이션
 public class Member extends BaseTimeEntity {
 
     /** 회원의 고유 식별자 (UUID 자동 생성) */
     @Id
-    @UuidGenerator
+    @UuidGenerator // UUID 값을 자동 생성해주는 Hibernate 어노테이션
     @Column(columnDefinition = "uuid")
     private UUID id;
 
